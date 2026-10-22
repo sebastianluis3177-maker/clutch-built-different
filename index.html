@@ -222,6 +222,19 @@
   #dot{width:1.2rem;height:1.2rem;display:flex;align-items:center;justify-content:center;flex:none}
   #dot span{display:block;width:3px;height:3px;border-radius:50%;background:#3A3A40}
 
+  /* ---------- owner password gate ---------- */
+  #gate{position:fixed;inset:0;z-index:60;background:rgba(5,5,6,.72);display:flex;align-items:center;justify-content:center;padding:1.25rem;opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s linear .25s}
+  #gate.open{opacity:1;visibility:visible;transition:opacity .25s ease}
+  .gate-card{width:100%;max-width:21rem;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:1.8rem 1.6rem;text-align:left}
+  .gate-card h3{font-size:1.2rem;color:var(--paper)}
+  .gate-card p{margin-top:.5rem;font-size:.88rem;color:var(--muted);line-height:1.5}
+  .gate-card input{margin-top:1rem;width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.7rem .85rem;color:var(--paper);font:inherit;font-size:.95rem}
+  .gate-card input:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
+  .gate-err{min-height:1.3rem;margin-top:.55rem;font-size:.85rem;color:var(--danger)}
+  .gate-actions{display:flex;gap:.6rem;margin-top:1rem}
+  #gate-go{flex:1;background:var(--paper);color:var(--ink);font-family:'Archivo',sans-serif;font-weight:800;border-radius:8px;padding:.8rem}
+  #gate-cancel{border:1px solid var(--line);border-radius:8px;padding:.8rem 1.1rem;font-family:'Archivo',sans-serif;font-weight:700;color:var(--muted)}
+
   /* ---------- owner editor ---------- */
   #panel{position:fixed;top:0;right:0;height:100dvh;width:100%;max-width:24rem;z-index:55;background:var(--panel-2);border-left:1px solid var(--line);padding:1.5rem;overflow-y:auto;transform:translateX(105%);visibility:hidden;transition:transform .3s ease,visibility 0s linear .3s}
   #panel.open{transform:none;visibility:visible;transition:transform .3s ease}
@@ -484,6 +497,20 @@ Drop 01 is 30 pairs. No restocks. Never re-run. If you get one, you're part of t
 </footer>
 </div>
 
+<!-- Owner password gate -->
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title" aria-hidden="true">
+  <form class="gate-card" id="gate-form" novalidate>
+    <h3 class="display" id="gate-title">Owner Access</h3>
+    <p>Enter the password to open the live editor.</p>
+    <input type="password" id="gate-pw" autocomplete="current-password" aria-label="Password" placeholder="Password">
+    <p class="gate-err" id="gate-err" role="alert"></p>
+    <div class="gate-actions">
+      <button type="submit" id="gate-go">Unlock editor</button>
+      <button type="button" id="gate-cancel">Cancel</button>
+    </div>
+  </form>
+</div>
+
 <!-- Owner editor -->
 <aside id="panel" aria-label="Live editor">
   <div class="panel-head"><h3 class="display">Live Editor</h3><button id="panel-x" aria-label="Close editor">&times;</button></div>
@@ -626,8 +653,35 @@ Drop 01 is 30 pairs. No restocks. Never re-run. If you get one, you're part of t
     $('#f-about').value=$('[data-e=about]').textContent.trim();
     $('#f-lock').checked=buy.dataset.lock==='1';
   }
-  $('#dot').addEventListener('click',function(){sync();panel.classList.add('open')});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')panel.classList.remove('open')});
+  /* ----- Password gate on the footer dot ----- */
+  var OWNER_PW='stella445', ownerAuthed=false;
+  var gate=$('#gate'), gatePw=$('#gate-pw'), gateErr=$('#gate-err');
+  function openGate(){
+    gateErr.textContent='';gatePw.value='';
+    gate.classList.add('open');gate.setAttribute('aria-hidden','false');
+    setTimeout(function(){gatePw.focus()},60);
+  }
+  function closeGate(){
+    gate.classList.remove('open');gate.setAttribute('aria-hidden','true');
+  }
+  $('#dot').addEventListener('click',function(){
+    if(ownerAuthed){sync();panel.classList.add('open')}
+    else openGate();
+  });
+  $('#gate-form').addEventListener('submit',function(e){
+    e.preventDefault();
+    if(gatePw.value===OWNER_PW){
+      ownerAuthed=true;closeGate();sync();panel.classList.add('open');
+    }else{
+      gateErr.textContent='Wrong password — try again.';
+      gatePw.select();
+    }
+  });
+  $('#gate-cancel').addEventListener('click',closeGate);
+  gate.addEventListener('click',function(e){if(e.target===gate)closeGate()});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){panel.classList.remove('open');closeGate()}
+  });
   $('#panel-x').addEventListener('click',function(){panel.classList.remove('open')});
 
   /* ----- Live editing ----- */
