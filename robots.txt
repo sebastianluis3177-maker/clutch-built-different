@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://clutchbuiltdifferent.com/sitemap.xml
