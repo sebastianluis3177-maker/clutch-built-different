@@ -43,7 +43,8 @@
       "foundingLocation": { "@type": "Place", "name": "New York City, NY" },
       "sameAs": [
         "https://www.instagram.com/clutchny1/",
-        "https://www.tiktok.com/@clutchnewyork6"
+        "https://www.tiktok.com/@clutchnewyork6",
+        "https://www.snapchat.com/@clutchny1"
       ]
     },
     {
@@ -300,21 +301,9 @@
   #dot{width:1.2rem;height:1.2rem;display:flex;align-items:center;justify-content:center;flex:none}
   #dot span{display:block;width:3px;height:3px;border-radius:50%;background:#3A3A40}
 
-  /* ---------- owner password gate ---------- */
-  #gate{position:fixed;inset:0;z-index:60;background:rgba(5,5,6,.72);display:flex;align-items:center;justify-content:center;padding:1.25rem;opacity:0;visibility:hidden;transition:opacity .25s ease,visibility 0s linear .25s}
-  #gate.open{opacity:1;visibility:visible;transition:opacity .25s ease}
-  .gate-card{width:100%;max-width:21rem;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:1.8rem 1.6rem;text-align:left}
-  .gate-card h3{font-size:1.2rem;color:var(--paper)}
-  .gate-card p{margin-top:.5rem;font-size:.88rem;color:var(--muted);line-height:1.5}
-  .gate-card input{margin-top:1rem;width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.7rem .85rem;color:var(--paper);font:inherit;font-size:.95rem}
-  .gate-card input:focus-visible{outline:2px solid var(--paper);outline-offset:2px}
-  .gate-err{min-height:1.3rem;margin-top:.55rem;font-size:.85rem;color:var(--danger)}
-  .gate-actions{display:flex;gap:.6rem;margin-top:1rem}
-  #gate-go{flex:1;background:var(--paper);color:var(--ink);font-family:'Archivo',sans-serif;font-weight:800;border-radius:8px;padding:.8rem}
-  #gate-cancel{border:1px solid var(--line);border-radius:8px;padding:.8rem 1.1rem;font-family:'Archivo',sans-serif;font-weight:700;color:var(--muted)}
-
   /* ---------- owner editor ---------- */
   #panel{position:fixed;top:0;right:0;height:100dvh;width:100%;max-width:24rem;z-index:55;background:var(--panel-2);border-left:1px solid var(--line);padding:1.5rem;overflow-y:auto;transform:translateX(105%);visibility:hidden;transition:transform .3s ease,visibility 0s linear .3s}
+  #panel[hidden]{display:none}
   #panel.open{transform:none;visibility:visible;transition:transform .3s ease}
   @media (prefers-reduced-motion:reduce){#panel{transition:none}}
   .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.4rem}
@@ -555,6 +544,10 @@ Drop 01 is 30 pairs. No restocks. Never re-run. If you get one, you're part of t
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.6 6.3a4.8 4.8 0 0 1-3.5-4.6H12.6v13.9a2.9 2.9 0 1 1-2-2.7V9.2a6.4 6.4 0 1 0 5.5 6.3V8.6a8.3 8.3 0 0 0 4.7 1.5V6.6a4.8 4.8 0 0 1-1.2-.3z"/></svg>
           @clutchnewyork6
         </a>
+        <a class="social-btn" href="https://www.snapchat.com/@clutchny1" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8c-3.7 0-6.4 2.9-6.4 6.9 0 1.6.5 3 1.3 4.2-.5.4-1.1.7-1.9.8-.4 0-.6.3-.5.6.1.5.8 1 1.6 1.2.5.1 1 .1 1.5.1-.2.4-.3.9-.4 1.4-.1.4.2.7.6.7.5 0 1-.2 1.5-.2.6 0 1.1.2 1.6.7.4.3.9.5 1.4.5s1-.2 1.4-.5c.5-.5 1-.7 1.6-.7.5 0 1 .2 1.5.2.4 0 .7-.3.6-.7-.1-.5-.2-1-.4-1.4.5 0 1 0 1.5-.1.8-.2 1.5-.7 1.6-1.2.1-.3-.1-.6-.5-.6-.8-.1-1.4-.4-1.9-.8.8-1.2 1.3-2.6 1.3-4.2 0-4-2.7-6.9-6.4-6.9z"/></svg>
+          Snapchat · @clutchny1
+        </a>
       </div>
     </div>
   </div>
@@ -564,28 +557,14 @@ Drop 01 is 30 pairs. No restocks. Never re-run. If you get one, you're part of t
 <footer class="site">
   <div class="footer-in">
     <span>&copy; 2026 CLUTCH — Built Different · Drop 01 · New York City</span>
-    <span><a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.tiktok.com/@clutchnewyork6" target="_blank" rel="noopener">TikTok</a> · <a href="#shop">Shop</a></span>
+    <span><a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.tiktok.com/@clutchnewyork6" target="_blank" rel="noopener">TikTok</a> · <a href="https://www.snapchat.com/@clutchny1" target="_blank" rel="noopener">Snapchat</a> · <a href="#shop">Shop</a></span>
     <button id="dot" aria-label="Owner access"><span></span></button>
   </div>
 </footer>
 </div>
 
-<!-- Owner password gate -->
-<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title" aria-hidden="true">
-  <form class="gate-card" id="gate-form" novalidate>
-    <h3 class="display" id="gate-title">Owner Access</h3>
-    <p>Enter the password to open the live editor.</p>
-    <input type="password" id="gate-pw" autocomplete="current-password" aria-label="Password" placeholder="Password">
-    <p class="gate-err" id="gate-err" role="alert"></p>
-    <div class="gate-actions">
-      <button type="submit" id="gate-go">Unlock editor</button>
-      <button type="button" id="gate-cancel">Cancel</button>
-    </div>
-  </form>
-</div>
-
 <!-- Owner editor -->
-<aside id="panel" aria-label="Live editor">
+<aside id="panel" aria-label="Live editor" hidden>
   <div class="panel-head"><h3 class="display">Live Editor</h3><button id="panel-x" aria-label="Close editor">&times;</button></div>
   <div class="panel-fields">
     <label>Story headline<input type="text" id="f-headline"></label>
@@ -717,7 +696,18 @@ Drop 01 is 30 pairs. No restocks. Never re-run. If you get one, you're part of t
 
   /* ----- Owner editor (footer dot). Edits are local to this page
      view only; Export downloads the updated file. ----- */
-  var panel=$('#panel');
+  var panel=$('#panel'), panelTimer=null;
+  function openPanel(){
+    clearTimeout(panelTimer);
+    panel.hidden=false;
+    void panel.offsetWidth; /* reflow so the slide-in transition runs */
+    panel.classList.add('open');
+  }
+  function closePanel(){
+    panel.classList.remove('open');
+    clearTimeout(panelTimer);
+    panelTimer=setTimeout(function(){panel.hidden=true},340);
+  }
   function sync(){
     $('#f-headline').value=$('[data-e=headline]').textContent.trim();
     var b=$('[data-e=banner]');$('#f-banner').value=b?b.textContent.trim():'';
@@ -726,36 +716,16 @@ Drop 01 is 30 pairs. No restocks. Never re-run. If you get one, you're part of t
     $('#f-about').value=$('[data-e=about]').textContent.trim();
     $('#f-lock').checked=buy.dataset.lock==='1';
   }
-  /* ----- Password gate on the footer dot ----- */
-  var OWNER_PW='stella445', ownerAuthed=false;
-  var gate=$('#gate'), gatePw=$('#gate-pw'), gateErr=$('#gate-err');
-  function openGate(){
-    gateErr.textContent='';gatePw.value='';
-    gate.classList.add('open');gate.setAttribute('aria-hidden','false');
-    setTimeout(function(){gatePw.focus()},60);
-  }
-  function closeGate(){
-    gate.classList.remove('open');gate.setAttribute('aria-hidden','true');
-  }
-  $('#dot').addEventListener('click',function(){
-    if(ownerAuthed){sync();panel.classList.add('open')}
-    else openGate();
-  });
-  $('#gate-form').addEventListener('submit',function(e){
-    e.preventDefault();
-    if(gatePw.value===OWNER_PW){
-      ownerAuthed=true;closeGate();sync();panel.classList.add('open');
-    }else{
-      gateErr.textContent='Wrong password — try again.';
-      gatePw.select();
-    }
-  });
-  $('#gate-cancel').addEventListener('click',closeGate);
-  gate.addEventListener('click',function(e){if(e.target===gate)closeGate()});
+  /* ----- Owner editor opens from the footer dot. There is no
+     password check: a credential verified in client code can be
+     read or brute-forced out of the shipped page, so it protected
+     nothing. The editor is local-only anyway — edits live in this
+     page view and Export downloads the updated file. ----- */
+  $('#dot').addEventListener('click',function(){sync();openPanel()});
   document.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){panel.classList.remove('open');closeGate()}
+    if(e.key==='Escape')closePanel();
   });
-  $('#panel-x').addEventListener('click',function(){panel.classList.remove('open')});
+  $('#panel-x').addEventListener('click',closePanel);
 
   /* ----- Live editing ----- */
   $('#f-headline').addEventListener('input',function(e){$('[data-e=headline]').textContent=e.target.value});
@@ -769,7 +739,7 @@ Drop 01 is 30 pairs. No restocks. Never re-run. If you get one, you're part of t
   $('#export').addEventListener('click',function(){
     var c=document.documentElement.cloneNode(true);
     var gEl=c.querySelector('#grid');if(gEl)gEl.innerHTML='';
-    var p=c.querySelector('#panel');if(p)p.classList.remove('open');
+    var p=c.querySelector('#panel');if(p){p.classList.remove('open');p.setAttribute('hidden','')}
     c.querySelectorAll('.size-btn').forEach(function(b){b.classList.remove('sel');b.setAttribute('aria-pressed','false')});
     var sm=c.querySelector('#size-msg');if(sm)sm.textContent='';
     var sc=c.querySelector('#size-chart');if(sc)sc.classList.remove('open');
