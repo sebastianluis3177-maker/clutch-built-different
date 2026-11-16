@@ -25,6 +25,8 @@
 
 <div class="field"><label>Your name / Instagram @</label><input id="co-buyer" type="text" placeholder="@yourhandle" required></div>
 <div class="field"><label>Your email (for your order + tracking)</label><input id="co-email" type="email" placeholder="you@email.com" required></div>
+<div class="field"><label>Referred by @ (optional — who sent you?)</label><input id="co-ref" type="text" placeholder="@their-IG"></div>
+<div class="field"><label>Anything we should know? (optional)</label><input id="co-note" type="text" placeholder="e.g. it is a gift, leave it with the doorman"></div>
 
 <div class="field"><label>How do you want it?</label>
 <select id="co-ship">
@@ -125,7 +127,12 @@ $('checkout-form').addEventListener('submit', async e => {
   const t = total();
   const orderText = 'CLUTCH Drop 01 — ' + buyer + ' — size ' + size + ' — ' + (ship === 'pickup' ? 'NYC pickup' : 'ship to ' + address) + ' — $' + t.total.toFixed(2);
   // save as Pending in Supabase so admin sees it (fire-and-forget — never block checkout on it)
-  if (typeof fetch === 'function') fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ buyer: buyer + ' (' + email + ')', size, pay: 'Greenlight', total: t.total, status: 'Pending', address }) }).catch(() => {});
+  if (typeof fetch === 'function') {
+    const orderRow = { buyer: buyer + ' (' + email + ')', size, pay: 'Greenlight', total: t.total, status: 'Pending', address, note: $('co-note').value.trim(), ref: $('co-ref').value.trim().replace(/^@/, '') };
+    fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(orderRow) })
+      .then(r => { if (!r.ok) return fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ buyer: orderRow.buyer, size, pay: 'Greenlight', total: t.total, status: 'Pending', address }) }); })
+      .catch(() => {});
+  }
   $('checkout-form').hidden = true;
   $('co-done').hidden = false;
   $('co-done-text').textContent = orderText + '. Now pay $' + t.total.toFixed(2) + ' on Greenlight — it opens in a new tab.';

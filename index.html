@@ -272,6 +272,10 @@ section,.nav{background-color:transparent}
     <h3>Sales by day</h3>
     <div id="owner-sales-chart" class="fine"></div>
     <div id="owner-payouts"></div>
+    <p class="fine" id="owner-daily-goal"></p>
+    <div id="owner-stuck"></div>
+    <div id="owner-calendar"></div>
+    <div id="owner-referrals"></div>
     <p class="fine" id="owner-breakeven"></p>
     <div id="owner-vip"></div>
     <div id="owner-size-report" class="fine"></div>
@@ -377,6 +381,17 @@ First paid, first served.
 
 — CLUTCH, Built Different</pre>
     <p><button class="btn ghost" type="button" id="owner-email-copy">Copy email draft</button></p>
+    <h3>Quick replies — the 10 questions everyone asks (tap to copy)</h3>
+    <p><button class="btn ghost" type="button" data-quick-reply="Orders ship within 2-3 days of the drop — USPS Ground Advantage, about $8-11. You will get tracking in your DMs.">When does it ship?</button>
+    <button class="btn ghost" type="button" data-quick-reply="Pay $35 total via Greenlight (link in bio / checkout) — your parent approves it. Cash App in the DM is the backup.">How do I pay?</button>
+    <button class="btn ghost" type="button" data-quick-reply="Yes — premium mesh, UES map print, made in our first run of 30.">Is it real mesh?</button>
+    <button class="btn ghost" type="button" data-quick-reply="True to size — check the size chart on the site. S 29 in, M 31 in, L 33 in, XL 35 in waist.">What size should I get?</button>
+    <button class="btn ghost" type="button" data-quick-reply="All sales are final — no returns, no refunds.">Can I return it?</button>
+    <button class="btn ghost" type="button" data-quick-reply="Send the exact total shown at checkout. Wrong amount = no refund and your shorts do not ship.">I sent the wrong amount</button>
+    <button class="btn ghost" type="button" data-quick-reply="Check the size picker on the site — sold out sizes say SOLD OUT. Join the waitlist for that size and you will hear first if one comes back.">Is my size sold out?</button>
+    <button class="btn ghost" type="button" data-quick-reply="US only for Drop 01.">Do you ship outside the US?</button>
+    <button class="btn ghost" type="button" data-quick-reply="No date yet — join the waitlist on the site and you will hear first.">When is Drop 002?</button>
+    <button class="btn ghost" type="button" data-quick-reply="Yes — free NYC pickup, Fri Nov 27 6-8pm, Sat 12-4pm, or Sun 12-4pm. Pick your slot at checkout.">Can I pick up in NYC?</button></p>
     <h3>DM reply templates — tap to copy</h3>
     <p><button class="btn ghost" type="button" data-tpl="paid">You're in — pay $35</button>
     <button class="btn ghost" type="button" data-tpl="soldout">Size sold out</button>
@@ -436,6 +451,9 @@ First paid, first served.
     <p class="fine">Cost per pair $ <input id="cost-perPair" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Shipping per order $ <input id="cost-shipping" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Other costs $ <input id="cost-other" type="number" min="0" step="0.01" style="width:5rem"> <button class="btn ghost" type="button" id="owner-cost-save">Save costs</button></p>
     <p class="fine">Defaults: $10 per pair ($300 ÷ 30) and ~$9 shipping per order (USPS Ground Advantage estimate — change it once you print real labels).</p>
     <p class="fine">Tax set-aside % <input id="owner-tax-pct" type="number" min="0" max="100" step="1" value="15" style="width:4rem"> <button class="btn ghost" type="button" id="owner-tax-save">Save</button></p>
+    <h3>What if… calculator</h3>
+    <p class="fine">Try a different price and see the profit: $ <input id="owner-whatif-price" type="number" min="0" step="1" value="35" style="width:4.5rem"> × <input id="owner-whatif-pairs" type="number" min="0" max="30" step="1" value="30" style="width:4rem"> pairs <button class="btn ghost" type="button" id="owner-whatif-go">Run it</button></p>
+    <p class="fine" id="owner-whatif-out"></p>
     <h3>Expense log</h3>
     <form id="expense-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
       <input id="expense-label" type="text" placeholder="What did you spend on? e.g. bags" style="flex:2;min-width:160px">
@@ -501,6 +519,7 @@ First paid, first served.
     </div>
     <p class="fine" id="size-msg">Tap a size, then hit buy — your DM will say which size you want.</p>
     <p class="fine" id="stock-left">30 of 30 left.</p>
+    <p id="size-waitlist"></p>
     <p class="fine">30 pieces total. All sales final. No restocks. <a href="/track.html">Track your order →</a></p>
   </div>
 </section>
@@ -519,6 +538,13 @@ Name: [your name]</pre>
   <button class="btn buy live" id="copy-order" type="button">Copy order DM</button>
   <p class="fine" id="copy-msg">Then open Instagram and paste it in a DM to @clutchny1.</p>
   <p><a class="btn ghost" href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">Open @clutchny1 to send it</a></p>
+</section>
+
+<section id="ogs" class="ogs">
+  <p class="eyebrow">First 10</p>
+  <h2>The OGs.</h2>
+  <p class="lede">The first 10 people to buy Drop 01 — their names live here forever.</p>
+  <div id="ogs-wall"><p class="fine">Loading…</p></div>
 </section>
 
 <section id="sizes" class="sizes">
@@ -786,6 +812,7 @@ if (acctForm) acctForm.addEventListener('submit', async e => {
     refreshAccountUI();
 sbSyncCheck();
 countVisit();
+loadOGs();
   } catch (err) { msg.className = 'msg err'; msg.textContent = 'Signup failed: ' + (err && err.message ? err.message : 'network error — try again.'); }
 });
 const acctLogin = $('account-login');
@@ -996,7 +1023,7 @@ if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
 });
 
 const OWNER_KEY = 'clutch-admin-v1';
-const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {} };
+const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {} };
 function loadOwner() {
   try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
   catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
@@ -1059,8 +1086,9 @@ function renderOwner() {
   const asEl = $('owner-assignments');
   if (asEl) {
     const as = d.assignments || [];
-    asEl.innerHTML = as.length ? as.map((a, i) => `<div style="margin:.3rem 0"><input type="checkbox" data-assign-done="${i}" ${a.done ? 'checked' : ''}> <b>${a.who}</b> — ${a.done ? '<s>' + a.text + '</s>' : a.text}</div>`).join('') : 'No tasks assigned yet.';
+    asEl.innerHTML = as.length ? as.map((a, i) => `<div style="margin:.3rem 0"><input type="checkbox" data-assign-done="${i}" ${a.done ? 'checked' : ''}> <b>${a.who}</b> — ${a.done ? '<s>' + a.text + '</s>' : a.text} ${a.claimedBy ? `<span class="fine">👀 ${a.claimedBy} is on it</span>` : `<button class="btn ghost" type="button" data-assign-claim="${i}">I'm on it</button>`}</div>`).join('') : 'No tasks assigned yet.';
     asEl.querySelectorAll('[data-assign-done]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); dd.assignments[+c.dataset.assignDone].done = c.checked; saveOwner(dd); renderOwner(); }));
+    asEl.querySelectorAll('[data-assign-claim]').forEach(b => b.addEventListener('click', () => { const dd = loadOwner(); dd.assignments[+b.dataset.assignClaim].claimedBy = dd.assignments[+b.dataset.assignClaim].who; saveOwner(dd); renderOwner(); }));
   }
   const ntEl = $('owner-notes');
   if (ntEl) {
@@ -1104,6 +1132,32 @@ function renderOwner() {
     const margin = 35 - (+costs.perPair || 0) - (+costs.shipping || 0);
     const need = margin > 0 ? Math.max(0, Math.ceil(fixed / margin) - sold.length) : 0;
     beEl.innerHTML = fixed <= 0 ? '🎯 Every sale is profit — no fixed costs logged yet.' : (need === 0 ? `🎯 You're past break-even — every pair from here is +$${margin.toFixed(2)} profit.` : `🎯 Break-even: <b>${need} more pair${need === 1 ? '' : 's'}</b> until the drop is in profit (fixed costs $${fixed.toFixed(2)} ÷ $${margin.toFixed(2)} per pair).`);
+  }
+  const dgEl = $('owner-daily-goal');
+  if (dgEl) {
+    const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
+    const days = Math.max(1, Math.ceil((new Date('2026-12-01T00:00:00').getTime() - Date.now()) / 864e5));
+    dgEl.innerHTML = left === 0 ? '🎯 Sold out — every pair is gone.' : `🎯 Daily goal: sell <b>${Math.ceil(left / days)} a day</b> and you're sold out by Dec 1 (${left} left, ${days} days).`;
+  }
+  const stEl = $('owner-stuck');
+  if (stEl) {
+    const yest = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+    const stuck = d.orders.filter(o => (o.status || 'Paid') === 'Pending' && o.at && o.at <= yest);
+    stEl.innerHTML = stuck.length ? `<div style="background:#3a1d1d;border:1px solid #ff8a7a;border-radius:8px;padding:.6rem;margin:.4rem 0">🚨 STUCK PAYMENT${stuck.length > 1 ? 'S' : ''} — ${stuck.map(o => o.buyer + ' (' + o.size + ', since ' + o.at + ')').join(', ')} — ping your parent to approve the Greenlight payment.</div>` : '';
+  }
+  const calEl = $('owner-calendar');
+  if (calEl) {
+    const items = [['Mon Nov 24', 'Test-pack one pair + weigh it'], ['Tue Nov 25', 'Print all labels on Pirate Ship'], ['Wed Nov 26', 'Thanksgiving — prep day, no school'], ['Fri Nov 27 6PM', 'DROP DAY — go live, watch orders come in'], ['Sat Nov 28', 'Ship day 1 — post office run'], ['Sun Nov 29', 'Ship day 2 — mark everything Shipped']];
+    const cc = d.calendarChecks || {};
+    calEl.innerHTML = '<h3>📅 Drop week</h3>' + items.map((it, i) => `<label style="display:block;margin:.3rem 0"><input type="checkbox" data-calcheck="${i}" ${cc[i] ? 'checked' : ''}> <b>${it[0]}</b> — ${cc[i] ? '<s>' + it[1] + '</s>' : it[1]}</label>`).join('');
+    calEl.querySelectorAll('[data-calcheck]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); if (!dd.calendarChecks) dd.calendarChecks = {}; dd.calendarChecks[+c.dataset.calcheck] = c.checked; saveOwner(dd); renderOwner(); }));
+  }
+  const rfEl = $('owner-referrals');
+  if (rfEl) {
+    const byRef = {};
+    d.orders.forEach(o => { if (o.ref) byRef[o.ref] = (byRef[o.ref] || 0) + 1; });
+    const top = Object.entries(byRef).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    rfEl.innerHTML = top.length ? '<h3>🏆 Referral leaderboard</h3>' + top.map(([r, n], i) => `<div>${i === 0 ? '🥇' : (i + 1) + '.'} <b>${r}</b> — ${n} buyer${n === 1 ? '' : 's'}${i === 0 ? ' — top referrer gets a free pair' : ''}</div>`).join('') : '<p class="fine">No referrals yet — buyers can put who sent them at checkout.</p>';
   }
   const vipEl = $('owner-vip');
   if (vipEl) {
@@ -1191,11 +1245,12 @@ function renderOwner() {
         const dup = d.orders.filter(x => x.buyer === o.buyer).length > 1;
         const flagged = (d.flagged || []).includes(o.buyer);
         const hist = (o.history || []).slice(-2).map(h => `<span class="fine">${h.at} — ${h.text}</span>`).join('<br>');
-        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. <b>${o.buyer}</b>${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}${hist ? '<br>' + hist : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}</div>`;
+        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. <b>${o.buyer}</b>${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''}${((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}${hist ? '<br>' + hist : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}</div>`;
       }).join('');
       ordersEl.querySelectorAll('[data-order-status]').forEach(b => b.addEventListener('click', () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus];
         o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Underpaid' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid';
+        if (o.status === 'Delivered') { try { navigator.clipboard.writeText(`Your CLUTCH Drop 01 shorts were delivered 🙏 thank you for supporting — you're officially one of the first 30. Wear them well. — @clutchny1`).then(() => { const m = $('owner-msg'); if (m) m.textContent = 'Delivered! Thank-you DM copied — paste it to ' + o.buyer + '.'; }).catch(() => {}); } catch (_) {} }
         if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ ' + o.status });
         saveOwner(dd); renderOwner();
       }));
@@ -1289,6 +1344,28 @@ function syncSizePicker(d) {
     const span = b.querySelector('span');
     if (span) span.textContent = n === 0 ? 'SOLD OUT' : n <= 2 ? `ALMOST GONE — ${n} left` : `${n} pcs · ${{ S: '29″', M: '31″', L: '33″', XL: '35″' }[b.dataset.size]}`;
   });
+  const leftEl = $('stock-left');
+  const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
+  if (leftEl) leftEl.textContent = left === 30 ? '30 of 30 left — nobody has bought yet. Be first.' : `${30 - left} of 30 gone — ${left} left.`;
+  const swEl = $('size-waitlist');
+  if (swEl) {
+    const soldOut = ['S', 'M', 'L', 'XL'].filter(s => d.stock[s] === 0);
+    swEl.innerHTML = soldOut.length ? soldOut.map(s => `<button class="btn ghost" type="button" data-wait-size="${s}">Size ${s} sold out — join the ${s} waitlist</button>`).join(' ') : '';
+    swEl.querySelectorAll('[data-wait-size]').forEach(b => b.addEventListener('click', () => {
+      const sel = $('waitlist-size'); if (sel) sel.value = b.dataset.waitSize;
+      const sec = $('waitlist'); if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+      const em = $('waitlist-email'); if (em) em.focus();
+    }));
+  }
+}
+// First 10 buyers wall — real OGs from Supabase orders
+async function loadOGs() {
+  const el = $('ogs-wall');
+  if (!el) return;
+  const rows = await sbGet('clutch_orders', '?select=buyer,created_at&order=created_at.asc&limit=50');
+  if (!rows) { el.innerHTML = '<p class="fine">The OG wall loads once orders sync.</p>'; return; }
+  const ogs = rows.filter(o => (o.status || 'Paid') !== 'Cancelled' && (o.status || 'Paid') !== 'Refunded').slice(0, 10);
+  el.innerHTML = ogs.length ? ogs.map((o, i) => `<div>${i + 1}. <b>${o.buyer.split(' (')[0]}</b></div>`).join('') : '<p class="fine">No buyers yet — the first 10 get their name right here.</p>';
 }
 syncSizePicker();
 // Admin tabs — a whole dashboard inside the same site, no new website
@@ -1469,6 +1546,20 @@ if (moneyForm) moneyForm.addEventListener('submit', e => {
   logActivity(`Money entry — ${label} $${amount.toFixed(2)}`);
   saveOwner(d); renderOwner(); moneyForm.reset();
 });
+const whatifBtn = $('owner-whatif-go');
+if (whatifBtn) whatifBtn.addEventListener('click', () => {
+  const d = loadOwner();
+  const price = parseFloat(($('owner-whatif-price').value || '35')) || 35;
+  const pairs = parseInt(($('owner-whatif-pairs').value || '30'), 10) || 30;
+  const costs = d.costs || { perPair: 10, shipping: 9, other: 0 };
+  const expTotal = (d.expenses || []).reduce((a, x) => a + (+x.amount || 0), 0);
+  const profit = price * pairs - pairs * ((+costs.perPair || 0) + (+costs.shipping || 0)) - (+costs.other || 0) - expTotal;
+  const el = $('owner-whatif-out');
+  if (el) el.innerHTML = 'At <b>$' + price.toFixed(2) + '</b> × ' + pairs + ' pairs: revenue $' + (price * pairs).toFixed(2) + ' — profit <b>$' + profit.toFixed(2) + '</b> ($' + (profit / pairs).toFixed(2) + ' per pair).';
+});
+document.querySelectorAll('[data-quick-reply]').forEach(b => b.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(b.dataset.quickReply); const m = $('owner-msg'); if (m) m.textContent = 'Quick reply copied — paste it in the DM.'; } catch (_) {}
+}));
 const taxSave = $('owner-tax-save');
 if (taxSave) taxSave.addEventListener('click', () => { const d = loadOwner(); const v = parseFloat(($('owner-tax-pct').value || '15')); if (!isNaN(v) && v >= 0 && v <= 100) d.taxPct = v; saveOwner(d); renderOwner(); });
 const weeklyBtn = $('owner-weekly-report');

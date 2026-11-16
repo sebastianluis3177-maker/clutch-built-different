@@ -15,4 +15,46 @@
 <p class="fine light">Below-knee, oversized, premium mesh. Green all around, cream OG logo low on one leg, one Anthora cup low on the opposite leg. Brick waistband, Greek key hem. All the drop info lives inside the shorts — nothing on the outside but the design.</p>
 <p class="fine light">No date. No price. No full design until it's ready.</p>
 <p><a class="btn buy live" href="/#waitlist">Join the waitlist →</a> <a class="btn ghost" href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">First look on @clutchny1</a></p>
-</main></body></html>
+<section style="margin-top:2rem;border-top:1px solid #2a4a3a;padding-top:1.5rem">
+<h3 style="font-size:1.4rem">Vote: next colorway?</h3>
+<p class="fine light">Drop 002 is green + cream. What should come after it?</p>
+<p><button class="btn ghost" type="button" data-vote="colorway" data-choice="Brick red">🧱 Brick red</button>
+<button class="btn ghost" type="button" data-vote="colorway" data-choice="All black">⬛ All black</button>
+<button class="btn ghost" type="button" data-vote="colorway" data-choice="Cream">🤍 All cream</button>
+<button class="btn ghost" type="button" data-vote="colorway" data-choice="Navy">💙 Navy</button></p>
+<p class="fine light" id="vote-colorway">Loading votes…</p>
+<h3 style="font-size:1.4rem;margin-top:1.5rem">Should Drop 01 come back?</h3>
+<p><button class="btn ghost" type="button" data-vote="restock" data-choice="Yes">Yes — restock it</button>
+<button class="btn ghost" type="button" data-vote="restock" data-choice="No">No — keep it 1 of 30</button></p>
+<p class="fine light" id="vote-restock">Loading votes…</p>
+</section>
+</main>
+<script>
+const SB_URL='https://fgnuaxhujvxkfzzcvdqf.supabase.co', SB_KEY='sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz';
+async function loadVotes(kind){
+  const el=document.getElementById('vote-'+kind); if(!el) return;
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/clutch_votes?select=choice&kind=eq.'+kind,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    if(!r.ok) throw 0;
+    const rows=await r.json(); const counts={};
+    rows.forEach(x=>{counts[x.choice]=(counts[x.choice]||0)+1});
+    const total=rows.length;
+    el.textContent=total?Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(kv=>kv[0]+': '+kv[1]+' ('+Math.round(kv[1]/total*100)+'%)').join(' · '):'No votes yet — be the first.';
+  }catch(e){
+    const local=JSON.parse(localStorage.getItem('clutch-votes-'+kind)||'[]');
+    el.textContent=local.length?('Votes on this device: '+local.join(', ')+' (syncs once the new SQL is run)'):'No votes yet — be the first.';
+  }
+}
+document.querySelectorAll('[data-vote]').forEach(b=>b.addEventListener('click',async()=>{
+  const kind=b.dataset.vote, choice=b.dataset.choice;
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/clutch_votes',{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({kind,choice})});
+    if(!r.ok) throw 0;
+  }catch(e){
+    const k='clutch-votes-'+kind, local=JSON.parse(localStorage.getItem(k)||'[]'); local.push(choice); localStorage.setItem(k,JSON.stringify(local));
+  }
+  loadVotes(kind);
+}));
+loadVotes('colorway'); loadVotes('restock');
+</script>
+</body></html>

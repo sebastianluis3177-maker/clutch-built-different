@@ -202,6 +202,10 @@ section,.nav{background-color:transparent}
 <h3>Sales by day</h3>
 <div id="owner-sales-chart" class="fine"></div>
 <div id="owner-payouts"></div>
+<p class="fine" id="owner-daily-goal"></p>
+<div id="owner-stuck"></div>
+<div id="owner-calendar"></div>
+<div id="owner-referrals"></div>
 <p class="fine" id="owner-breakeven"></p>
 <div id="owner-vip"></div>
 <div id="owner-size-report" class="fine"></div>
@@ -267,6 +271,17 @@ Pick your size, DM @clutchny1, then pay $35 via Greenlight: https://gl.me/u/qqMv
 Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
 — CLUTCH, Built Different</pre>
 <p><button class="btn ghost" type="button" id="owner-email-copy">Copy email draft</button></p>
+<h3>Quick replies — the 10 questions everyone asks (tap to copy)</h3>
+<p><button class="btn ghost" type="button" data-quick-reply="Orders ship within 2-3 days of the drop — USPS Ground Advantage, about $8-11. You will get tracking in your DMs.">When does it ship?</button>
+<button class="btn ghost" type="button" data-quick-reply="Pay $35 total via Greenlight (link in bio / checkout) — your parent approves it. Cash App in the DM is the backup.">How do I pay?</button>
+<button class="btn ghost" type="button" data-quick-reply="Yes — premium mesh, UES map print, made in our first run of 30.">Is it real mesh?</button>
+<button class="btn ghost" type="button" data-quick-reply="True to size — check the size chart on the site. S 29 in, M 31 in, L 33 in, XL 35 in waist.">What size should I get?</button>
+<button class="btn ghost" type="button" data-quick-reply="All sales are final — no returns, no refunds.">Can I return it?</button>
+<button class="btn ghost" type="button" data-quick-reply="Send the exact total shown at checkout. Wrong amount = no refund and your shorts do not ship.">I sent the wrong amount</button>
+<button class="btn ghost" type="button" data-quick-reply="Check the size picker on the site — sold out sizes say SOLD OUT. Join the waitlist for that size and you will hear first if one comes back.">Is my size sold out?</button>
+<button class="btn ghost" type="button" data-quick-reply="US only for Drop 01.">Do you ship outside the US?</button>
+<button class="btn ghost" type="button" data-quick-reply="No date yet — join the waitlist on the site and you will hear first.">When is Drop 002?</button>
+<button class="btn ghost" type="button" data-quick-reply="Yes — free NYC pickup, Fri Nov 27 6-8pm, Sat 12-4pm, or Sun 12-4pm. Pick your slot at checkout.">Can I pick up in NYC?</button></p>
 <h3>DM reply templates — tap to copy</h3>
 <p><button class="btn ghost" type="button" data-tpl="paid">You're in — pay $35</button>
 <button class="btn ghost" type="button" data-tpl="soldout">Size sold out</button>
@@ -292,6 +307,9 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
 <p class="fine">Cost per pair $ <input id="cost-perPair" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Shipping per order $ <input id="cost-shipping" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Other costs $ <input id="cost-other" type="number" min="0" step="0.01" style="width:5rem"> <button class="btn ghost" type="button" id="owner-cost-save">Save costs</button></p>
 <p class="fine">Defaults: $10 per pair ($300 ÷ 30) and ~$9 shipping per order (USPS Ground Advantage estimate — change it once you print real labels).</p>
 <p class="fine">Tax set-aside % <input id="owner-tax-pct" type="number" min="0" max="100" step="1" value="15" style="width:4rem"> <button class="btn ghost" type="button" id="owner-tax-save">Save</button></p>
+<h3>What if… calculator</h3>
+<p class="fine">Try a different price and see the profit: $ <input id="owner-whatif-price" type="number" min="0" step="1" value="35" style="width:4.5rem"> × <input id="owner-whatif-pairs" type="number" min="0" max="30" step="1" value="30" style="width:4rem"> pairs <button class="btn ghost" type="button" id="owner-whatif-go">Run it</button></p>
+<p class="fine" id="owner-whatif-out"></p>
 <h3>Expense log</h3>
 <form id="expense-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="expense-label" type="text" placeholder="What did you spend on? e.g. bags" style="flex:2;min-width:160px"><input id="expense-amount" type="number" min="0" step="0.01" placeholder="$" style="width:6rem"><button class="btn buy live" type="submit">Add expense</button></form>
 <p class="fine" id="expense-list"></p></div>
@@ -329,7 +347,7 @@ const OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com']
 const $ = id => document.getElementById(id);
 const OWNER_KEY = 'clutch-admin-v1';
 const ACCT_KEY = 'clutch-owner-acct-v1';
-const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {} };
+const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {} };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
@@ -388,8 +406,9 @@ function renderOwner() {
   var asEl = $('owner-assignments');
   if (asEl) {
     var as = d.assignments || [];
-    asEl.innerHTML = as.length ? as.map(function (a, i) { return '<div style="margin:.3rem 0"><input type="checkbox" data-assign-done="' + i + '" ' + (a.done ? 'checked' : '') + '> <b>' + a.who + '</b> — ' + (a.done ? '<s>' + a.text + '</s>' : a.text) + '</div>'; }).join('') : 'No tasks assigned yet.';
+    asEl.innerHTML = as.length ? as.map(function (a, i) { return '<div style="margin:.3rem 0"><input type="checkbox" data-assign-done="' + i + '" ' + (a.done ? 'checked' : '') + '> <b>' + a.who + '</b> — ' + (a.done ? '<s>' + a.text + '</s>' : a.text) + ' ' + (a.claimedBy ? '<span class="fine">👀 ' + a.claimedBy + ' is on it</span>' : '<button class="btn ghost" type="button" data-assign-claim="' + i + '">I\'m on it</button>') + '</div>'; }).join('') : 'No tasks assigned yet.';
     asEl.querySelectorAll('[data-assign-done]').forEach(function (c) { c.addEventListener('change', function () { const dd = loadOwner(); dd.assignments[+c.dataset.assignDone].done = c.checked; saveOwner(dd); renderOwner(); }); });
+    asEl.querySelectorAll('[data-assign-claim]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); dd.assignments[+b.dataset.assignClaim].claimedBy = dd.assignments[+b.dataset.assignClaim].who; saveOwner(dd); renderOwner(); }); });
   }
   var ntEl = $('owner-notes');
   if (ntEl) {
@@ -422,6 +441,32 @@ function renderOwner() {
     var margin = 35 - (+costsP.perPair || 0) - (+costsP.shipping || 0);
     var need = margin > 0 ? Math.max(0, Math.ceil(fixed / margin) - soldP.length) : 0;
     beEl.innerHTML = fixed <= 0 ? '🎯 Every sale is profit — no fixed costs logged yet.' : (need === 0 ? '🎯 You\'re past break-even — every pair from here is +$' + margin.toFixed(2) + ' profit.' : '🎯 Break-even: <b>' + need + ' more pair' + (need === 1 ? '' : 's') + '</b> until the drop is in profit (fixed costs $' + fixed.toFixed(2) + ' ÷ $' + margin.toFixed(2) + ' per pair).');
+  }
+  var dgEl = $('owner-daily-goal');
+  if (dgEl) {
+    var leftN = Object.values(d.stock).reduce(function (a, b) { return a + b; }, 0);
+    var days = Math.max(1, Math.ceil((new Date('2026-12-01T00:00:00').getTime() - Date.now()) / 864e5));
+    dgEl.innerHTML = leftN === 0 ? '🎯 Sold out — every pair is gone.' : '🎯 Daily goal: sell <b>' + Math.ceil(leftN / days) + ' a day</b> and you are sold out by Dec 1 (' + leftN + ' left, ' + days + ' days).';
+  }
+  var stEl = $('owner-stuck');
+  if (stEl) {
+    var yest = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+    var stuck = d.orders.filter(function (o) { return (o.status || 'Paid') === 'Pending' && o.at && o.at <= yest; });
+    stEl.innerHTML = stuck.length ? '<div style="background:#3a1d1d;border:1px solid #ff8a7a;border-radius:8px;padding:.6rem;margin:.4rem 0">🚨 STUCK PAYMENT' + (stuck.length > 1 ? 'S' : '') + ' — ' + stuck.map(function (o) { return o.buyer + ' (' + o.size + ', since ' + o.at + ')'; }).join(', ') + ' — ping your parent to approve the Greenlight payment.</div>' : '';
+  }
+  var calEl = $('owner-calendar');
+  if (calEl) {
+    var items = [['Mon Nov 24', 'Test-pack one pair + weigh it'], ['Tue Nov 25', 'Print all labels on Pirate Ship'], ['Wed Nov 26', 'Thanksgiving — prep day, no school'], ['Fri Nov 27 6PM', 'DROP DAY — go live, watch orders come in'], ['Sat Nov 28', 'Ship day 1 — post office run'], ['Sun Nov 29', 'Ship day 2 — mark everything Shipped']];
+    var cc = d.calendarChecks || {};
+    calEl.innerHTML = '<h3>📅 Drop week</h3>' + items.map(function (it, i) { return '<label style="display:block;margin:.3rem 0"><input type="checkbox" data-calcheck="' + i + '" ' + (cc[i] ? 'checked' : '') + '> <b>' + it[0] + '</b> — ' + (cc[i] ? '<s>' + it[1] + '</s>' : it[1]) + '</label>'; }).join('');
+    calEl.querySelectorAll('[data-calcheck]').forEach(function (c) { c.addEventListener('change', function () { const dd = loadOwner(); if (!dd.calendarChecks) dd.calendarChecks = {}; dd.calendarChecks[+c.dataset.calcheck] = c.checked; saveOwner(dd); renderOwner(); }); });
+  }
+  var rfEl = $('owner-referrals');
+  if (rfEl) {
+    var byRef = {};
+    d.orders.forEach(function (o) { if (o.ref) byRef[o.ref] = (byRef[o.ref] || 0) + 1; });
+    var top = Object.entries(byRef).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 5);
+    rfEl.innerHTML = top.length ? '<h3>🏆 Referral leaderboard</h3>' + top.map(function (kv, i) { return '<div>' + (i === 0 ? '🥇' : (i + 1) + '.') + ' <b>' + kv[0] + '</b> — ' + kv[1] + ' buyer' + (kv[1] === 1 ? '' : 's') + (i === 0 ? ' — top referrer gets a free pair' : '') + '</div>'; }).join('') : '<p class="fine">No referrals yet — buyers can put who sent them at checkout.</p>';
   }
   var vipEl = $('owner-vip');
   if (vipEl) {
@@ -500,9 +545,9 @@ function renderOwner() {
       var dup = d.orders.filter(function (x) { return x.buyer === o.buyer; }).length > 1;
       var flagged = (d.flagged || []).indexOf(o.buyer) !== -1;
       var hist = (o.history || []).slice(-2).map(function (h) { return '<span class="fine">' + h.at + ' — ' + h.text + '</span>'; }).join('<br>');
-      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">' + (i + 1) + '. <b>' + o.buyer + '</b>' + (flagged ? ' 🚩' : '') + (dup ? ' ⚠️ ordered twice' : '') + ((o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : '') + ' — ' + o.size + ' — ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + ' — <b>' + (o.status || 'Paid') + '</b> <span class="fine">profit ' + (op >= 0 ? '+' : '−') + '$' + Math.abs(op).toFixed(2) + '</span>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + (o.note ? '<br>📝 ' + o.note : '') + (hist ? '<br>' + hist : '') + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button> <button class="btn ghost" type="button" data-order-note="' + i + '">Note</button> <button class="btn ghost" type="button" data-order-slip="' + i + '">Print slip</button> <button class="btn ghost" type="button" data-order-ship="' + i + '">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="' + i + '">' + (flagged ? 'Unflag' : 'Flag') + '</button>' + (canCancel ? ' <button class="btn ghost" type="button" data-order-cancel="' + i + '">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="' + i + '">Refund</button>' : '') + '</div>';
+      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">' + (i + 1) + '. <b>' + o.buyer + '</b>' + (flagged ? ' 🚩' : '') + (dup ? ' ⚠️ ordered twice' : '') + ((o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : '') + (((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : '') + ' — ' + o.size + ' — ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + ' — <b>' + (o.status || 'Paid') + '</b> <span class="fine">profit ' + (op >= 0 ? '+' : '−') + '$' + Math.abs(op).toFixed(2) + '</span>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + (o.note ? '<br>📝 ' + o.note : '') + (hist ? '<br>' + hist : '') + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button> <button class="btn ghost" type="button" data-order-note="' + i + '">Note</button> <button class="btn ghost" type="button" data-order-slip="' + i + '">Print slip</button> <button class="btn ghost" type="button" data-order-ship="' + i + '">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="' + i + '">' + (flagged ? 'Unflag' : 'Flag') + '</button>' + (canCancel ? ' <button class="btn ghost" type="button" data-order-cancel="' + i + '">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="' + i + '">Refund</button>' : '') + '</div>';
     }).join('');
-    el.querySelectorAll('[data-order-status]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus]; o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Underpaid' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ ' + o.status }); saveOwner(dd); renderOwner(); }); });
+    el.querySelectorAll('[data-order-status]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus]; o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Underpaid' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ ' + o.status }); saveOwner(dd); renderOwner(); if (o.status === 'Delivered') { try { navigator.clipboard.writeText('Your CLUTCH Drop 01 shorts were delivered 🙏 thank you for supporting — you are officially one of the first 30. Wear them well. — @clutchny1').then(function () { $('owner-msg').textContent = 'Delivered! Thank-you DM copied — paste it to ' + o.buyer + '.'; }).catch(function () {}); } catch (e) {} } }); });
     el.querySelectorAll('[data-order-ship]').forEach(function (b) { b.addEventListener('click', async function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderShip]; try { await navigator.clipboard.writeText(o.address || ''); } catch (e) {} window.open('https://www.pirateship.com', '_blank'); $('owner-msg').textContent = 'Address copied — paste it into Pirate Ship to buy the label.'; }); });
     el.querySelectorAll('[data-order-flag]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); if (!dd.flagged) dd.flagged = []; const o = dd.orders[+b.dataset.orderFlag]; dd.flagged = dd.flagged.indexOf(o.buyer) !== -1 ? dd.flagged.filter(function (x) { return x !== o.buyer; }) : dd.flagged.concat([o.buyer]); saveOwner(dd); renderOwner(); }); });
     el.querySelectorAll('[data-order-tracking]').forEach(function (b) { b.addEventListener('click', function () { const t = prompt('Tracking number:'); if (t === null) return; const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner(); }); });
@@ -674,6 +719,17 @@ $('owner-tpl-form').addEventListener('submit', function (e) {
   d.templates.push({ label: label, text: text });
   saveOwner(d); renderOwner(); e.target.reset();
 });
+$('owner-whatif-go').addEventListener('click', function () {
+  const d = loadOwner();
+  const price = parseFloat(($('owner-whatif-price').value || '35')) || 35;
+  const pairs = parseInt(($('owner-whatif-pairs').value || '30'), 10) || 30;
+  const costs = d.costs || { perPair: 10, shipping: 9, other: 0 };
+  const expTotal = (d.expenses || []).reduce(function (a, x) { return a + (+x.amount || 0); }, 0);
+  const profit = price * pairs - pairs * ((+costs.perPair || 0) + (+costs.shipping || 0)) - (+costs.other || 0) - expTotal;
+  const el = $('owner-whatif-out');
+  if (el) el.innerHTML = 'At <b>$' + price.toFixed(2) + '</b> × ' + pairs + ' pairs: revenue $' + (price * pairs).toFixed(2) + ' — profit <b>$' + profit.toFixed(2) + '</b> ($' + (profit / pairs).toFixed(2) + ' per pair).';
+});
+document.querySelectorAll('[data-quick-reply]').forEach(function (b) { b.addEventListener('click', async function () { try { await navigator.clipboard.writeText(b.dataset.quickReply); $('owner-msg').textContent = 'Quick reply copied — paste it in the DM.'; } catch (e) {} }); });
 $('owner-login-form').addEventListener('submit', async function (e) {
   e.preventDefault();
   let acct = null; try { acct = JSON.parse(localStorage.getItem(ACCT_KEY) || 'null'); } catch (err) {}
