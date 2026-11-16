@@ -209,7 +209,6 @@ section,.nav{background-color:transparent}
 <p class="fine" id="owner-visits"></p>
 <div id="owner-dropcheck"></div>
 <p><button class="btn ghost" type="button" id="owner-go-live">📣 Copy "we're live" post</button> <button class="btn ghost" type="button" id="owner-soldout-post">Copy sold-out post</button></p>
-<p><button class="btn ghost" type="button" id="owner-killswitch">Close all sales (kill switch)</button></p>
       <p class="fine" id="owner-sync-status">Supabase sync: checking…</p>
       <div id="owner-chart" class="fine"></div>
 <p class="fine">Drop 01 — Nov 27, 6PM ET · $25 + shipping ($35 total) · 30 pieces · No restocks · All sales final</p>
@@ -330,7 +329,7 @@ const OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com']
 const $ = id => document.getElementById(id);
 const OWNER_KEY = 'clutch-admin-v1';
 const ACCT_KEY = 'clutch-owner-acct-v1';
-const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, salesClosed: false };
+const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {} };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
@@ -442,8 +441,6 @@ function renderOwner() {
     dcEl.innerHTML = '<h3>📋 Drop-day checklist — Nov 27</h3>' + items.map(function (it, i) { return '<label style="display:block;margin:.3rem 0"><input type="checkbox" data-dropcheck="' + i + '" ' + (dc[i] ? 'checked' : '') + '> ' + (dc[i] ? '<s>' + it + '</s>' : it) + '</label>'; }).join('');
     dcEl.querySelectorAll('[data-dropcheck]').forEach(function (c) { c.addEventListener('change', function () { const dd = loadOwner(); if (!dd.dropChecklist) dd.dropChecklist = {}; dd.dropChecklist[+c.dataset.dropcheck] = c.checked; saveOwner(dd); renderOwner(); }); });
   }
-  var ksBtn = $('owner-killswitch');
-  if (ksBtn) ksBtn.textContent = d.salesClosed ? '🔴 SALES ARE CLOSED — tap to reopen' : 'Close all sales (kill switch)';
   sb.from('clutch_waitlist').select('size').then(function (r) {
     var el = $('owner-drop002-count');
     if (!el) return;
@@ -650,10 +647,6 @@ $('owner-go-live').addEventListener('click', async function () {
 });
 $('owner-soldout-post').addEventListener('click', async function () {
   try { await navigator.clipboard.writeText('SOLD OUT. Thank you NYC 🙏\nAll 30 pairs of Drop 01 are gone. Drop 02 is coming — join the waitlist at clutchbuiltdifferent.com/drop002.html\n#CLUTCH #BuiltDifferent'); $('owner-msg').textContent = 'Sold-out post copied.'; } catch (e) {}
-});
-$('owner-killswitch').addEventListener('click', function () {
-  const d = loadOwner(); d.salesClosed = !d.salesClosed; saveOwner(d); renderOwner();
-  sb.from('clutch_settings').upsert({ key: 'sales_closed', value: d.salesClosed ? 'true' : 'false' }).then(function () {});
 });
 $('owner-assign-form').addEventListener('submit', function (e) {
   e.preventDefault();

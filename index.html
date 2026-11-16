@@ -279,7 +279,6 @@ section,.nav{background-color:transparent}
     <p class="fine" id="owner-visits"></p>
     <div id="owner-dropcheck"></div>
     <p><button class="btn ghost" type="button" id="owner-go-live">📣 Copy "we're live" post</button> <button class="btn ghost" type="button" id="owner-soldout-post">Copy sold-out post</button></p>
-    <p><button class="btn ghost" type="button" id="owner-killswitch">Close all sales (kill switch)</button></p>
     <p class="fine">Drop 01 — Nov 27, 6PM ET · $25 + shipping ($35 total) · 30 pieces · No restocks · All sales final</p>
     <p class="fine">Quick links: <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">IG DMs — @clutchny1</a> · <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Greenlight pay link</a> · <a href="https://clutchbuiltdifferent.com/" target="_blank" rel="noopener">Live site</a></p>
   </div>
@@ -786,7 +785,6 @@ if (acctForm) acctForm.addEventListener('submit', async e => {
     msg.className = 'msg ok'; msg.textContent = 'Account made — check your email to confirm it, then log in.';
     refreshAccountUI();
 sbSyncCheck();
-checkSalesClosed();
 countVisit();
   } catch (err) { msg.className = 'msg err'; msg.textContent = 'Signup failed: ' + (err && err.message ? err.message : 'network error — try again.'); }
 });
@@ -998,7 +996,7 @@ if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
 });
 
 const OWNER_KEY = 'clutch-admin-v1';
-const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, salesClosed: false };
+const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {} };
 function loadOwner() {
   try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
   catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
@@ -1125,8 +1123,6 @@ function renderOwner() {
     dcEl.innerHTML = '<h3>📋 Drop-day checklist — Nov 27</h3>' + items.map((it, i) => `<label style="display:block;margin:.3rem 0"><input type="checkbox" data-dropcheck="${i}" ${dc[i] ? 'checked' : ''}> ${dc[i] ? '<s>' + it + '</s>' : it}</label>`).join('');
     dcEl.querySelectorAll('[data-dropcheck]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); if (!dd.dropChecklist) dd.dropChecklist = {}; dd.dropChecklist[+c.dataset.dropcheck] = c.checked; saveOwner(dd); renderOwner(); }));
   }
-  const ksBtn = $('owner-killswitch');
-  if (ksBtn) ksBtn.textContent = d.salesClosed ? '🔴 SALES ARE CLOSED — tap to reopen' : 'Close all sales (kill switch)';
   // Drop 002 waitlist counter + visitor counter (Supabase; silent if tables missing)
   sbGet('clutch_waitlist', '?select=size').then(rows => {
     const el = $('owner-drop002-count');
@@ -1274,16 +1270,7 @@ function renderOwner() {
 }
 // Size picker follows admin stock: 0 left = sold out (disabled), 2 or fewer = low stock warning.
 // Note: stock lives on this device only until Supabase sync — visitors see the default stock.
-// sales kill switch + visitor counter (Supabase-backed; degrade gracefully if tables don't exist yet)
-async function checkSalesClosed() {
-  const rows = await sbGet('clutch_settings', '?select=value&key=eq.sales_closed');
-  if (rows && rows[0] && rows[0].value === 'true') { applySalesClosed(); return; }
-  try { const d = loadOwner(); if (d.salesClosed) applySalesClosed(); } catch (_) {}
-}
-function applySalesClosed() {
-  const buy = document.getElementById('buy');
-  if (buy) { buy.textContent = 'Sales closed'; buy.removeAttribute('href'); buy.style.opacity = '.5'; buy.style.pointerEvents = 'none'; }
-}
+// visitor counter (Supabase-backed; degrade gracefully if the table doesn't exist yet)
 async function countVisit() {
   const rows = await sbGet('clutch_stats', '?select=visits&id=eq.1');
   const n = (rows && rows[0]) ? (rows[0].visits || 0) + 1 : 1;
@@ -1525,13 +1512,6 @@ const soldOutBtn = $('owner-soldout-post');
 if (soldOutBtn) soldOutBtn.addEventListener('click', async () => {
   const txt = `SOLD OUT. Thank you NYC 🙏\nAll 30 pairs of Drop 01 are gone. Drop 02 is coming — join the waitlist at clutchbuiltdifferent.com/drop002.html\n#CLUTCH #BuiltDifferent`;
   try { await navigator.clipboard.writeText(txt); const m = $('owner-msg'); if (m) m.textContent = 'Sold-out post copied.'; } catch (_) {}
-});
-const ksBtn2 = $('owner-killswitch');
-if (ksBtn2) ksBtn2.addEventListener('click', () => {
-  const d = loadOwner(); d.salesClosed = !d.salesClosed; saveOwner(d);
-  logActivity(d.salesClosed ? 'Sales CLOSED (kill switch)' : 'Sales reopened');
-  if (sbSyncOn) { fetch(`${SUPABASE_URL}/rest/v1/clutch_settings`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify({ key: 'sales_closed', value: d.salesClosed ? 'true' : 'false' }) }).catch(() => {}); }
-  renderOwner();
 });
 const assignForm = $('owner-assign-form');
 if (assignForm) assignForm.addEventListener('submit', e => {

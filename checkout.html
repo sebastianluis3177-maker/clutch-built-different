@@ -134,13 +134,4 @@ $('checkout-form').addEventListener('submit', async e => {
   window.open(GREENLIGHT, '_blank');
 });
 renderSummary();
-// if sales are closed (kill switch in admin), shut the form down
-if (typeof fetch === 'function') try {
-  fetch(SB_URL + '/rest/v1/clutch_settings?select=value&key=eq.sales_closed', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } })
-    .then(r => r.json()).then(rows => {
-      if (rows && rows[0] && rows[0].value === 'true') {
-        document.getElementById('checkout-form').innerHTML = '<h3>Sales are closed.</h3><p class="lede">Drop 01 is sold out or sales are paused right now. Join the waitlist and DM @clutchny1 if you need anything.</p><p><a class="btn buy live" href="/drop002.html">Join the Drop 002 waitlist →</a></p>';
-      }
-    }).catch(() => {});
-} catch (_) {}
 </script></body></html>
