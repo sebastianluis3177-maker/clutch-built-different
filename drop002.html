@@ -15,6 +15,8 @@
 .d2-notify-form{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem}
 .d2-notify-form input{flex:1;min-width:200px;padding:.7rem;border:1px solid var(--line);border-radius:8px;background:#111;color:var(--ink)}
 .d2-notify-form .btn{width:auto;margin:0}
+.d2-preview-banner{background:#ffb86b;color:#1a1a1a;font-weight:800;text-align:center;padding:.7rem 1rem;border-radius:10px;margin:0 0 1rem;font-size:.9rem}
+.d2-preview-banner a{color:#1a1a1a;text-decoration:underline}
 /* --- 6-train intro --- */
 #d2-intro{position:fixed;inset:0;z-index:60;background:#0b0b0b;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;transition:opacity .6s;padding:1rem}
 #d2-intro.gone{opacity:0;pointer-events:none}
@@ -55,6 +57,7 @@
 </div>
 <header class="nav"><a class="logo" href="/">CLUTCH</a><nav><a href="/">Home</a><a href="/track.html">Track order</a></nav></header>
 <main class="d2" style="max-width:800px;margin:0 auto;padding:2rem 1rem">
+<p class="d2-preview-banner" id="d2-preview-banner" hidden>PREVIEW — only you can see this. Buyers still see Coming soon. <a href="/drop002.html">Exit preview</a></p>
 <p class="eyebrow light">Drop 002 · Form 001</p>
 <p class="six">6</p>
 <h2>Lexington Ave Local.</h2>
@@ -137,8 +140,31 @@ async function d2LoadStock002(){
     return '<div class="sb-row"><b style="width:1.6rem">'+s+'</b><div class="sb-track"><div class="sb-fill" style="width:'+pct+'%;background:'+col+'"></div></div><span>'+(n===0?'SOLD OUT':n+' left')+'</span></div>';
   }).join('');
 }
+/* --- owner preview: ?preview=1 shows the full preorder experience, owners only --- */
+var OWNER_EMAILS=['sebastianluis3177@gmail.com','gallegos.s445@icloud.com'];
+async function d2OwnerEmail(){
+  try{
+    var raw=localStorage.getItem('sb-fgnuaxhujvxkfzzcvdqf-auth-token');
+    if(!raw) return null;
+    var tok=JSON.parse(raw), at=tok && tok.access_token;
+    if(!at) return null;
+    var r=await fetch(SB_URL+'/auth/v1/user',{headers:{apikey:SB_KEY,Authorization:'Bearer '+at}});
+    if(!r.ok) return null;
+    var u=await r.json();
+    return (u && u.email)||null;
+  }catch(e){ return null; }
+}
 async function d2Gate(){
   var status=document.getElementById('d2-gate-status'), live=document.getElementById('d2-live'), soon=document.getElementById('d2-soon');
+  if(new URLSearchParams(location.search).get('preview')==='1'){
+    var em=await d2OwnerEmail();
+    if(em && OWNER_EMAILS.indexOf(em.toLowerCase())>=0){
+      document.getElementById('d2-preview-banner').hidden=false;
+      status.textContent='PREVIEW — this is what buyers will see the second Drop 001 sells out.';
+      live.hidden=false; soon.hidden=true; d2LoadStock002();
+      return;
+    }
+  }
   var d1Left=null;
   try{
     var r=await fetch(SB_URL+'/rest/v1/clutch_stock?select=size,stock_left',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
