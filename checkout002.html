@@ -1,0 +1,158 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Checkout — CLUTCH Drop 02</title><link rel="stylesheet" href="assets/style.css">
+<style>
+.size-btns{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
+.size-btns button{padding:.8rem 1.2rem;border:1px solid var(--line);border-radius:10px;background:#111;color:var(--ink);font-weight:800;cursor:pointer}
+.size-btns button.on{border-color:var(--tan);background:rgba(201,168,106,.15)}
+.size-btns button:disabled{opacity:.35;cursor:not-allowed}
+.field{margin:.8rem 0}
+.field label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.3rem}
+.field input,.field select{width:100%;padding:.7rem;border:1px solid var(--line);border-radius:8px;background:#111;color:var(--ink)}
+.summary{background:#111;border:1px solid var(--line);border-radius:14px;padding:1rem;margin:1rem 0}
+.summary div{display:flex;justify-content:space-between;padding:.25rem 0}
+.summary .total{border-top:1px solid var(--line);margin-top:.5rem;padding-top:.6rem;font-size:1.2rem;font-weight:800}
+</style></head>
+<body style="background:#0b0b0b"><header class="nav"><a class="logo" href="/">CLUTCH</a><nav><a href="/">Home</a><a href="/track.html">Track order</a></nav></header>
+<main style="max-width:700px;margin:2rem auto;padding:0 1rem">
+<p class="eyebrow">Drop 002 · FORM 001</p><h2>Checkout.</h2>
+<p class="lede">FORM 001 Mesh Shorts — $40 + shipping. 40 pieces only, no restocks, all sales final. Fill this in, then you pay on the next step — it just sends you to the Greenlight link.</p>
+
+<form id="checkout-form" novalidate>
+<div class="field"><label>Your size</label>
+<div class="size-btns" id="co-sizes">
+<button type="button" data-size="S">S</button><button type="button" data-size="M">M</button><button type="button" data-size="L">L</button><button type="button" data-size="XL">XL</button>
+</div><p class="fine" id="co-stock-note"></p></div>
+
+<div class="field"><label>Your name / Instagram @</label><input id="co-buyer" type="text" placeholder="@yourhandle" required></div>
+<div class="field"><label>Your email (for your order + tracking)</label><input id="co-email" type="email" placeholder="you@email.com" required></div>
+<div class="field"><label>Referred by @ (optional — who sent you?)</label><input id="co-ref" type="text" placeholder="@their-IG"></div>
+<div class="field"><label>Anything we should know? (optional)</label><input id="co-note" type="text" placeholder="e.g. it is a gift, leave it with the doorman"></div>
+
+<div class="field"><label>How do you want it?</label>
+<select id="co-ship">
+<option value="ship">Ship it — +$10 shipping</option>
+<option value="pickup">Free NYC local pickup — $0</option>
+</select></div>
+<div class="field" id="co-address-wrap"><label>Ship to — name + full address</label><input id="co-address" type="text" placeholder="Name, street, city, state, ZIP"></div>
+<div class="field" id="co-slot-wrap" hidden><label>Pickup day + time</label>
+<select id="co-slot">
+<option>Fri Nov 27, 6–8pm (drop night)</option>
+<option>Sat Nov 28, 12–4pm</option>
+<option>Sun Nov 29, 12–4pm</option>
+<option>DM @clutchny1 to arrange another time</option>
+</select></div>
+
+<div class="field"><label>Discount code (optional)</label>
+<div style="display:flex;gap:.5rem"><input id="co-discount" type="text" placeholder="CLUTCH10" style="text-transform:uppercase"><button class="btn ghost" type="button" id="co-apply-discount">Apply</button></div>
+<p class="fine" id="co-discount-msg"></p><p class="fine">Got a gift card? <a href="/giftcard.html">Check it here</a> first, then paste the code above.</p></div>
+
+<div class="summary" id="co-summary">
+<div><span>FORM 001 Mesh Shorts</span><span>$40.00</span></div>
+<div><span>Shipping</span><span id="co-ship-line">$10.00</span></div>
+<div id="co-disc-line" style="display:none"><span id="co-disc-label">Discount</span><span id="co-disc-amt">−$0.00</span></div>
+<div class="total"><span>Total</span><span id="co-total">$50.00</span></div>
+</div>
+
+<button class="btn buy live" type="submit" style="width:100%;padding:1rem;font-size:1.1rem">Place order — pay on Greenlight →</button>
+<p class="fine">This saves your order as <b>Pending</b> so Sebastian can see it in admin, then it sends you to the Greenlight pay link to pay. Your parent approves every Greenlight payment. No payment = no order — Sebastian marks it Paid once the money lands. Cash App in the DM is the backup.</p>
+<p class="fine" style="border:1px solid #ff8a7a;border-radius:8px;padding:.6rem">⚠️ <b>Send the exact total shown.</b> All sales are final — if you send less than the total, there is no refund, CLUTCH keeps what was sent, and <b>your shorts will NOT ship</b>. Double-check the total before you pay.</p>
+</form>
+
+<div id="co-done" hidden>
+<h3>Order placed ✅</h3>
+<p class="lede" id="co-done-text"></p>
+<p><a class="btn buy live" id="co-pay-link" href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Pay now via Greenlight →</a></p>
+<p><button class="btn ghost" type="button" id="co-copy">Copy order details</button></p>
+<p class="fine">After you pay, DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> with your order details so Sebastian can confirm you. Track it any time at <a href="/track.html">/track.html</a>.</p>
+</div>
+</main>
+<script>
+const SB_URL = 'https://fgnuaxhujvxkfzzcvdqf.supabase.co';
+const SB_KEY = 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz';
+const GREENLIGHT = 'https://gl.me/u/qqMvQlZ6mTpb';
+const PRICE = 40;
+let size = '', discountPct = 0, discountFixed = 0, giftCode = '', stock = { S: 14, M: 14, L: 6, XL: 6 };
+const $ = id => document.getElementById(id);
+function total() {
+  const ship = $('co-ship').value === 'pickup' ? 0 : 10;
+  const sub = PRICE + ship;
+  const disc = discountFixed ? Math.min(discountFixed, sub) : Math.round(sub * discountPct / 100 * 100) / 100;
+  return { ship, disc, total: sub - disc };
+}
+function renderSummary() {
+  const t = total();
+  $('co-ship-line').textContent = '$' + t.ship.toFixed(2);
+  $('co-disc-line').style.display = discountPct || discountFixed ? '' : 'none';
+  $('co-disc-amt').textContent = '−$' + t.disc.toFixed(2);
+  $('co-total').textContent = '$' + t.total.toFixed(2);
+}
+document.querySelectorAll('#co-sizes button').forEach(b => b.addEventListener('click', () => {
+  if (b.disabled) return;
+  document.querySelectorAll('#co-sizes button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); size = b.dataset.size; renderSummary();
+}));
+$('co-ship').addEventListener('change', () => {
+  const pickup = $('co-ship').value === 'pickup';
+  $('co-address-wrap').style.display = pickup ? 'none' : '';
+  $('co-slot-wrap').hidden = !pickup;
+  renderSummary();
+});
+$('co-apply-discount').addEventListener('click', () => {
+  const code = ($('co-discount').value || '').trim().toUpperCase();
+  if (code === 'CLUTCH10') { discountPct = 10; discountFixed = 0; giftCode = ''; $('co-disc-label').textContent = 'Discount (CLUTCH10)'; $('co-discount-msg').textContent = 'Applied — 10% off.'; }
+  else if (/^GIFT-[A-Z0-9]{4}$/.test(code)) { discountPct = 0; discountFixed = 25; giftCode = code; $('co-disc-label').textContent = 'Gift card (' + code + ')'; $('co-discount-msg').textContent = 'Applied — $25 off your gift card.'; }
+  else { discountPct = 0; discountFixed = 0; giftCode = ''; $('co-discount-msg').textContent = "That code didn't work."; }
+  renderSummary();
+});
+// Discount link: ?code=CLUTCH10 (or a GIFT-XXXX code) auto-applies
+(function () { const c = new URLSearchParams(location.search).get('code'); if (!c) return; const v = c.trim().toUpperCase(); if (v === 'CLUTCH10' || /^GIFT-[A-Z0-9]{4}$/.test(v)) { $('co-discount').value = v; $('co-apply-discount').click(); } })();
+// live Drop 002 stock from Supabase (public read) — sold-out sizes disable.
+// Until the Part 8 SQL runs, localStorage seed (14/14/6/6) is the source of truth.
+function d2LocalStock() { try { var s = JSON.parse(localStorage.getItem('clutch-stock-002-v1') || 'null'); if (s) return s; } catch (e) {} return { S: 14, M: 14, L: 6, XL: 6 }; }
+if (typeof fetch === 'function') try {
+fetch(SB_URL + '/rest/v1/clutch_stock_002?select=size,stock_left', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } })
+  .then(r => { if (!r.ok) throw 0; return r.json(); }).then(rows => {
+    (rows || []).forEach(x => { if (stock[x.size] !== undefined) stock[x.size] = x.stock_left; });
+    applyStock();
+  }).catch(() => { stock = d2LocalStock(); applyStock(); });
+} catch (_) {}
+function applyStock() {
+  document.querySelectorAll('#co-sizes button').forEach(b => {
+    const n = stock[b.dataset.size];
+    if (n === 0) { b.disabled = true; b.textContent = b.dataset.size + ' — sold out'; }
+    else if (n <= 2) { b.textContent = b.dataset.size + ' — only ' + n + ' left'; }
+  });
+  const left = Object.values(stock).reduce((a, b) => a + b, 0);
+  $('co-stock-note').textContent = left + ' of 40 left.';
+}
+$('checkout-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!size) { alert('Pick a size first.'); return; }
+  const buyer = $('co-buyer').value.trim();
+  const email = $('co-email').value.trim();
+  const ship = $('co-ship').value;
+  const address = ship === 'pickup' ? 'pickup — ' + $('co-slot').value : $('co-address').value.trim();
+  if (!buyer || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || (ship !== 'pickup' && !address)) { alert('Fill in your name, a valid email, and a shipping address (or pick local pickup).'); return; }
+  const t = total();
+  const orderText = 'CLUTCH Drop 002 — ' + buyer + ' — size ' + size + ' — ' + (ship === 'pickup' ? 'NYC pickup' : 'ship to ' + address) + ' — $' + t.total.toFixed(2);
+  // save as Pending in Supabase so admin sees it (fire-and-forget — never block checkout on it)
+  if (typeof fetch === 'function') {
+    const orderRow = { buyer: buyer + ' (' + email + ')', size: size, pay: 'Greenlight', total: t.total, status: 'Pending', address, note: 'DROP 002 / FORM 001. ' + (giftCode ? 'Gift card ' + giftCode + '. ' : '') + $('co-note').value.trim(), ref: $('co-ref').value.trim().replace(/^@/, '') };
+    fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(orderRow) })
+      .then(r => { if (!r.ok) return fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ buyer: orderRow.buyer, size: size, pay: 'Greenlight', total: t.total, status: 'Pending', address, note: 'DROP 002 / FORM 001.' }) }); })
+      .catch(() => {});
+  }
+  $('checkout-form').hidden = true;
+  $('co-done').hidden = false;
+  // confirmation email to the buyer (FormSubmit auto-reply — fire-and-forget, never blocks checkout)
+  if (typeof fetch === 'function') {
+    fetch('https://formsubmit.co/ajax/clutchbuiltdifferent@gmail.com', { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ name: buyer, email: email, size: size, total: '$' + t.total.toFixed(2), shipping: ship === 'pickup' ? 'NYC pickup — ' + $('co-slot').value : address, _subject: 'CLUTCH Drop 002 — preorder received', _replyto: email, _autoresponse: 'Your CLUTCH preorder is in ✅\n\n' + orderText + '\n\nNow pay $' + t.total.toFixed(2) + ' via Greenlight (it opened in a new tab): https://gl.me/u/qqMvQlZ6mTpb\nYour parent approves every Greenlight payment. No payment = no order — we mark it Paid once the money lands.\n\nThanks for supporting CLUTCH — Built Different.' }) }).catch(() => {});
+  }
+  $('co-done-text').textContent = orderText + '. Now pay $' + t.total.toFixed(2) + ' on Greenlight — it opens in a new tab. A confirmation email is on its way to ' + email + '.';
+  $('co-pay-link').href = GREENLIGHT;
+  $('co-pay-link').textContent = 'Pay $' + t.total.toFixed(2) + ' via Greenlight →';
+  $('co-copy').onclick = async () => { try { await navigator.clipboard.writeText(orderText + ' — pay: ' + GREENLIGHT); $('co-copy').textContent = 'Copied ✓'; } catch (_) {} };
+  window.open(GREENLIGHT, '_blank');
+});
+renderSummary();
+</script></body></html>
