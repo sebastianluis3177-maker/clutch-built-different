@@ -195,6 +195,7 @@ section,.nav{background-color:transparent}
 <button type="button" data-tab="profit">Profit</button>
 <button type="button" data-tab="money">Money</button>
 <button type="button" data-tab="taxes">Taxes</button>
+<button type="button" data-tab="accounts">Accounts</button>
 </nav>
 <div data-panel="dash"><div class="owner-stats" id="owner-stats"></div>
 <div id="owner-alerts"></div>
@@ -323,6 +324,12 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
 <div id="owner-tax-checks"></div>
 <p class="fine">Key facts (checked Nov 2026): if your net profit hits $400 in a year, you likely have to file a federal return and pay 15.3% self-employment tax — even as a dependent. Federal income tax is likely $0 while your total income is under the $16,100 standard deduction. No 1099-K is expected from Cash App / Greenlight at 30 pairs ($1,050 max) — that only kicks in over $20,000 AND 200+ transactions — but the income is taxable whether or not a form shows up. NY sales tax on the shorts is a separate question for a parent.</p>
 </div>
+<div data-panel="accounts" hidden>
+<h3>Accounts — everyone who signed up.</h3>
+<p class="fine">Owner only. <b>Passwords are never shown here — and never stored where anyone can read them.</b> When someone makes an account, Supabase scrambles their password into a one-way hash. Nobody can reverse it — not you, not me, not anyone with the database. That's what keeps people's accounts safe if the database ever leaks. If someone's locked out, send them a reset link and they'll pick a new password themselves.</p>
+<div id="owner-accounts"></div>
+<p class="fine">To start recording accounts, run the new "Part 5 — clutch_accounts" block in supabase-tables.sql in the Supabase SQL Editor. Accounts made before that won't appear here (they're still in Supabase Auth → Authentication → Users, visible only to you in the dashboard).</p>
+</div>
 <div data-panel="money" hidden><h3>Money tracker — every dollar in and out.</h3>
 <p class="fine">Orders add money in automatically. Expenses and anything you add below show as money out. The running balance is what you actually have.</p>
 <div id="owner-money"></div>
@@ -361,7 +368,7 @@ const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, sign
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
-function showAdmin(staffMode) { $('admin-gate').hidden = true; $('owner-admin').hidden = false; if (staffMode) { var hide = staffMode === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money', 'taxes'] : ['payments', 'email', 'staff', 'profit', 'money', 'taxes']; document.querySelectorAll('.owner-tabs button').forEach(function (b) { if (hide.indexOf(b.dataset.tab) !== -1) b.style.display = 'none'; }); } renderOwner(); }
+function showAdmin(staffMode) { $('admin-gate').hidden = true; $('owner-admin').hidden = false; if (staffMode) { var hide = staffMode === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts'] : ['payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts']; document.querySelectorAll('.owner-tabs button').forEach(function (b) { if (hide.indexOf(b.dataset.tab) !== -1) b.style.display = 'none'; }); } renderOwner(); }
 function renderOwner() {
   const d = loadOwner(); if (!d.signupEmails) d.signupEmails = [];
   const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
@@ -415,6 +422,22 @@ function renderOwner() {
   }
   var txPct2 = $('owner-tax-pct2');
   if (txPct2 && document.activeElement !== txPct2) txPct2.value = d.taxPct || 15;
+  var accEl = $('owner-accounts');
+  if (accEl) {
+    sb.from('clutch_accounts').select('email,created_at').order('created_at', { ascending: false }).then(function (r) {
+      if (r.error || !r.data || !r.data.length) { accEl.innerHTML = '<p class="fine">No accounts recorded yet — accounts made after the new SQL part is run will show here. Older accounts still exist in Supabase Auth (dashboard → Authentication → Users).</p>'; return; }
+      var esc = function (s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+      accEl.innerHTML = r.data.map(function (row) { return '<div style="display:flex;justify-content:space-between;gap:.5rem;align-items:center;margin:.3rem 0"><span>' + esc(row.email) + ' <span class="fine">· ' + (row.created_at || '').slice(0, 10) + '</span></span><button class="btn ghost" type="button" data-reset-pw="' + esc(row.email) + '">Send reset link</button></div>'; }).join('') + '<p class="fine" id="owner-accounts-msg"></p>';
+      accEl.querySelectorAll('[data-reset-pw]').forEach(function (b) { b.addEventListener('click', async function () {
+        var em = b.dataset.resetPw, m = $('owner-accounts-msg');
+        if (m) m.textContent = 'Sending reset link to ' + em + '…';
+        try {
+          const res = await sb.auth.resetPasswordForEmail(em, { redirectTo: 'https://clutchbuiltdifferent.com/#account' });
+          if (m) m.textContent = res.error ? 'Failed: ' + res.error.message : 'Reset link sent to ' + em + ' — they pick a new password themselves.';
+        } catch (_) { if (m) m.textContent = 'Failed to send — try again.'; }
+      }); });
+    }).catch(function () { accEl.innerHTML = '<p class="fine">No accounts recorded yet — accounts made after the new SQL part is run will show here. Older accounts still exist in Supabase Auth (dashboard → Authentication → Users).</p>'; });
+  }
   var expEl = $('expense-list');
   if (expEl) {
     var ex = d.expenses || [];
