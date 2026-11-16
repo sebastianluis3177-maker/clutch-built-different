@@ -233,6 +233,7 @@ section,.nav{background-color:transparent}
 <div id="owner-alerts"></div>
 <div id="owner-referrers"></div>
 <div id="owner-pace"></div>
+<div id="owner-approvals"></div>
 <div id="owner-pin-change" style="border:1px solid var(--line);border-radius:10px;padding:1rem;margin:.8rem 0">
 <h3>Change your PIN</h3>
 <p class="fine">Forgot it or want a new one? Set a new PIN here — it works on this device only.</p>
@@ -377,15 +378,17 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
     <h3>🚀 Publish straight from here</h3>
     <p class="fine">To publish for everyone yourself, the admin needs a GitHub key (a personal access token). It's like a password for your GitHub — <b>never share it</b>, and it lives only on this device.</p>
     <p class="fine">Get one: GitHub → your profile → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token (classic) → name it "CLUTCH admin" → tick <b>repo</b> → Generate token → copy it (you only see it once).</p>
+    <div id="owner-gh-token-box">
     <label class="fine">GitHub key (token)<br><input id="gh-token" type="password" style="width:100%" placeholder="ghp_..."></label>
     <p><button class="btn ghost" type="button" id="gh-token-save">Save key on this device</button></p>
+    </div>
     <p><button class="btn buy live" type="button" id="owner-edit-publish">🚀 Publish my edits live</button></p>
     <p class="fine" id="owner-edit-msg"></p>
   </div>
 
 <div data-panel="staff" hidden><h3>Staff access</h3>
-<p class="fine">Add someone by email and pick their role — <b>Owner</b> gets full access, <b>Staff</b> gets the limited dashboard (Dashboard / Orders / Stock). They log in with that email after making an account on the site. This list syncs across you, Emeri, and Ajan through Supabase.</p>
-<form id="staff-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="staff-email" type="email" placeholder="staff email" required style="flex:2;min-width:180px"><select id="staff-role"><option value="staff" selected>Staff — orders + stock only</option><option value="owner">Owner — full access</option></select><button class="btn buy live" type="submit">Add</button></form>
+<p class="fine">Add someone by email and pick their role — <b>Owner</b> gets full access, <b>Owner (approval needed)</b> sees everything but changes need Sebastian's OK, <b>Staff</b> gets the limited dashboard (Dashboard / Orders / Stock). They log in with that email after making an account on the site. This list syncs across you, Emeri, and Ajan through Supabase.</p>
+<form id="staff-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="staff-email" type="email" placeholder="staff email" required style="flex:2;min-width:180px"><select id="staff-role"><option value="staff" selected>Staff — orders + stock only</option><option value="owner">Owner — full access</option><option value="gated">Owner (approval needed) — sees everything, changes need Sebastian's OK</option></select><button class="btn buy live" type="submit">Add</button></form>
 <p class="fine" id="staff-list"></p>
 <h3>Assign a task</h3>
 <form id="owner-assign-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="assign-text" type="text" placeholder="Task — e.g. Reply to all DMs" style="flex:2;min-width:180px"><select id="assign-who"><option>Sebastian</option><option>Emeri</option><option>Ajan</option></select><input id="assign-due" type="date" style="width:9.5rem"><button class="btn buy live" type="submit">Assign</button></form>
@@ -472,6 +475,13 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <script>
 const sb = window.supabase.createClient('https://fgnuaxhujvxkfzzcvdqf.supabase.co', 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz');
 const OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com'];
+// Gated-Owner role (Emeri): sees everything an owner sees, but consequential
+// changes need Sebastian's approval first — they queue in clutch_approvals.
+var currentRole = 'owner';
+var currentActor = '';
+function isGated() { return currentRole === 'gated'; }
+function isHardOwner() { return currentRole === 'owner' && (currentActor === '' || OWNER_EMAILS.indexOf(currentActor) !== -1); }
+function roleLabel(r) { return r === 'owner' ? 'Owner' : r === 'gated' ? 'Owner (approval needed)' : r === 'view' ? 'View only' : 'Staff'; }
 const $ = id => document.getElementById(id);
 const OWNER_KEY = 'clutch-admin-v1';
 const ACCT_KEY = 'clutch-owner-acct-v1';
@@ -523,7 +533,261 @@ function updateCountdown() {
   el.innerHTML = '<b>⏳ Drop day in ' + dd + 'd ' + hh + 'h ' + mm + 'm</b> — Fri Nov 27, 6PM ET.';
 }
 setInterval(updateCountdown, 30000);
-function showAdmin(staffMode) { $('admin-gate').hidden = true; $('owner-admin').hidden = false; if (staffMode) { var hide = staffMode === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit', 'notes'] : ['payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit']; document.querySelectorAll('.owner-tabs button').forEach(function (b) { if (hide.indexOf(b.dataset.tab) !== -1) b.style.display = 'none'; }); } renderOwner(); }
+function showAdmin(staffMode) {
+  currentRole = staffMode || 'owner';
+  $('admin-gate').hidden = true; $('owner-admin').hidden = false;
+  // Gated owners see every owner tab except 📋 Today. Staff-table owners (role
+  // 'owner' but not one of the two hardcoded owner emails) also don't get Today.
+  var hide = currentRole === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit', 'notes'] : currentRole === 'staff' ? ['payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit'] : currentRole === 'gated' ? ['today'] : !isHardOwner() ? ['today'] : [];
+  document.querySelectorAll('.owner-tabs button').forEach(function (b) { b.style.display = hide.indexOf(b.dataset.tab) !== -1 ? 'none' : ''; });
+  var pinBox = $('owner-pin-change'); if (pinBox) pinBox.style.display = isHardOwner() ? '' : 'none';
+  var ghBox = $('owner-gh-token-box'); if (ghBox) ghBox.style.display = isHardOwner() ? '' : 'none';
+  renderOwner();
+}
+// ---- Gated Owner + pending approvals --------------------------------
+// Emeri (role 'gated') sees everything an owner sees, but consequential
+// changes need Sebastian's OK. Gated actions queue in clutch_approvals
+// (Supabase) or localStorage (clutch-approvals-v1) until Sebastian approves
+// or denies them from the Dashboard. Supabase write rules (skill:
+// supabase_write_verification): check the table first, name the real PK
+// (id for clutch_approvals, size for clutch_stock) in filters, re-read
+// after every write, treat zero-rows-changed PATCH as failure.
+var APPROVALS_KEY = 'clutch-approvals-v1';
+var approvalsUseSb = false;
+function loadLocalApprovals() { try { return JSON.parse(localStorage.getItem(APPROVALS_KEY) || '[]'); } catch (e) { return []; } }
+function saveLocalApprovals(a) { try { localStorage.setItem(APPROVALS_KEY, JSON.stringify(a)); } catch (e) {} }
+function logActivity(text) { try { const dd = loadOwner(); if (!dd.activity) dd.activity = []; dd.activity.unshift({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: text }); dd.activity = dd.activity.slice(0, 50); saveOwner(dd); } catch (e) {} }
+function approvalLabel(r) { return (r.payload && r.payload.label) || r.action || 'Change'; }
+function approvalDetail(r) {
+  var p = r.payload || {};
+  switch (r.action) {
+    case 'stock-edit': return p.stock ? ['S', 'M', 'L', 'XL'].map(function (s) { return s + ' → ' + (p.stock[s] === undefined ? '—' : p.stock[s]); }).join(', ') : '';
+    case 'order-cancel': return 'Order — ' + (p.buyer || '') + ' (' + (p.size || '') + ')';
+    case 'order-refund': return 'Order — ' + (p.buyer || '') + ' (' + (p.size || '') + ')';
+    case 'order-swap': return 'Order — ' + (p.buyer || '') + ': ' + (p.fromSize || '') + ' → ' + (p.newSize || '');
+    case 'order-add': return 'New Paid order — ' + (p.order ? p.order.buyer + ' (' + p.order.size + ', $' + p.order.total + ')' : '');
+    case 'order-bulk-add': return (p.orders || []).length + ' order(s): ' + (p.orders || []).map(function (o) { return o.buyer + ' (' + o.size + ')'; }).join(', ');
+    case 'orders-clear': return 'Clears ALL orders from the log.';
+    case 'site-edits': return 'Edits save on this device only until approved — publish still needs a separate approval.';
+    case 'publish-edits': return 'Publishes the current site edits to the live site.';
+    case 'go-live': return 'Turns on preorder-day live mode + banner + email to signups.';
+    case 'live-toggle': return 'Live mode → ' + (p.liveMode ? 'ON' : 'OFF');
+    case 'discount-add': return 'New code ' + (p.code || '') + ' at ' + (p.pct === undefined ? '?' : p.pct) + '% off';
+    case 'discount-active': return 'Set ' + (p.code || '') + ' as the active code';
+    case 'discount-remove': return 'Remove code ' + (p.code || '');
+    case 'discount-single': return 'Checkout discount: ' + (p.code || '') + ' at ' + (p.pct === undefined ? '?' : p.pct) + '% off';
+    case 'staff-add': return (p.roleLabel || p.role || '') + ': ' + (p.email || '');
+    case 'staff-remove': return 'Remove ' + (p.email || '');
+    case 'money-add': return (p.label || '') + ' $' + (p.amount === undefined ? '?' : p.amount);
+    case 'money-start': return 'Starting balance → $' + (p.startBalance === undefined ? '?' : p.startBalance);
+    case 'costs-edit': return p.costs ? 'Cost $' + p.costs.perPair + '/pair · shipping $' + p.costs.shipping + ' · other $' + p.costs.other : '';
+    case 'giftcard-new': return 'New $25 gift card ' + (p.code || '');
+    case 'expense-add': return (p.label || '') + ' $' + (p.amount === undefined ? '?' : p.amount);
+    case 'expense-remove': return 'Remove expense: ' + (p.label || '') + ' $' + (p.amount === undefined ? '?' : p.amount);
+    default: return '';
+  }
+}
+async function loadApprovals() {
+  try {
+    var r = await sb.from('clutch_approvals').select('*').order('created_at', { ascending: false });
+    if (!r.error && r.data) { approvalsUseSb = true; return r.data.concat(loadLocalApprovals().filter(function (x) { return x.status === 'pending'; })); }
+  } catch (e) {}
+  approvalsUseSb = false;
+  return loadLocalApprovals();
+}
+async function requestApproval(action, label, payload) {
+  var row = { actor: currentActor || 'Emeri', action: action, payload: Object.assign({ label: label }, payload || {}), status: 'pending', created_at: new Date().toISOString() };
+  await loadApprovals();
+  if (approvalsUseSb) {
+    try {
+      var r = await sb.from('clutch_approvals').insert({ actor: row.actor, action: row.action, payload: row.payload, status: 'pending' });
+      if (!r.error) { renderApprovals(); return true; }
+    } catch (e) {}
+    approvalsUseSb = false;
+  }
+  var local = loadLocalApprovals();
+  row.id = 'local-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
+  local.unshift(row);
+  saveLocalApprovals(local);
+  renderApprovals();
+  return true;
+}
+function approvalQueuedMsg() { var m = $('owner-msg'); if (m) m.textContent = 'Sent for approval — Sebastian will review it.'; }
+async function renderApprovals() {
+  var el = $('owner-approvals'); if (!el) return;
+  var dashBtn = document.querySelector('.owner-tabs button[data-tab="dash"]');
+  if (currentRole !== 'owner') { el.innerHTML = ''; if (dashBtn) dashBtn.textContent = 'Dashboard'; return; }
+  var rows = await loadApprovals();
+  var pending = rows.filter(function (r) { return r.status === 'pending'; });
+  var decided = rows.filter(function (r) { return r.status !== 'pending'; }).slice(0, 5);
+  if (dashBtn) dashBtn.textContent = pending.length ? 'Dashboard (' + pending.length + ')' : 'Dashboard';
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var html = '<h3>⏳ Approvals' + (pending.length ? ' — ' + pending.length + ' waiting' : '') + '</h3>';
+  if (!approvalsUseSb) html += '<p class="fine">Approvals sync once Part 9 (clutch_approvals) is run — until then they save on this device only.</p>';
+  if (!pending.length) html += '<p class="fine">No approval requests right now — gated changes from Emeri will show up here.</p>';
+  else html += pending.map(function (r) { return '<div style="margin:.5rem 0;padding:.6rem;border:1px solid #ffb86b;border-radius:8px"><b>' + esc(r.actor) + '</b> — ' + esc(approvalLabel(r)) + ' <span class="fine">' + esc((r.created_at || '').slice(0, 16).replace('T', ' ')) + '</span><br><span class="fine">' + esc(approvalDetail(r)) + '</span><br><button class="btn ghost" type="button" data-approval-approve="' + esc(r.id) + '">Approve</button> <button class="btn ghost" type="button" data-approval-deny="' + esc(r.id) + '">Deny</button></div>'; }).join('');
+  if (decided.length) html += '<h3>Decided</h3>' + decided.map(function (r) { return '<div class="fine" style="margin:.3rem 0">' + (r.status === 'approved' ? '✅' : r.status === 'failed' ? '⚠️' : '❌') + ' ' + esc(approvalLabel(r)) + ' — ' + esc(r.status) + ' by ' + esc(r.decided_by || '') + ' ' + esc((r.decided_at || '').slice(0, 16).replace('T', ' ')) + '</div>'; }).join('');
+  el.innerHTML = html;
+  el.querySelectorAll('[data-approval-approve]').forEach(function (b) { b.addEventListener('click', function () { decideApproval(b.dataset.approvalApprove, 'approved'); }); });
+  el.querySelectorAll('[data-approval-deny]').forEach(function (b) { b.addEventListener('click', function () { decideApproval(b.dataset.approvalDeny, 'denied'); }); });
+}
+function findApprovalOrder(d, p) {
+  return d.orders.findIndex(function (o) { return o.buyer === p.buyer && o.size === p.fromSize && (p.total === undefined || (o.total === undefined ? 35 : o.total) === p.total); });
+}
+function applyApproval(action, p, actor) {
+  const d = loadOwner();
+  const who = actor || 'gated owner';
+  switch (action) {
+    case 'publish-edits': {
+      try { localStorage.setItem(EDIT_KEY, JSON.stringify(p.edits || {})); } catch (_) {}
+      applyEdits(); renderOwner(); publishEditsLive(); return true;
+    }
+    case 'go-live': { doGoLive(); return true; }
+    case 'live-toggle': {
+      d.liveMode = !!p.liveMode; saveOwner(d); renderOwner(); return true;
+    }
+    case 'site-edits': {
+      try { localStorage.setItem(EDIT_KEY, JSON.stringify(p.edits || {})); } catch (_) {}
+      applyEdits(); renderOwner(); return true;
+    }
+    case 'stock-edit': {
+      if (!p.stock) return false;
+      ['S', 'M', 'L', 'XL'].forEach(function (s) { if (p.stock[s] !== undefined && p.stock[s] >= 0) d.stock[s] = p.stock[s]; });
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'order-cancel': {
+      var ix = findApprovalOrder(d, p); if (ix === -1) return false;
+      var o = d.orders[ix];
+      if (o.status === 'Cancelled') return true;
+      o.status = 'Cancelled';
+      if (d.stock[o.size] !== undefined) d.stock[o.size]++;
+      logActivity('Cancelled order #' + (ix + 1) + ' (' + o.buyer + ', ' + o.size + ') — approved for ' + who);
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'order-refund': {
+      var ix2 = findApprovalOrder(d, p); if (ix2 === -1) return false;
+      var o2 = d.orders[ix2];
+      if (o2.status === 'Refunded') return true;
+      o2.status = 'Refunded';
+      if (d.stock[o2.size] !== undefined) d.stock[o2.size]++;
+      logActivity('Refunded order #' + (ix2 + 1) + ' (' + o2.buyer + ', ' + o2.size + ') — approved for ' + who);
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'order-swap': {
+      var ix3 = findApprovalOrder(d, p); if (ix3 === -1) return false;
+      if ((d.stock[p.newSize] || 0) <= 0) return false;
+      var o3 = d.orders[ix3];
+      o3.size = p.newSize;
+      if (d.stock[p.fromSize] !== undefined) d.stock[p.fromSize]++;
+      if (d.stock[p.newSize] !== undefined) d.stock[p.newSize]--;
+      try { sb.from('clutch_stock').update({ stock_left: d.stock[p.fromSize] }).eq('size', p.fromSize); sb.from('clutch_stock').update({ stock_left: d.stock[p.newSize] }).eq('size', p.newSize); } catch (e) {}
+      if (!o3.history) o3.history = [];
+      o3.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: 'Swapped ' + p.fromSize + ' → ' + p.newSize });
+      logActivity('Swapped order #' + (ix3 + 1) + ' (' + o3.buyer + ') ' + p.fromSize + ' → ' + p.newSize + ' — approved for ' + who);
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'order-add': {
+      if (!p.order) return false;
+      var o4 = p.order;
+      d.orders.push({ buyer: o4.buyer, size: o4.size, pay: o4.pay, total: o4.total, status: 'Paid', address: o4.address || '', at: o4.at || new Date().toISOString().slice(0, 10) });
+      if (d.stock[o4.size] > 0) d.stock[o4.size]--;
+      logActivity('Added order — ' + o4.buyer + ', size ' + o4.size + ', $' + o4.total + ' — approved for ' + who);
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'order-bulk-add': {
+      if (!p.orders || !p.orders.length) return false;
+      p.orders.forEach(function (o5) {
+        d.orders.push({ buyer: o5.buyer, size: o5.size, pay: o5.pay, total: o5.total, status: 'Paid', address: o5.address || '', at: o5.at || new Date().toISOString().slice(0, 10) });
+        if (d.stock[o5.size] > 0) d.stock[o5.size]--;
+      });
+      logActivity('Bulk import — ' + p.orders.length + ' orders added — approved for ' + who);
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'orders-clear': {
+      d.orders = []; saveOwner(d); renderOwner(); return true;
+    }
+    case 'discount-add': {
+      if (!p.code) return false;
+      if (!(d.discounts || []).some(function (x) { return x.code === p.code; })) (d.discounts = d.discounts || []).push({ code: p.code, pct: p.pct || 10, active: false });
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'discount-active': {
+      if (!p.code) return false;
+      (d.discounts || []).forEach(function (x) { x.active = (x.code === p.code); });
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'discount-remove': {
+      d.discounts = (d.discounts || []).filter(function (x) { return x.code !== p.code; });
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'discount-single': {
+      var e = loadEdits(); e.discountCode = p.code; e.discountPct = p.pct;
+      try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+      applyEdits(); renderOwner(); return true;
+    }
+    case 'staff-add': {
+      if (!p.email) return false;
+      if (!(d.staff || []).some(function (s) { return s.email === p.email; })) (d.staff = d.staff || []).push({ email: p.email, role: p.role || 'staff' });
+      try { sb.from('clutch_staff').insert({ email: p.email, name: '', role: p.role || 'staff' }); } catch (err) {}
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'staff-remove': {
+      d.staff = (d.staff || []).filter(function (s) { return s.email !== p.email; });
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'money-add': {
+      (d.moneyEntries = d.moneyEntries || []).push({ label: p.label, amount: p.amount, at: new Date().toISOString().slice(0, 10) });
+      logActivity('Money entry (approved for ' + who + '): ' + p.label + ' $' + p.amount);
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'money-start': {
+      d.startBalance = p.startBalance || 0; saveOwner(d); renderOwner(); return true;
+    }
+    case 'costs-edit': {
+      if (!p.costs) return false;
+      d.costs = { perPair: p.costs.perPair, shipping: p.costs.shipping, other: p.costs.other };
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'giftcard-new': {
+      if (!p.code) return false;
+      if (!(d.giftCards || []).some(function (g) { return g.code === p.code; })) (d.giftCards = d.giftCards || []).push({ code: p.code, amount: 25 });
+      try { sb.from('clutch_giftcards').insert({ code: p.code, value: 25 }); } catch (_) {}
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'expense-add': {
+      (d.expenses = d.expenses || []).push({ label: p.label, amount: p.amount, at: new Date().toISOString().slice(0, 10) });
+      logActivity('Expense (approved for ' + who + '): ' + p.label + ' $' + p.amount);
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'expense-remove': {
+      var ix4 = (d.expenses || []).findIndex(function (x) { return x.label === p.label && (+x.amount || 0) === (+p.amount || 0) && (!p.at || x.at === p.at); });
+      if (ix4 === -1) return false;
+      d.expenses.splice(ix4, 1);
+      saveOwner(d); renderOwner(); return true;
+    }
+    default: return false;
+  }
+}
+async function decideApproval(id, decision) {
+  var rows = await loadApprovals();
+  var row = rows.find(function (r) { return String(r.id) === String(id); });
+  if (!row) return;
+  var now = new Date().toISOString();
+  var ok = true;
+  if (decision === 'approved') { try { ok = applyApproval(row.action, row.payload || {}, row.actor); } catch (e) { ok = false; } }
+  var status = decision === 'approved' ? (ok ? 'approved' : 'failed') : 'denied';
+  var by = currentActor || 'Sebastian';
+  if (approvalsUseSb && String(row.id).indexOf('local-') !== 0) {
+    try { await sb.from('clutch_approvals').update({ status: status, decided_by: by, decided_at: now }).eq('id', row.id); } catch (e) {}
+  } else {
+    var local = loadLocalApprovals();
+    var ix = local.findIndex(function (r) { return String(r.id) === String(id); });
+    if (ix !== -1) { local[ix].status = status; local[ix].decided_by = by; local[ix].decided_at = now; saveLocalApprovals(local); }
+  }
+  var m = $('owner-msg');
+  if (m) m.textContent = decision === 'approved' ? (ok ? 'Approved — applied.' : 'Approved, but it could not be applied (check stock / the order may have changed) — marked as failed.') : 'Denied — nothing changed.';
+  renderApprovals(); renderOwner();
+}
 function renderOwner() {
   const d = loadOwner(); if (!d.signupEmails) d.signupEmails = [];
   const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
@@ -604,7 +868,7 @@ function renderOwner() {
   if (expEl) {
     var ex = d.expenses || [];
     expEl.innerHTML = ex.length ? ex.map(function (x, i) { return '<div style="margin:.3rem 0">' + x.label + ' — $' + (+x.amount || 0).toFixed(2) + ' <span class="fine">' + (x.at || '') + '</span> <button class="btn ghost" type="button" data-exp-remove="' + i + '">Remove</button></div>'; }).join('') + '<p class="fine">Expenses total: $' + expP.toFixed(2) + ' — counted in the profit above.</p>' : 'No expenses logged yet.';
-    expEl.querySelectorAll('[data-exp-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); dd.expenses = (dd.expenses || []).filter(function (_, x) { return x !== +b.dataset.expRemove; }); saveOwner(dd); renderOwner(); }); });
+    expEl.querySelectorAll('[data-exp-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); var ex = (dd.expenses || [])[+b.dataset.expRemove]; if (isGated()) { requestApproval('expense-remove', 'Remove expense: ' + (ex ? ex.label : '') + ' $' + (ex ? ex.amount : ''), { label: ex ? ex.label : '', amount: ex ? ex.amount : 0, at: ex ? ex.at : '' }); approvalQueuedMsg(); return; } dd.expenses = (dd.expenses || []).filter(function (_, x) { return x !== +b.dataset.expRemove; }); saveOwner(dd); renderOwner(); }); });
   }
   var alertEl = $('owner-alerts');
   if (alertEl) {
@@ -756,6 +1020,7 @@ function renderOwner() {
     }); });
   });
   renderTeamNotes();
+  renderApprovals();
   sb.from('clutch_stats').select('visits').eq('id', 1).then(function (r) {
     var el = $('owner-visits');
     if (!el) return;
@@ -781,7 +1046,7 @@ function renderOwner() {
       + '<p class="fine">Starting balance: $ <input id="money-start" type="number" step="0.01" style="width:6rem" value="' + start + '"> <button class="btn ghost" type="button" id="money-start-save">Save</button> <span class="fine">(put −300 here once you\'ve paid Kevin, or leave 0)</span></p>'
       + (mHtml || '<p class="fine">Nothing yet — orders and expenses show up here automatically.</p>');
     var sb2 = $('money-start-save');
-    if (sb2) sb2.addEventListener('click', function () { const dd = loadOwner(); dd.startBalance = parseFloat(($('money-start').value || '0')) || 0; saveOwner(dd); renderOwner(); });
+    if (sb2) sb2.addEventListener('click', function () { var v = parseFloat(($('money-start').value || '0')) || 0; if (isGated()) { requestApproval('money-start', 'Starting balance → $' + v, { startBalance: v }); approvalQueuedMsg(); return; } const dd = loadOwner(); dd.startBalance = v; saveOwner(dd); renderOwner(); });
   }
   $('owner-stats').innerHTML = [['Revenue', '$' + rev], ['Orders', d.orders.length], ['Shipped', shipped], ['Stock left', left + ' / 30'], ['Signups', d.signups || d.signupEmails.length]].map(function (kv) { return '<div><small>' + kv[0] + '</small><b>' + kv[1] + '</b></div>'; }).join('');
   // Sales pace — X of 30 sold, how many a day to sell out by Nov 27
@@ -896,14 +1161,15 @@ function renderOwner() {
     el.querySelectorAll('[data-order-tracking]').forEach(function (b) { b.addEventListener('click', function () { const t = prompt('Tracking number:'); if (t === null) return; const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner(); }); });
     el.querySelectorAll('[data-order-note]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderNote]; const t = prompt('Note for this order (customer notes, gift message, etc.):', o.note || ''); if (t === null) return; o.note = t.trim(); saveOwner(dd); renderOwner(); }); });
     el.querySelectorAll('[data-order-slip]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderSlip]; const w = window.open('', '_blank', 'width=500,height=600'); if (!w) return; w.document.write('<html><head><title>Packing slip — CLUTCH</title><style>body{font-family:monospace;padding:24px}h1{font-size:28px}hr{border:1px dashed #000}</style></head><body><h1>CLUTCH — Packing slip</h1><hr><p><b>Order #' + (+b.dataset.orderSlip + 1) + '</b> · ' + (o.at || '') + '</p><p>Buyer: <b>' + o.buyer + '</b><br>Size: <b>' + o.size + '</b> · UES Mesh Shorts<br>Pay: ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + '<br>Status: ' + (o.status || 'Paid') + '</p><p>Ship to:<br>' + (o.address || 'pickup') + '</p>' + (o.tracking ? '<p>Tracking: ' + o.tracking + '</p>' : '') + (o.note ? '<p>Note: ' + o.note + '</p>' : '') + '<hr><p>Built Different — clutchbuiltdifferent.com</p><script>window.print()<\/script></body></html>'); w.document.close(); }); });
-    el.querySelectorAll('[data-order-refund]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Refund this order? The size goes back into stock and it stops counting toward revenue/profit.')) return; const dd = loadOwner(); const o = dd.orders[+b.dataset.orderRefund]; if (o.status !== 'Refunded' && o.status !== 'Cancelled') { o.status = 'Refunded'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; logAct('Refunded order #' + (+b.dataset.orderRefund + 1) + ' (' + o.buyer + ', ' + o.size + ')'); } saveOwner(dd); renderOwner(); }); });
-    el.querySelectorAll('[data-order-cancel]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Cancel this order? The size goes back into stock.')) return; const dd = loadOwner(); const o = dd.orders[+b.dataset.orderCancel]; if (o.status !== 'Cancelled') { o.status = 'Cancelled'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; logAct('Cancelled order #' + (+b.dataset.orderCancel + 1) + ' (' + o.buyer + ', ' + o.size + ')'); } saveOwner(dd); renderOwner(); }); });
+    el.querySelectorAll('[data-order-refund]').forEach(function (b) { b.addEventListener('click', function () { const dd0 = loadOwner(); const o0 = dd0.orders[+b.dataset.orderRefund]; if (isGated()) { requestApproval('order-refund', 'Refund order #' + (+b.dataset.orderRefund + 1) + ' — ' + o0.buyer + ' (' + o0.size + ')', { buyer: o0.buyer, size: o0.size, fromSize: o0.size, total: o0.total }); approvalQueuedMsg(); return; } if (!confirm('Refund this order? The size goes back into stock and it stops counting toward revenue/profit.')) return; const dd = loadOwner(); const o = dd.orders[+b.dataset.orderRefund]; if (o.status !== 'Refunded' && o.status !== 'Cancelled') { o.status = 'Refunded'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; logAct('Refunded order #' + (+b.dataset.orderRefund + 1) + ' (' + o.buyer + ', ' + o.size + ')'); } saveOwner(dd); renderOwner(); }); });
+    el.querySelectorAll('[data-order-cancel]').forEach(function (b) { b.addEventListener('click', function () { const dd0 = loadOwner(); const o0 = dd0.orders[+b.dataset.orderCancel]; if (isGated()) { requestApproval('order-cancel', 'Cancel order #' + (+b.dataset.orderCancel + 1) + ' — ' + o0.buyer + ' (' + o0.size + ')', { buyer: o0.buyer, size: o0.size, fromSize: o0.size, total: o0.total }); approvalQueuedMsg(); return; } if (!confirm('Cancel this order? The size goes back into stock.')) return; const dd = loadOwner(); const o = dd.orders[+b.dataset.orderCancel]; if (o.status !== 'Cancelled') { o.status = 'Cancelled'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; logAct('Cancelled order #' + (+b.dataset.orderCancel + 1) + ' (' + o.buyer + ', ' + o.size + ')'); } saveOwner(dd); renderOwner(); }); });
     el.querySelectorAll('[data-order-swap]').forEach(function (b) { b.addEventListener('click', function () {
       const dd = loadOwner(); const o = dd.orders[+b.dataset.orderSwap];
       const sel = el.querySelector('[data-order-swap-size="' + b.dataset.orderSwap + '"]');
       const ns = sel ? sel.value : '';
       if (!ns || ns === o.size) { $('owner-msg').textContent = 'Pick a different size to swap into.'; return; }
       if ((dd.stock[ns] || 0) <= 0) { $('owner-msg').textContent = 'No ' + ns + ' left to swap into.'; return; }
+      if (isGated()) { requestApproval('order-swap', 'Swap order #' + (+b.dataset.orderSwap + 1) + ' — ' + o.buyer + ' ' + o.size + ' → ' + ns, { buyer: o.buyer, fromSize: o.size, newSize: ns, total: o.total }); approvalQueuedMsg(); return; }
       const oldSize = o.size;
       if (dd.stock[oldSize] !== undefined) dd.stock[oldSize]++;
       if (dd.stock[ns] !== undefined) dd.stock[ns]--;
@@ -919,8 +1185,8 @@ function renderOwner() {
   var staffEl = $('staff-list');
   if (staffEl) {
     var staff = (d.staff || []).concat(OWNER_EMAILS.map(function (e) { return { email: e, role: 'owner', name: 'Sebastian' }; }));
-    staffEl.innerHTML = staff.length ? staff.map(function (s, i) { return '<div style="margin:.4rem 0">' + (s.name ? s.name + ' — ' : '') + s.email + ' · <b>' + s.role + '</b>' + (OWNER_EMAILS.indexOf(s.email) === -1 ? ' <button class="btn ghost" type="button" data-staff-remove="' + i + '">Remove</button>' : '') + '</div>'; }).join('') : 'No staff yet — add Emeri + Ajan below.';
-    staffEl.querySelectorAll('[data-staff-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); dd.staff = (dd.staff || []).filter(function (_, x) { return x !== +b.dataset.staffRemove; }); saveOwner(dd); renderOwner(); }); });
+    staffEl.innerHTML = staff.length ? staff.map(function (s, i) { return '<div style="margin:.4rem 0">' + (s.name ? s.name + ' — ' : '') + s.email + ' · <b>' + roleLabel(s.role) + '</b>' + (OWNER_EMAILS.indexOf(s.email) === -1 ? ' <button class="btn ghost" type="button" data-staff-remove="' + i + '">Remove</button>' : '') + '</div>'; }).join('') : 'No staff yet — add Emeri + Ajan below.';
+    staffEl.querySelectorAll('[data-staff-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); var removed = (dd.staff || [])[+b.dataset.staffRemove]; if (isGated()) { requestApproval('staff-remove', 'Remove ' + (removed ? removed.email : 'staff member'), { email: removed ? removed.email : '' }); approvalQueuedMsg(); return; } dd.staff = (dd.staff || []).filter(function (_, x) { return x !== +b.dataset.staffRemove; }); saveOwner(dd); renderOwner(); }); });
   }
   var gcEl = $('owner-giftcards');
   if (gcEl) {
@@ -928,14 +1194,14 @@ function renderOwner() {
     var redeemed = function (code) { return d.orders.some(function (o) { return (o.note || '').indexOf(code) !== -1; }); };
     gcEl.innerHTML = '<h3>🎁 Gift cards — $25, good for Drop 002</h3><p class="fine">Sell a gift card now (DM @clutchny1), the buyer redeems the code at checkout for $25 off. Codes work on the live checkout.</p>' + (gcs.length ? gcs.map(function (g, i) { return '<div style="margin:.3rem 0"><b>' + g.code + '</b> — $25 — ' + (redeemed(g.code) ? '✅ redeemed' : '🟢 active') + ' <button class="btn ghost" type="button" data-gc-copy="' + i + '">Copy</button></div>'; }).join('') : '<p class="fine">No gift cards yet.</p>') + '<p><button class="btn buy live" type="button" id="owner-gc-new">+ New $25 gift card</button></p>';
     gcEl.querySelectorAll('[data-gc-copy]').forEach(function (b) { b.addEventListener('click', async function () { try { await navigator.clipboard.writeText(gcs[+b.dataset.gcCopy].code); $('owner-msg').textContent = 'Gift card code copied.'; } catch (e) {} }); });
-    $('owner-gc-new').addEventListener('click', function () { const dd = loadOwner(); if (!dd.giftCards) dd.giftCards = []; var code = ''; do { code = 'GIFT-' + Math.random().toString(36).slice(2, 6).toUpperCase(); } while (dd.giftCards.some(function (g) { return g.code === code; })); dd.giftCards.push({ code: code, amount: 25 }); try { sb.from('clutch_giftcards').insert({ code: code, value: 25 }); } catch (_) {} saveOwner(dd); renderOwner(); });
+    $('owner-gc-new').addEventListener('click', function () { const dd = loadOwner(); if (!dd.giftCards) dd.giftCards = []; var code = ''; do { code = 'GIFT-' + Math.random().toString(36).slice(2, 6).toUpperCase(); } while (dd.giftCards.some(function (g) { return g.code === code; })); if (isGated()) { requestApproval('giftcard-new', 'New $25 gift card ' + code, { code: code }); approvalQueuedMsg(); return; } dd.giftCards.push({ code: code, amount: 25 }); try { sb.from('clutch_giftcards').insert({ code: code, value: 25 }); } catch (_) {} saveOwner(dd); renderOwner(); });
   }
   var discEl = $('discount-list');
   if (discEl) {
     var list = (d.discounts && d.discounts.length) ? d.discounts : [{ code: 'CLUTCH10', pct: 10, active: true }];
     discEl.innerHTML = list.map(function (x, i) { return '<div style="margin:.4rem 0"><b>' + x.code + '</b> — ' + x.pct + '% off ' + (x.active ? '· <b>ACTIVE</b>' : '') + ' <button class="btn ghost" type="button" data-disc-active="' + i + '">Set active</button> <button class="btn ghost" type="button" data-disc-remove="' + i + '">Remove</button></div>'; }).join('') || 'No codes yet.';
-    discEl.querySelectorAll('[data-disc-active]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); var l = (dd.discounts && dd.discounts.length) ? dd.discounts : [{ code: 'CLUTCH10', pct: 10, active: true }]; dd.discounts = l.map(function (x, x2) { x.active = x2 === +b.dataset.discActive; return x; }); saveOwner(dd); renderOwner(); }); });
-    discEl.querySelectorAll('[data-disc-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); var l = (dd.discounts && dd.discounts.length) ? dd.discounts : []; dd.discounts = l.filter(function (_, x) { return x !== +b.dataset.discRemove; }); saveOwner(dd); renderOwner(); }); });
+    discEl.querySelectorAll('[data-disc-active]').forEach(function (b) { b.addEventListener('click', function () { var l0 = (loadOwner().discounts && loadOwner().discounts.length) ? loadOwner().discounts : [{ code: 'CLUTCH10', pct: 10, active: true }]; var code0 = (l0[+b.dataset.discActive] || {}).code; if (isGated()) { requestApproval('discount-active', 'Set ' + code0 + ' as the active code', { code: code0 }); approvalQueuedMsg(); return; } const dd = loadOwner(); var l = (dd.discounts && dd.discounts.length) ? dd.discounts : [{ code: 'CLUTCH10', pct: 10, active: true }]; dd.discounts = l.map(function (x, x2) { x.active = x2 === +b.dataset.discActive; return x; }); saveOwner(dd); renderOwner(); }); });
+    discEl.querySelectorAll('[data-disc-remove]').forEach(function (b) { b.addEventListener('click', function () { var l0 = (loadOwner().discounts && loadOwner().discounts.length) ? loadOwner().discounts : []; var code0 = (l0[+b.dataset.discRemove] || {}).code; if (isGated()) { requestApproval('discount-remove', 'Remove discount code ' + code0, { code: code0 }); approvalQueuedMsg(); return; } const dd = loadOwner(); var l = (dd.discounts && dd.discounts.length) ? dd.discounts : []; dd.discounts = l.filter(function (_, x) { return x !== +b.dataset.discRemove; }); saveOwner(dd); renderOwner(); }); });
   }
   ['S', 'M', 'L', 'XL'].forEach(function (s) { var inp = $('stock-edit-' + s); if (inp && document.activeElement !== inp) inp.value = d.stock[s]; });
 }
@@ -947,11 +1213,13 @@ $('owner-order-form').addEventListener('submit', function (e) {
   e.preventDefault(); const d = loadOwner(); const size = $('owner-size').value;
   if ((d.stock[size] || 0) <= 0) { $('owner-msg').textContent = 'That size is sold out.'; return; }
   var payVal = $('owner-pay').value;
-  d.orders.push({ buyer: $('owner-buyer').value.trim(), size: size, pay: payVal, total: payVal === 'Free' ? 0 : 35, status: 'Paid', address: $('owner-address').value.trim(), at: new Date().toISOString().slice(0, 10) });
+  var order = { buyer: $('owner-buyer').value.trim(), size: size, pay: payVal, total: payVal === 'Free' ? 0 : 35, status: 'Paid', address: $('owner-address').value.trim(), at: new Date().toISOString().slice(0, 10) };
+  if (isGated()) { requestApproval('order-add', 'New Paid order — ' + order.buyer + ' (' + size + ', $' + order.total + ')', { order: order }); $('owner-msg').textContent = 'Sent for approval — Sebastian will review it.'; return; }
+  d.orders.push(order);
   d.stock[size]--; saveOwner(d); renderOwner(); e.target.reset();
 });
-document.querySelectorAll('[data-sell]').forEach(function (b) { b.addEventListener('click', function () { const d = loadOwner(); const s = b.dataset.sell; if ((d.stock[s] || 0) > 0) d.stock[s]--; saveOwner(d); renderOwner(); }); });
-$('owner-reset-stock').addEventListener('click', function () { const d = loadOwner(); d.stock = { S: 10, M: 10, L: 5, XL: 5 }; saveOwner(d); renderOwner(); });
+document.querySelectorAll('[data-sell]').forEach(function (b) { b.addEventListener('click', function () { const d = loadOwner(); const s = b.dataset.sell; if ((d.stock[s] || 0) <= 0) return; if (isGated()) { requestApproval('stock-edit', 'Sell 1 × size ' + s + ': ' + d.stock[s] + ' → ' + (d.stock[s] - 1), { stock: Object.assign({}, d.stock, { [s]: d.stock[s] - 1 }) }); approvalQueuedMsg(); return; } if ((d.stock[s] || 0) > 0) d.stock[s]--; saveOwner(d); renderOwner(); }); });
+$('owner-reset-stock').addEventListener('click', function () { if (isGated()) { requestApproval('stock-edit', 'Reset stock to 10/10/5/5', { stock: { S: 10, M: 10, L: 5, XL: 5 } }); approvalQueuedMsg(); return; } const d = loadOwner(); d.stock = { S: 10, M: 10, L: 5, XL: 5 }; saveOwner(d); renderOwner(); });
 $('owner-signups').addEventListener('change', function () { const d = loadOwner(); d.signups = parseInt($('owner-signups').value || '0', 10) || 0; saveOwner(d); renderOwner(); });
 $('owner-signup-add-form').addEventListener('submit', function (e) { e.preventDefault(); const d = loadOwner(); const em = $('owner-signup-email').value.trim(); if (em && d.signupEmails.indexOf(em) === -1) d.signupEmails.push(em); d.signups = d.signupEmails.length; saveOwner(d); renderOwner(); e.target.reset(); });
 $('owner-signup-export').addEventListener('click', async function () { try { await navigator.clipboard.writeText(loadOwner().signupEmails.join(', ')); $('owner-msg').textContent = 'Signup emails copied.'; } catch (e) {} });
@@ -960,7 +1228,7 @@ $('owner-export').addEventListener('click', async function () {
   const csv = 'buyer,size,pay,total,status,tracking,address,date\n' + d.orders.map(function (o) { return '"' + (o.buyer || '').replace(/"/g, '""') + '",' + o.size + ',' + o.pay + ',' + (o.total === undefined ? 35 : o.total) + ',' + (o.status || 'Paid') + ',' + (o.tracking || '') + ',"' + (o.address || '').replace(/"/g, '""') + '",' + (o.at || ''); }).join('\n');
   try { await navigator.clipboard.writeText(csv); $('owner-msg').textContent = 'Orders copied as CSV.'; } catch (e) {}
 });
-$('owner-clear').addEventListener('click', function () { if (!confirm('Clear all orders?')) return; const d = loadOwner(); d.orders = []; saveOwner(d); renderOwner(); });
+$('owner-clear').addEventListener('click', function () { if (isGated()) { requestApproval('orders-clear', 'Clear ALL orders', {}); approvalQueuedMsg(); return; } if (!confirm('Clear all orders?')) return; const d = loadOwner(); d.orders = []; saveOwner(d); renderOwner(); });
 $('owner-email-copy').addEventListener('click', async function () { try { await navigator.clipboard.writeText($('owner-email-draft').textContent); $('owner-msg').textContent = 'Email draft copied.'; } catch (e) {} });
 const TPLS = {
   paid: "You're in 🙏 $35 total — pay here: https://gl.me/u/qqMvQlZ6mTpb — then lmk your size + ship address and I'll confirm it",
@@ -975,10 +1243,11 @@ $('staff-add-form').addEventListener('submit', async function (e) {
   const email = ($('staff-email').value || '').trim().toLowerCase();
   const role = $('staff-role') ? $('staff-role').value : 'staff';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+  if (isGated()) { requestApproval('staff-add', 'Add ' + roleLabel(role) + ': ' + email, { email: email, role: role, roleLabel: roleLabel(role) }); $('owner-msg').textContent = 'Sent for approval — Sebastian will review it.'; return; }
   if (!d.staff.some(function (s) { return s.email === email; }) && OWNER_EMAILS.indexOf(email) === -1) d.staff.push({ email: email, role: role, name: '' });
   try { await sb.from('clutch_staff').insert({ email: email, name: '', role: role }); } catch (err) {}
   saveOwner(d); renderOwner(); e.target.reset();
-  $('owner-msg').textContent = role === 'owner' ? 'Owner added — full access once they log in with that email.' : 'Staff added — limited dashboard once they log in with that email.';
+  $('owner-msg').textContent = role === 'owner' ? 'Owner added — full access once they log in with that email.' : role === 'gated' ? 'Owner (approval needed) added — sees everything, changes need Sebastian\'s OK once they log in.' : 'Staff added — limited dashboard once they log in with that email.';
 });
 $('discount-add-form').addEventListener('submit', function (e) {
   e.preventDefault();
@@ -986,6 +1255,7 @@ $('discount-add-form').addEventListener('submit', function (e) {
   const code = ($('discount-new-code').value || '').trim().toUpperCase();
   const pct = parseInt(($('discount-new-pct').value || '10'), 10) || 0;
   if (!code || !pct) return;
+  if (isGated()) { requestApproval('discount-add', 'New discount code ' + code + ' ' + pct + '% off', { code: code, pct: pct }); $('owner-msg').textContent = 'Sent for approval — Sebastian will review it.'; return; }
   if (!d.discounts.some(function (x) { return x.code === code; })) d.discounts.push({ code: code, pct: pct, active: false });
   saveOwner(d); renderOwner(); e.target.reset();
 });
@@ -993,12 +1263,17 @@ $('order-search').addEventListener('input', function () { renderOwner(); });
 $('order-filter').addEventListener('change', function () { renderOwner(); });
 $('owner-stock-save').addEventListener('click', function () {
   const d = loadOwner();
-  ['S', 'M', 'L', 'XL'].forEach(function (s) { const v = parseInt(($('stock-edit-' + s).value || '0'), 10); if (!isNaN(v) && v >= 0) d.stock[s] = v; });
+  var next = {};
+  ['S', 'M', 'L', 'XL'].forEach(function (s) { const v = parseInt(($('stock-edit-' + s).value || '0'), 10); if (!isNaN(v) && v >= 0) next[s] = v; });
+  if (isGated()) { requestApproval('stock-edit', 'Stock edit: ' + ['S', 'M', 'L', 'XL'].map(function (s) { return s + ' ' + (d.stock[s] || 0) + ' → ' + (next[s] !== undefined ? next[s] : d.stock[s]); }).join(', '), { stock: Object.assign({}, d.stock, next) }); approvalQueuedMsg(); return; }
+  Object.assign(d.stock, next);
   saveOwner(d); renderOwner(); $('owner-msg').textContent = 'Stock updated.';
 });
 $('owner-cost-save').addEventListener('click', function () {
-  const d = loadOwner(); if (!d.costs) d.costs = { perPair: 10, shipping: 9, other: 0 };
-  ['perPair', 'shipping', 'other'].forEach(function (k) { const v = parseFloat(($('cost-' + k).value || '0')); if (!isNaN(v) && v >= 0) d.costs[k] = v; });
+  var costs = { perPair: 10, shipping: 9, other: 0 };
+  ['perPair', 'shipping', 'other'].forEach(function (k) { const v = parseFloat(($('cost-' + k).value || '0')); if (!isNaN(v) && v >= 0) costs[k] = v; });
+  if (isGated()) { requestApproval('costs-edit', 'Cost edits: $' + costs.perPair + '/pair · shipping $' + costs.shipping + ' · other $' + costs.other, { costs: costs }); approvalQueuedMsg(); return; }
+  const d = loadOwner(); d.costs = costs;
   saveOwner(d); renderOwner(); $('owner-msg').textContent = 'Costs updated — profit recalculated.';
 });
 $('money-add-form').addEventListener('submit', function (e) {
@@ -1007,12 +1282,15 @@ $('money-add-form').addEventListener('submit', function (e) {
   const label = ($('money-label').value || '').trim();
   const amount = parseFloat(($('money-amount').value || '0')) || 0;
   if (!label || !amount) return;
+  if (isGated()) { requestApproval('money-add', 'Money entry: ' + label + ' $' + amount, { label: label, amount: amount }); $('owner-msg').textContent = 'Sent for approval — Sebastian will review it.'; return; }
   d.moneyEntries.push({ label: label, amount: amount, at: new Date().toISOString().slice(0, 10) });
   saveOwner(d); renderOwner(); e.target.reset();
 });
-$('owner-live-toggle').addEventListener('click', function () { const d = loadOwner(); d.liveMode = !d.liveMode; saveOwner(d); renderOwner(); });
+$('owner-live-toggle').addEventListener('click', function () { const d = loadOwner(); var next = !d.liveMode; if (isGated()) { requestApproval('live-toggle', 'Live mode → ' + (next ? 'ON' : 'OFF'), { liveMode: next }); approvalQueuedMsg(); return; } d.liveMode = next; saveOwner(d); renderOwner(); });
 var goLiveSwitchBtn = $('owner-go-live-switch');
-if (goLiveSwitchBtn) goLiveSwitchBtn.addEventListener('click', async function () {
+if (goLiveSwitchBtn) goLiveSwitchBtn.addEventListener('click', function () { doGoLive(); });
+async function doGoLive() {
+  if (isGated()) { await requestApproval('go-live', 'Go LIVE — preorder-day live mode + banner', {}); var m0 = $('owner-go-live-switch-msg'); if (m0) m0.textContent = 'Sent for approval — Sebastian will review it.'; return; }
   var msg = $('owner-go-live-switch-msg');
   var d = loadOwner(); d.liveMode = true; saveOwner(d);
   var e = loadEdits(); e.announce = '🔴 PREORDERS ARE LIVE — Drop 01 preorders are open. 30 pieces, first paid, first served.';
@@ -1035,13 +1313,14 @@ if (goLiveSwitchBtn) goLiveSwitchBtn.addEventListener('click', async function ()
     window.open(mailto, '_blank');
     if (msg) msg.textContent = (hasToken ? 'Banner is live for everyone. ' : 'Banner is set on this device only. ') + 'Your mail app opened with all ' + emails.length + ' signups in BCC — hit send.';
   }
-});
+}
 $('expense-add-form').addEventListener('submit', function (e) {
   e.preventDefault();
   const d = loadOwner(); if (!d.expenses) d.expenses = [];
   const label = ($('expense-label').value || '').trim();
   const amount = parseFloat(($('expense-amount').value || '0')) || 0;
   if (!label || !amount) return;
+  if (isGated()) { requestApproval('expense-add', 'Expense: ' + label + ' $' + amount, { label: label, amount: amount }); $('owner-msg').textContent = 'Sent for approval — Sebastian will review it.'; return; }
   d.expenses.push({ label: label, amount: amount, at: new Date().toISOString().slice(0, 10) });
   saveOwner(d); renderOwner(); e.target.reset();
 });
@@ -1066,15 +1345,20 @@ $('owner-weekly-report').addEventListener('click', async function () {
 $('owner-bulk-add').addEventListener('click', function () {
   const d = loadOwner();
   const lines = ($('owner-bulk-text').value || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
-  let added = 0;
+  var parsed = [];
   lines.forEach(function (line) {
     const parts = line.split(',').map(function (s) { return s.trim(); });
     if (parts.length < 2) return;
     const size = (parts[1] || '').toUpperCase();
     if (['S', 'M', 'L', 'XL'].indexOf(size) === -1) return;
     const pay = parts[2] || 'Greenlight';
-    d.orders.push({ buyer: parts[0], size: size, pay: pay, total: pay === 'Free' ? 0 : 35, status: 'Paid', address: parts[3] || '', at: new Date().toISOString().slice(0, 10) });
-    if (d.stock[size] > 0) d.stock[size]--;
+    parsed.push({ buyer: parts[0], size: size, pay: pay, total: pay === 'Free' ? 0 : 35, status: 'Paid', address: parts[3] || '', at: new Date().toISOString().slice(0, 10) });
+  });
+  if (isGated()) { requestApproval('order-bulk-add', 'Bulk import — ' + parsed.length + ' order(s)', { orders: parsed }); $('owner-msg').textContent = 'Sent for approval — Sebastian will review it.'; return; }
+  let added = 0;
+  parsed.forEach(function (o) {
+    d.orders.push(o);
+    if (d.stock[o.size] > 0) d.stock[o.size]--;
     added++;
   });
   saveOwner(d); renderOwner();
@@ -1152,6 +1436,22 @@ const editForm = $('owner-edit-form');
 if (editForm) editForm.addEventListener('submit', e => {
   e.preventDefault();
   const edits = Object.assign({}, loadEdits(), { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), announce: ($('edit-announce') ? $('edit-announce').value.trim() : ''), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') });
+  if (isGated()) {
+    const old = loadEdits();
+    const changedContent = ['lede', 'price', 'when', 'buynote', 'announce'].filter(k => (edits[k] || '') !== (old[k] || ''));
+    const changedDiscount = (edits.discountCode || '') !== (old.discountCode || '') || (edits.discountPct || '') !== (old.discountPct || '');
+    const m = $('owner-edit-msg');
+    if (changedContent.length) {
+      requestApproval('site-edits', 'Site edits — ' + changedContent.map(k => k === 'lede' ? 'hero line' : k === 'price' ? 'price → ' + edits.price : k === 'when' ? 'date/time' : k === 'buynote' ? 'buy note' : 'announcement').join(', '), { edits: edits });
+      if (m) m.textContent = 'Sent for approval — Sebastian will review it. Nothing is saved yet.';
+      return;
+    }
+    if (changedDiscount) {
+      requestApproval('discount-single', 'Discount code: ' + edits.discountCode + ' ' + edits.discountPct + '% off', { code: edits.discountCode, pct: edits.discountPct });
+      if (m) m.textContent = 'Sent for approval — Sebastian will review it. Nothing is saved yet.';
+      return;
+    }
+  }
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(edits)); } catch (_) {}
   applyEdits();
   const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Publish my edits live" below to make them live for everyone (needs your GitHub key, one-time setup).';
@@ -1252,7 +1552,10 @@ window.addEventListener('message', function (ev) {
   } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
 }
 const ghPublish = $('owner-edit-publish');
-if (ghPublish) ghPublish.addEventListener('click', function () { publishEditsLive(); });
+if (ghPublish) ghPublish.addEventListener('click', function () {
+  if (isGated()) { requestApproval('publish-edits', 'Publish site edits live', { edits: loadEdits() }); const m = $('owner-edit-msg'); if (m) m.textContent = 'Sent for approval — Sebastian will review it.'; return; }
+  publishEditsLive();
+});
 $('owner-assign-form').addEventListener('submit', function (e) {
   e.preventDefault();
   const d = loadOwner(); if (!d.assignments) d.assignments = [];
@@ -1311,7 +1614,7 @@ $('owner-login-form').addEventListener('submit', async function (e) {
   let acct = null; try { acct = JSON.parse(localStorage.getItem(ACCT_KEY) || 'null'); } catch (err) {}
   if (!acct) { $('owner-auth-msg').textContent = 'No owner account on this device yet — make one below, or log in with the owner email.'; return; }
   const h = await sha('clutch-owner:' + $('owner-pin').value);
-  if (h === acct.pinHash) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (err) {} showAdmin(); }
+  if (h === acct.pinHash) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (err) {} currentActor = ''; showAdmin(); }
   else $('owner-auth-msg').textContent = 'Wrong PIN.';
 });
 $('owner-logout').addEventListener('click', async function () { await sb.auth.signOut(); try { sessionStorage.removeItem('clutch-owner-session'); } catch (e) {} location.reload(); });
@@ -1329,7 +1632,7 @@ if (signupF) signupF.addEventListener('submit', async function (e) {
   if (pin.length < 4) { if (msg) msg.textContent = 'Pick a PIN with at least 4 digits.'; return; }
   try { localStorage.setItem(ACCT_KEY, JSON.stringify({ user: user, pinHash: await sha('clutch-owner:' + pin), created: new Date().toISOString().slice(0, 10) })); sessionStorage.setItem('clutch-owner-session', '1'); } catch (err) {}
   if (msg) msg.textContent = 'Account made — welcome, ' + user + '.';
-  showAdmin();
+  currentActor = ''; showAdmin();
 });
 var pinForm = $('owner-pin-form');
 if (pinForm) pinForm.addEventListener('submit', async function(e) {
@@ -1361,8 +1664,11 @@ $('owner-waitlist-notify').addEventListener('click', async function () {
 });
 $('owner-discount-save').addEventListener('click', function () {
   let e = {}; try { e = JSON.parse(localStorage.getItem('clutch-site-edits-v1') || '{}'); } catch (err) {}
-  e.discountCode = ($('edit-discount-code').value || '').trim().toUpperCase();
-  e.discountPct = ($('edit-discount-pct').value || '').trim();
+  var code = ($('edit-discount-code').value || '').trim().toUpperCase();
+  var pct = ($('edit-discount-pct').value || '').trim();
+  if (isGated()) { requestApproval('discount-single', 'Discount code: ' + code + ' ' + pct + '% off', { code: code, pct: pct }); $('owner-discount-msg').textContent = 'Sent for approval — Sebastian will review it. Nothing is saved yet.'; return; }
+  e.discountCode = code;
+  e.discountPct = pct;
   try { localStorage.setItem('clutch-site-edits-v1', JSON.stringify(e)); } catch (err) {}
   $('owner-discount-msg').textContent = 'Saved — code ' + (e.discountCode || 'CLUTCH10') + ' gives ' + (e.discountPct || '10') + '% off on the site.';
 });
@@ -1377,13 +1683,15 @@ $('owner-discount-save').addEventListener('click', function () {
 (async function () {
   const userRes = await sb.auth.getUser();
   const user = userRes.data && userRes.data.user;
-  if (user && OWNER_EMAILS.includes(user.email)) { $('admin-who').textContent = 'Logged in as owner: ' + user.email; showAdmin(); return; }
+  if (user && OWNER_EMAILS.includes(user.email)) { currentActor = user.email; $('admin-who').textContent = 'Logged in as owner: ' + user.email; showAdmin(); return; }
   if (user) {
     try {
       const sr = await sb.from('clutch_staff').select('email,role').eq('email', user.email).limit(1);
       if (sr.data && sr.data.length) {
         var srole = sr.data[0].role || 'staff';
+        currentActor = user.email;
         if (srole === 'owner') { $('admin-who').textContent = 'Logged in as owner: ' + user.email; showAdmin(); return; }
+        if (srole === 'gated') { $('admin-who').textContent = 'Logged in as owner — sees everything, changes need Sebastian\'s OK: ' + user.email; showAdmin('gated'); return; }
         $('admin-who').textContent = 'Logged in as staff: ' + user.email + ' (limited dashboard — orders + stock only).';
         showAdmin(srole); return;
       }
