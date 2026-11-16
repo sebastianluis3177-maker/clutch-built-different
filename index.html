@@ -34,7 +34,12 @@ section{padding:4.5rem 1.25rem;max-width:1180px;margin:0 auto}
 .nav nav a{text-decoration:none}
 .nav nav a:not(.pill){display:none}
 .pill{border:1px solid var(--ink);padding:.45rem .8rem;border-radius:99px}
-.hero{text-align:center;padding-top:3.5rem;min-height:calc(100svh - 100px);display:flex;flex-direction:column;justify-content:center;align-items:center}
+.hero{text-align:center;padding-top:3.5rem;min-height:calc(100svh - 100px);display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative}
+.owner-dot{position:absolute;right:1.2rem;bottom:1.2rem;width:12px;height:12px;border-radius:50%;border:0;background:var(--tan);opacity:.18;cursor:pointer;padding:0}
+.owner{background:#111;border:1px solid var(--line);border-radius:12px;text-align:left}
+.owner-grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:1rem 0}
+.owner input,.owner select{background:#0b0b0b;color:#f5efe4;border:1px solid var(--line);border-radius:8px;padding:.55rem .7rem;font:inherit}
+.owner form{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
 .hero h1{font-size:clamp(4.2rem,22vw,12rem)}
 .hero h1 span{display:block;font-size:.28em;letter-spacing:.32em;color:var(--tan);margin-top:.6rem;font-weight:800;margin-right:-.32em}
 .lede{max-width:34ch;margin:1.4rem auto 2rem;color:#cfc6b6}
@@ -197,6 +202,48 @@ section,.nav{background-color:transparent}
     <a class="btn ghost" href="#notify">Get notified</a>
   </div>
   <p class="fine buy-note">PREORDERS open Fri, Nov 27, 6PM ET · $25 + shipping ($35 total) · Pay via Greenlight — or Cash App in the DM. Pick your size first, then DM @clutchny1 — first paid, first served.</p>
+  <button class="owner-dot" id="owner-dot" type="button" aria-label="owner"></button>
+</section>
+
+<section id="owner" class="owner" hidden>
+  <p class="eyebrow">Owner only</p>
+  <h2>Admin — Drop 01</h2>
+  <p class="fine">This panel is hidden — only you know the dot in the map opens it. Everything here is saved on this device only (localStorage), nothing is sent anywhere. Signups live in your Gmail, not on the site — use the link below to open them.</p>
+  <div class="owner-grid">
+    <div>
+      <h3>Stock left</h3>
+      <p class="fine" id="owner-stock"></p>
+      <p>
+        <button class="btn ghost" type="button" data-sell="S">Sell S</button>
+        <button class="btn ghost" type="button" data-sell="M">Sell M</button>
+        <button class="btn ghost" type="button" data-sell="L">Sell L</button>
+        <button class="btn ghost" type="button" data-sell="XL">Sell XL</button>
+        <button class="btn ghost" type="button" id="owner-reset-stock">Reset stock</button>
+      </p>
+    </div>
+    <div>
+      <h3>Email signups</h3>
+      <p class="fine">Signups land in your Gmail via FormSubmit. <a href="https://mail.google.com/mail/u/0/#search/from%3Aformsubmit+CLUTCH+Drop+01" target="_blank" rel="noopener">Open signup emails in Gmail</a></p>
+      <p class="fine">Signup count: <input id="owner-signups" type="number" min="0" value="0" style="width:4rem"> <span class="fine">update this when the hourly watcher pings you</span></p>
+    </div>
+    <div>
+      <h3>Links</h3>
+      <p class="fine"><a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Greenlight pay link — $35</a><br><a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">IG DMs — @clutchny1</a><br><a href="https://clutchbuiltdifferent.com/" target="_blank" rel="noopener">Live site</a></p>
+    </div>
+  </div>
+  <h3>Orders — full record</h3>
+  <form id="owner-order-form">
+    <input id="owner-buyer" type="text" placeholder="Buyer @ / name" required>
+    <select id="owner-size"><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+    <select id="owner-pay"><option>Greenlight</option><option>Cash App</option><option>Cash / pickup</option></select>
+    <button class="btn buy live" type="submit">Add order</button>
+  </form>
+  <p class="fine" id="owner-orders"></p>
+  <p>
+    <button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
+    <button class="btn ghost" type="button" id="owner-clear">Clear orders</button>
+  </p>
+  <p class="fine" id="owner-msg"></p>
 </section>
 
 <section id="how" class="how">
@@ -415,7 +462,65 @@ if (copyBtn) copyBtn.addEventListener('click', async () => {
   }
 });
 
-// Notify form — never fakes success
+// Owner admin portal — hidden in the map. Tiny dot in the hero (bottom-right)
+// opens it; #owner in the URL also opens it. Records are saved on this
+// device only (localStorage) — signups live in Gmail, linked from the panel.
+const ownerPanel = $('owner'), ownerDot = $('owner-dot');
+function openOwner() {
+  if (!ownerPanel) return;
+  ownerPanel.hidden = false;
+  ownerPanel.scrollIntoView({ behavior: 'smooth' });
+  renderOwner();
+}
+if (ownerDot) ownerDot.addEventListener('click', openOwner);
+if (location.hash === '#owner') openOwner();
+
+const OWNER_KEY = 'clutch-admin-v1';
+const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0 };
+function loadOwner() {
+  try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
+  catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
+}
+function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (_) {} }
+function renderOwner() {
+  const d = loadOwner();
+  const stockEl = $('owner-stock');
+  if (stockEl) stockEl.textContent = Object.entries(d.stock).map(([s, n]) => `${s}: ${n} left`).join(' · ') + ` — ${Object.values(d.stock).reduce((a, b) => a + b, 0)} total left`;
+  const signEl = $('owner-signups');
+  if (signEl && document.activeElement !== signEl) signEl.value = d.signups || 0;
+  const ordersEl = $('owner-orders');
+  if (ordersEl) ordersEl.textContent = d.orders.length
+    ? d.orders.map((o, i) => `${i + 1}. ${o.buyer} — ${o.size} — ${o.pay} — $${o.total || 35}`).join('\n')
+    : 'No orders logged yet.';
+}
+document.querySelectorAll('[data-sell]').forEach(b => b.addEventListener('click', () => {
+  const d = loadOwner();
+  if (d.stock[b.dataset.sell] > 0) d.stock[b.dataset.sell]--;
+  saveOwner(d); renderOwner();
+}));
+const resetStock = $('owner-reset-stock');
+if (resetStock) resetStock.addEventListener('click', () => { const d = loadOwner(); d.stock = { S: 10, M: 10, L: 5, XL: 5 }; saveOwner(d); renderOwner(); });
+const signupsInput = $('owner-signups');
+if (signupsInput) signupsInput.addEventListener('change', () => { const d = loadOwner(); d.signups = parseInt(signupsInput.value || '0', 10) || 0; saveOwner(d); });
+const orderForm = $('owner-order-form');
+if (orderForm) orderForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const d = loadOwner();
+  const size = $('owner-size').value;
+  d.orders.push({ buyer: $('owner-buyer').value.trim(), size, pay: $('owner-pay').value, total: 35, at: new Date().toISOString().slice(0, 10) });
+  if (d.stock[size] > 0) d.stock[size]--;
+  saveOwner(d); renderOwner(); orderForm.reset();
+  const m = $('owner-msg'); if (m) m.textContent = 'Order logged.';
+});
+const exportBtn = $('owner-export');
+if (exportBtn) exportBtn.addEventListener('click', async () => {
+  const d = loadOwner();
+  const csv = 'buyer,size,pay,total,date\n' + d.orders.map(o => `"${o.buyer}",${o.size},${o.pay},${o.total || 35},${o.at || ''}`).join('\n');
+  try { await navigator.clipboard.writeText(csv); const m = $('owner-msg'); if (m) m.textContent = 'Orders copied as CSV — paste into Notes / Sheets.'; }
+  catch (_) { const m = $('owner-msg'); if (m) m.textContent = csv; }
+});
+const clearBtn = $('owner-clear');
+if (clearBtn) clearBtn.addEventListener('click', () => { const d = loadOwner(); d.orders = []; saveOwner(d); renderOwner(); });
 const form = $('notify-form'), msg = $('notify-msg');
 const IG = 'https://ig.me/m/clutchny1';
 form.addEventListener('submit', async e => {
