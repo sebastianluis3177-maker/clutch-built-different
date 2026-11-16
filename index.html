@@ -439,6 +439,22 @@ Name: [your name]</pre>
   <p id="waitlist-msg" class="msg" role="status"></p>
 </section>
 
+<section id="account" class="notify">
+  <p class="eyebrow">Your account</p>
+  <h2>Make an account.</h2>
+  <p>Anyone can make one — sign up with email + password, log in on any device. Only Sebastian's email can open admin.</p>
+  <form id="account-form" novalidate>
+    <label class="sr" for="account-email">Email</label>
+    <input id="account-email" name="email" type="email" placeholder="you@email.com" autocomplete="email" required>
+    <input id="account-password" name="password" type="password" placeholder="Password (6+ characters)" minlength="6" autocomplete="current-password" required>
+    <button class="btn buy live" type="submit" id="account-signup">Sign up</button>
+    <button class="btn ghost" type="button" id="account-login">Log in</button>
+  </form>
+  <p id="account-msg" class="msg" role="status"></p>
+  <p id="account-who" class="fine"></p>
+  <p><button class="btn ghost" type="button" id="account-logout" hidden>Log out</button></p>
+</section>
+
 <section id="drop2" class="drop2">
   <p class="eyebrow light">Drop 002 · Form 001 · Coming soon</p>
   <p class="drop2-six" aria-hidden="true">6</p>
@@ -504,6 +520,7 @@ Name: [your name]</pre>
   <p class="fine">Built Different · Upper East Side, NYC</p>
   <p class="fine osm">Background map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> (ODbL)</p>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* =========================================================
    CONFIG — edit these two lines
@@ -515,6 +532,56 @@ Name: [your name]</pre>
 const STRIPE_LINK = '';
 const FORM_ENDPOINT = 'https://formsubmit.co/ajax/sebastianluis3177@gmail.com';
 const NOTIFY_EMAIL = ''; // optional: address for mailto fallback (leave '' to use Instagram DM prompt)
+
+// Supabase — real accounts that sync across devices. Publishable key only, never a secret key.
+const SUPABASE_URL = 'https://fgnuaxhujvxkfzzcvdqf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz';
+const OWNER_EMAIL = 'sebastianluis3177@gmail.com';
+let supabaseClient = null;
+try { if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (_) {}
+async function refreshAccountUI() {
+  const msg = $('account-msg'), who = $('account-who'), out = $('account-logout');
+  if (!supabaseClient) { if (msg) { msg.className = 'msg'; msg.textContent = 'Accounts are offline right now — check back in a bit.'; } return; }
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (user) {
+    if (who) who.textContent = `Logged in as ${user.email}${user.email === OWNER_EMAIL ? ' — owner, admin is unlocked for you' : ''}`;
+    if (out) out.hidden = false;
+    if (msg) { msg.className = 'msg ok'; msg.textContent = user.email === OWNER_EMAIL ? 'You are the owner.' : 'Logged in.'; }
+    if (user.email === OWNER_EMAIL) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (_) {} if (typeof showOwnerAdmin === 'function') showOwnerAdmin(); }
+  } else {
+    if (who) who.textContent = '';
+    if (out) out.hidden = true;
+  }
+}
+const acctForm = document.getElementById('account-form');
+if (acctForm) acctForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('account-msg');
+  const email = $('account-email').value.trim(), pw = $('account-password').value;
+  if (!supabaseClient) { msg.className = 'msg err'; msg.textContent = 'Accounts are offline right now.'; return; }
+  msg.className = 'msg'; msg.textContent = 'Creating your account…';
+  const { error } = await supabaseClient.auth.signUp({ email, password: pw });
+  if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
+  msg.className = 'msg ok'; msg.textContent = 'Account made — check your email to confirm it, then log in.';
+  refreshAccountUI();
+});
+const acctLogin = $('account-login');
+if (acctLogin) acctLogin.addEventListener('click', async () => {
+  const msg = $('account-msg');
+  const email = $('account-email').value.trim(), pw = $('account-password').value;
+  if (!supabaseClient) { msg.className = 'msg err'; msg.textContent = 'Accounts are offline right now.'; return; }
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password: pw });
+  if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
+  msg.className = 'msg ok'; msg.textContent = 'Logged in.';
+  refreshAccountUI();
+});
+const acctLogout = $('account-logout');
+if (acctLogout) acctLogout.addEventListener('click', async () => {
+  if (supabaseClient) await supabaseClient.auth.signOut();
+  try { sessionStorage.removeItem('clutch-owner-session'); } catch (_) {}
+  location.reload();
+});
+/* refreshAccountUI() is called at the end of the file, after $ is defined */
 
 const DROP = new Date('2026-11-27T18:00:00-05:00').getTime();
 const $ = id => document.getElementById(id);
@@ -853,6 +920,9 @@ form.addEventListener('submit', async e => {
     msg.className = 'msg'; msg.innerHTML = `That didn't go through — <a href="${IG}" target="_blank" rel="noopener">DM us “DROP” on Instagram</a> and we'll ping you when it's live.`;
   }
 });
+
+// Supabase session check, after $ and the owner functions are defined
+refreshAccountUI();
 
 </script>
 </body>
