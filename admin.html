@@ -1,0 +1,307 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — CLUTCH</title><style>:root{--bg:#0b0b0b;--ink:#f3ead8;--tan:#c9b08a;--mute:#8d8579;--line:#262320;--f:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{max-width:100%;height:auto;display:block}
+h1,h2,.logo{font-weight:900;letter-spacing:-.02em;text-transform:uppercase;line-height:.9}
+h2{font-size:clamp(2rem,7vw,3.5rem);margin-bottom:1rem}
+.eyebrow{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--tan);margin-bottom:.8rem;font-weight:700}
+.fine{font-size:.82rem;color:var(--mute)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+section{padding:4.5rem 1.25rem;max-width:1180px;margin:0 auto}
+.nav{position:sticky;top:0;z-index:9;display:flex;justify-content:space-between;align-items:center;padding:.9rem 1.25rem;background:rgba(11,11,11,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav .logo{font-size:1.25rem;text-decoration:none}
+.nav nav{display:flex;gap:1.1rem;align-items:center;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.nav nav a{text-decoration:none}
+.nav nav a:not(.pill){display:none}
+.pill{border:1px solid var(--ink);padding:.45rem .8rem;border-radius:99px}
+.hero{text-align:center;padding-top:3.5rem;min-height:calc(100svh - 100px);display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative}
+.hero-logo-wrap{position:relative;display:inline-block;margin:0 auto 1rem}
+.hero-logo-wrap .owner-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);right:auto;bottom:auto;width:10px;height:10px;border-radius:50%;border:0;background:#cfc6b6;opacity:.05;cursor:pointer;padding:0}
+.owner{background:#111;border:1px solid var(--line);border-radius:12px;text-align:left}
+.owner-grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:1rem 0}
+.owner input,.owner select{background:#0b0b0b;color:#f5efe4;border:1px solid var(--line);border-radius:8px;padding:.55rem .7rem;font:inherit}
+.owner form{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.owner-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
+.owner-tabs button{background:#0b0b0b;color:#cfc6b6;border:1px solid var(--line);border-radius:999px;padding:.5rem .9rem;font:inherit;cursor:pointer}
+.owner-tabs button.on{background:var(--tan);color:#0b0b0b;border-color:var(--tan)}
+.owner-stats{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin:1rem 0}
+.owner-stats div{background:#0b0b0b;border:1px solid var(--line);border-radius:10px;padding:.9rem}
+.owner-stats b{font-size:1.6rem;display:block}
+.owner pre{background:#0b0b0b;border:1px solid var(--line);border-radius:10px;padding:1rem;white-space:pre-wrap;font:inherit}
+.hero h1{font-size:clamp(4.2rem,22vw,12rem)}
+.hero h1 span{display:block;font-size:.28em;letter-spacing:.32em;color:var(--tan);margin-top:.6rem;font-weight:800;margin-right:-.32em}
+.lede{max-width:34ch;margin:1.4rem auto 2rem;color:#cfc6b6}
+.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;width:100%;max-width:440px}
+.countdown div{border:1px solid var(--line);border-radius:12px;padding:.8rem 0;background:#121110}
+.countdown b{display:block;font-size:clamp(1.8rem,9vw,2.8rem);font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+.countdown small{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mute)}
+.when{margin:1rem 0 1.6rem;font-weight:700;letter-spacing:.06em;font-size:.9rem}
+.cta{display:flex;flex-direction:column;gap:.7rem;width:100%;max-width:440px}
+.btn{display:block;text-align:center;padding:1.05rem 1.4rem;border-radius:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.88rem;text-decoration:none;border:1px solid var(--ink);cursor:pointer;font-family:inherit}
+.buy{background:#2a2723;color:var(--mute);border-color:#2a2723;cursor:not-allowed}
+.buy.live{background:var(--ink);color:var(--bg);border-color:var(--ink);cursor:pointer}
+.ghost{background:transparent;color:var(--ink)}
+.ticker{overflow:hidden;border-block:1px solid var(--line);background:var(--tan);color:var(--bg);font-weight:900;font-size:.85rem;letter-spacing:.12em;white-space:nowrap}
+.ticker div{display:inline-block;padding:.7rem 0;animation:t 28s linear infinite}
+@keyframes t{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.ticker div{animation:none}html{scroll-behavior:auto}}
+.product{display:grid;gap:2rem}
+#main-img{border-radius:14px;aspect-ratio:3/2;object-fit:cover;width:100%}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.5rem}
+.thumbs button{border:2px solid transparent;border-radius:10px;overflow:hidden;padding:0;background:none;cursor:pointer;opacity:.6}
+.thumbs button.on{border-color:var(--tan);opacity:1}
+.note{font-size:.75rem;color:var(--mute);margin-top:.6rem}
+.price{font-size:2rem;font-weight:900;margin-bottom:1rem}
+.price small{font-size:.8rem;color:var(--mute)}
+.specs{list-style:none;margin:1.3rem 0;border-top:1px solid var(--line)}
+.specs li{padding:.75rem 0;border-bottom:1px solid var(--line);font-weight:600}
+.specs li::before{content:"✦";color:var(--tan);margin-right:.7rem}
+.stock{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.8rem}
+.stock div{border:1px solid var(--line);border-radius:10px;text-align:center;padding:.7rem 0}
+.stock b{display:block;font-size:1.2rem}
+.stock span{font-size:.72rem;color:var(--mute)}
+.fit-tip{background:var(--tan);color:var(--bg);padding:1rem 1.1rem;border-radius:12px;margin-bottom:1.2rem}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-bottom:1rem}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{padding:.85rem .9rem;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--mute)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:900}
+.soon{color:var(--tan);font-style:italic}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;padding:1.15rem 2rem 1.15rem 0;font-weight:800;cursor:pointer;position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:0;font-size:1.4rem;line-height:1;color:var(--tan)}
+.faq details[open] summary::after{content:"–"}
+.faq details p{padding:0 0 1.2rem;color:#cfc6b6}
+.notify{text-align:center;max-width:560px}
+.notify p{color:#cfc6b6;margin-bottom:1.4rem}
+form{display:flex;flex-direction:column;gap:.6rem}
+input{padding:1.05rem 1rem;border-radius:12px;border:1px solid var(--line);background:#121110;color:var(--ink);font:inherit;font-size:16px}
+input:focus{outline:2px solid var(--tan);border-color:transparent}
+.msg{margin-top:1rem;font-size:.92rem;min-height:1.4em}
+.msg a{color:var(--tan)}
+.msg.ok{color:#9fd89a}.msg.err{color:#ff8a7a}
+.foot{border-top:1px solid var(--line);padding:3rem 1.25rem 2.5rem;text-align:center}
+.socials{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;max-width:720px;margin:0 auto 2.5rem}
+.socials a{border:1px solid var(--line);border-radius:12px;padding:1rem;text-decoration:none;font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.82rem}
+.socials a:hover{border-color:var(--tan)}
+.socials span{display:block;font-size:.75rem;color:var(--mute);text-transform:none;letter-spacing:0;font-weight:500;margin-top:.2rem}
+.logo.big{font-size:clamp(3.5rem,18vw,10rem);color:#1d1b18;margin-bottom:.5rem}
+@media(min-width:800px){
+  .nav{padding:1rem 2rem}.nav nav a:not(.pill){display:inline}
+  section{padding:6rem 2rem}
+  .cta{flex-direction:row;max-width:520px}.cta .btn{flex:1}
+  .product{grid-template-columns:1.3fr 1fr;align-items:start;gap:3.5rem}
+  form{flex-direction:row}input{flex:1}
+  .socials{grid-template-columns:repeat(4,1fr)}
+}
+/* logo + map background */
+.map-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.065;background:none center/cover no-repeat}
+body{position:relative;z-index:0}
+.mono{fill:currentColor;display:inline-block;vertical-align:middle}
+.nav .logo{display:flex;align-items:center;gap:.5rem}
+.nav .mono{width:1.35rem;height:1.35rem}
+.hero-mono{width:64px;height:64px;margin-bottom:1.4rem;color:var(--tan)}
+.foot-mono{width:48px;height:48px;color:var(--tan);margin-bottom:1rem}
+.osm{margin-top:.4rem;font-size:.7rem}.osm a{color:var(--mute)}
+section,.nav{background-color:transparent}
+.nav{background:rgba(11,11,11,.8)}
+
+/* --- fixes for the 2026-11-14 revision: OG logo, DM buy button, Drop 002 teaser --- */
+.nav .logo{display:inline-flex;align-items:center}
+.wm-logo{height:1.6em;width:auto;flex:none;margin-right:-.32em}
+.hero-logo{width:min(180px,40vw);height:auto;margin:0 auto 1rem}
+.foot-logo{width:120px;height:auto;margin:0 auto 1rem;opacity:.9}
+.buy-note{margin-top:.9rem}
+.drop2{background:#14532d;color:#f3ead8;border-radius:18px;text-align:center}
+.drop2 .eyebrow.light,.drop2 .lede.light,.drop2 .fine.light{color:#f3ead8}
+.drop2 .eyebrow.light{color:#e8dcc3}
+.drop2-six{font-size:clamp(4rem,18vw,8rem);font-weight:900;line-height:1;color:#f3ead8}
+.drop2 h2{color:#f3ead8}
+.drop2-grid{display:grid;gap:1rem;margin:2rem 0;text-align:left}
+@media(min-width:800px){.drop2-grid{grid-template-columns:repeat(3,1fr)}}
+.drop2-grid div{border:1px solid rgba(243,234,216,.35);border-radius:12px;padding:1.1rem}
+.drop2-grid b{display:block;font-size:1rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
+.drop2-grid p{color:#e8dcc3}
+.drop2 a{color:#f3ead8}
+
+/* --- improved version: how-to-buy, size picker, proof, sticky buy --- */
+.how .steps{display:grid;gap:1rem;margin-top:2rem}
+@media(min-width:800px){.how .steps{grid-template-columns:repeat(3,1fr)}}
+.how .steps div{border:1px solid var(--line);border-radius:14px;padding:1.3rem}
+.how .steps b{display:inline-block;font-size:1.6rem;color:var(--tan);margin-bottom:.6rem}
+.how .steps h3{font-size:1.05rem;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em}
+.how .steps p{color:#cfc6b6;font-size:.95rem}
+.stock button{border:1px solid var(--line);border-radius:10px;text-align:center;padding:.7rem 0;background:transparent;color:var(--ink);font:inherit;cursor:pointer}
+.stock button:hover{border-color:var(--tan)}
+.stock button.on{border-color:var(--tan);background:#1d1a15}
+.stock button b{display:block;font-size:1.2rem}
+.stock button span{font-size:.72rem;color:var(--mute)}
+.proof-grid{display:grid;gap:.8rem;margin:2rem 0}
+@media(min-width:800px){.proof-grid{grid-template-columns:repeat(3,1fr)}}
+.proof-grid a{border:1px solid var(--line);border-radius:12px;padding:1.1rem;text-decoration:none;display:block}
+.proof-grid a:hover{border-color:var(--tan)}
+.proof-grid b{display:block;margin-bottom:.3rem}
+.proof-grid span{color:var(--mute);font-size:.88rem}
+.sticky-buy{position:sticky;bottom:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.8rem 1.25rem;background:rgba(11,11,11,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);font-size:.85rem}
+.order{text-align:center}
+.order .lede{margin-left:auto;margin-right:auto}
+.order pre{white-space:pre-wrap;background:#121110;border:1px solid var(--line);border-radius:14px;padding:1.2rem;text-align:left;font:15px/1.6 var(--f);margin:1.5rem auto;max-width:560px;color:var(--ink)}
+.order .btn{max-width:560px;margin:0 auto}
+.order .fine{margin-top:.9rem}
+.order p a.btn{display:block;max-width:560px;margin:1rem auto 0}
+.sticky-buy a{background:var(--ink);color:var(--bg);font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;text-decoration:none;padding:.7rem 1rem;border-radius:99px;white-space:nowrap}
+@media(min-width:800px){.sticky-buy{justify-content:center;gap:2rem}}
+.foot{padding-bottom:3rem}
+</style></head>
+<body><header class="nav"><a class="logo" href="/"><img class="mono" src="data:image/png;base64,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kFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAA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" alt="">CLUTCH</a><nav><a href="/">Home</a><a href="/#account">Account</a></nav></header>
+<main><section class="owner" style="max-width:900px;margin:2rem auto">
+<p class="eyebrow">Owner only</p><h2>Admin — Drop 01</h2>
+<p class="fine" id="admin-who">Checking who you are…</p>
+<div id="admin-gate">
+<p class="fine">Log in with the owner email on the <a href="/#account">account section</a> — or use your owner PIN below.</p>
+<form id="owner-login-form"><input id="owner-pin" type="password" inputmode="numeric" placeholder="Your PIN" minlength="4" required>
+<button class="btn buy live" type="submit">Log in with PIN</button></form>
+<p class="fine" id="owner-auth-msg"></p>
+</div>
+<div id="owner-admin" hidden>
+<nav class="owner-tabs" aria-label="Admin pages">
+<button type="button" data-tab="dash" class="on">Dashboard</button>
+<button type="button" data-tab="orders">Orders</button>
+<button type="button" data-tab="signups">Signups</button>
+<button type="button" data-tab="stock">Stock</button>
+<button type="button" data-tab="payments">Payments</button>
+<button type="button" data-tab="email">Email</button>
+</nav>
+<div data-panel="dash"><div class="owner-stats" id="owner-stats"></div>
+<p class="fine">Drop 01 — Nov 27, 6PM ET · $25 + shipping ($35 total) · 30 pieces · No restocks · All sales final</p>
+<p class="fine">Quick links: <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">IG DMs — @clutchny1</a> · <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Greenlight pay link</a> · <a href="/">Live site</a></p></div>
+<div data-panel="orders" hidden><h3>Orders — full record</h3>
+<form id="owner-order-form"><input id="owner-buyer" type="text" placeholder="Buyer @ / name" required>
+<select id="owner-size"><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+<select id="owner-pay"><option>Greenlight</option><option>Cash App</option><option>Cash / pickup</option></select>
+<input id="owner-address" type="text" placeholder="Ship to — name + address (or 'pickup')">
+<button class="btn buy live" type="submit">Add order</button></form>
+<div class="fine" id="owner-orders"></div>
+<p><button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
+<button class="btn ghost" type="button" id="owner-clear">Clear orders</button></p></div>
+<div data-panel="signups" hidden><h3>Email signups</h3>
+<p class="fine">Signups land in your Gmail via FormSubmit. <a href="https://mail.google.com/mail/u/0/#search/from%3Aformsubmit+CLUTCH+Drop+01" target="_blank" rel="noopener">Open signup emails in Gmail</a></p>
+<p class="fine">Signup count: <input id="owner-signups" type="number" min="0" value="0" style="width:4rem"></p>
+<form id="owner-signup-add-form"><input id="owner-signup-email" type="email" placeholder="Add a signup email manually" required>
+<button class="btn buy live" type="submit">Add signup</button></form>
+<p class="fine" id="owner-signup-list"></p>
+<p><button class="btn ghost" type="button" id="owner-signup-export">Copy signup emails</button></p></div>
+<div data-panel="stock" hidden><h3>Stock left</h3><p class="fine" id="owner-stock"></p>
+<p><button class="btn ghost" type="button" data-sell="S">Sell S</button>
+<button class="btn ghost" type="button" data-sell="M">Sell M</button>
+<button class="btn ghost" type="button" data-sell="L">Sell L</button>
+<button class="btn ghost" type="button" data-sell="XL">Sell XL</button>
+<button class="btn ghost" type="button" id="owner-reset-stock">Reset stock</button></p>
+<p class="fine">Start: S 10 · M 10 · L 5 · XL 5 = 30 total.</p></div>
+<div data-panel="payments" hidden><h3>Payments</h3><p class="fine" id="owner-payments"></p>
+<p class="fine">Greenlight: <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">gl.me/u/qqMvQlZ6mTpb</a> — $35 per pair. Cash App in the DM, backup only. Both cap at $1,000 received in 30 days — 30 × $35 = $1,050.</p>
+<h3>QR codes</h3>
+<p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fgl.me%2Fu%2FqqMvQlZ6mTpb" alt="Pay QR" width="180" height="180" loading="lazy"></p>
+<p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fclutchbuiltdifferent.com%2F" alt="Site QR" width="180" height="180" loading="lazy"></p></div>
+<div data-panel="email" hidden><h3>Drop-day email</h3>
+<p class="fine">Send to signups on Nov 27, 6PM ET — BCC everyone, never To.</p>
+<pre id="owner-email-draft">Subject: CLUTCH Drop 01 is live — 30 pieces, no restocks
+
+CLUTCH Drop 01 is live. UES Mesh Shorts — $25 + shipping ($35 total). 30 pieces only. No restocks. All sales final.
+Preorder: https://clutchbuiltdifferent.com/
+Pick your size, DM @clutchny1, then pay $35 via Greenlight: https://gl.me/u/qqMvQlZ6mTpb
+Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
+— CLUTCH, Built Different</pre>
+<p><button class="btn ghost" type="button" id="owner-email-copy">Copy email draft</button></p>
+<h3>DM reply templates — tap to copy</h3>
+<p><button class="btn ghost" type="button" data-tpl="paid">You're in — pay $35</button>
+<button class="btn ghost" type="button" data-tpl="soldout">Size sold out</button>
+<button class="btn ghost" type="button" data-tpl="shipped">Shipped — tracking</button>
+<button class="btn ghost" type="button" data-tpl="pickup">Local pickup</button></p>
+<p class="fine" id="owner-tpl-msg"></p></div>
+<p class="fine" id="owner-msg"></p>
+<p><button class="btn ghost" type="button" id="owner-logout">Log out</button></p>
+</div></section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb = window.supabase.createClient('https://fgnuaxhujvxkfzzcvdqf.supabase.co', 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz');
+const OWNER_EMAIL = 'sebastianluis3177@gmail.com';
+const $ = id => document.getElementById(id);
+const OWNER_KEY = 'clutch-admin-v1';
+const ACCT_KEY = 'clutch-owner-acct-v1';
+const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [] };
+function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
+function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
+async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
+function showAdmin() { $('admin-gate').hidden = true; $('owner-admin').hidden = false; renderOwner(); }
+function renderOwner() {
+  const d = loadOwner(); if (!d.signupEmails) d.signupEmails = [];
+  const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
+  const rev = d.orders.reduce((a, o) => a + (o.total || 35), 0);
+  $('owner-stats').innerHTML = [['Revenue', '$' + rev], ['Orders', d.orders.length], ['Stock left', left + ' / 30'], ['Signups', d.signups || d.signupEmails.length]].map(function (kv) { return '<div><small>' + kv[0] + '</small><b>' + kv[1] + '</b></div>'; }).join('');
+  $('owner-payments').textContent = 'Taken so far: $' + rev + ' from ' + d.orders.length + ' orders — $' + (1000 - rev) + ' left before the $1,000 / 30-day cap.';
+  $('owner-stock').textContent = Object.entries(d.stock).map(function (kv) { return kv[0] + ': ' + kv[1] + ' left'; }).join(' · ') + ' — ' + left + ' total left';
+  if (document.activeElement !== $('owner-signups')) $('owner-signups').value = d.signups || 0;
+  $('owner-signup-list').textContent = d.signupEmails.length ? d.signupEmails.join(', ') : 'No signup emails saved here yet — check Gmail for the real list.';
+  const el = $('owner-orders');
+  if (!d.orders.length) { el.textContent = 'No orders logged yet.'; }
+  else {
+    el.innerHTML = d.orders.map(function (o, i) {
+      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">' + (i + 1) + '. <b>' + o.buyer + '</b> — ' + o.size + ' — ' + o.pay + ' — $' + (o.total || 35) + ' — <b>' + (o.status || 'Paid') + '</b>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button></div>';
+    }).join('');
+    el.querySelectorAll('[data-order-status]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus]; o.status = o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid'; saveOwner(dd); renderOwner(); }); });
+    el.querySelectorAll('[data-order-tracking]').forEach(function (b) { b.addEventListener('click', function () { const t = prompt('Tracking number:'); if (t === null) return; const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner(); }); });
+  }
+}
+document.querySelectorAll('.owner-tabs button').forEach(function (b) { b.addEventListener('click', function () {
+  document.querySelectorAll('.owner-tabs button').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
+  document.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.dataset.panel !== b.dataset.tab; }); renderOwner();
+}); });
+$('owner-order-form').addEventListener('submit', function (e) {
+  e.preventDefault(); const d = loadOwner(); const size = $('owner-size').value;
+  if ((d.stock[size] || 0) <= 0) { $('owner-msg').textContent = 'That size is sold out.'; return; }
+  d.orders.push({ buyer: $('owner-buyer').value.trim(), size: size, pay: $('owner-pay').value, total: 35, status: 'Paid', address: $('owner-address').value.trim(), at: new Date().toISOString().slice(0, 10) });
+  d.stock[size]--; saveOwner(d); renderOwner(); e.target.reset();
+});
+document.querySelectorAll('[data-sell]').forEach(function (b) { b.addEventListener('click', function () { const d = loadOwner(); const s = b.dataset.sell; if ((d.stock[s] || 0) > 0) d.stock[s]--; saveOwner(d); renderOwner(); }); });
+$('owner-reset-stock').addEventListener('click', function () { const d = loadOwner(); d.stock = { S: 10, M: 10, L: 5, XL: 5 }; saveOwner(d); renderOwner(); });
+$('owner-signups').addEventListener('change', function () { const d = loadOwner(); d.signups = parseInt($('owner-signups').value || '0', 10) || 0; saveOwner(d); renderOwner(); });
+$('owner-signup-add-form').addEventListener('submit', function (e) { e.preventDefault(); const d = loadOwner(); const em = $('owner-signup-email').value.trim(); if (em && d.signupEmails.indexOf(em) === -1) d.signupEmails.push(em); d.signups = d.signupEmails.length; saveOwner(d); renderOwner(); e.target.reset(); });
+$('owner-signup-export').addEventListener('click', async function () { try { await navigator.clipboard.writeText(loadOwner().signupEmails.join(', ')); $('owner-msg').textContent = 'Signup emails copied.'; } catch (e) {} });
+$('owner-export').addEventListener('click', async function () {
+  const d = loadOwner();
+  const csv = 'buyer,size,pay,total,status,tracking,address,date\n' + d.orders.map(function (o) { return '"' + (o.buyer || '').replace(/"/g, '""') + '",' + o.size + ',' + o.pay + ',' + (o.total || 35) + ',' + (o.status || 'Paid') + ',' + (o.tracking || '') + ',"' + (o.address || '').replace(/"/g, '""') + '",' + (o.at || ''); }).join('\n');
+  try { await navigator.clipboard.writeText(csv); $('owner-msg').textContent = 'Orders copied as CSV.'; } catch (e) {}
+});
+$('owner-clear').addEventListener('click', function () { if (!confirm('Clear all orders?')) return; const d = loadOwner(); d.orders = []; saveOwner(d); renderOwner(); });
+$('owner-email-copy').addEventListener('click', async function () { try { await navigator.clipboard.writeText($('owner-email-draft').textContent); $('owner-msg').textContent = 'Email draft copied.'; } catch (e) {} });
+const TPLS = {
+  paid: "You're in 🙏 $35 total — pay here: https://gl.me/u/qqMvQlZ6mTpb — then lmk your size + ship address and I'll confirm it",
+  soldout: "That size is sold out rn 😭 want a different size, or want me to put you on the waitlist for it?",
+  shipped: "Shipped 📦 tracking: [tracking number] — USPS Ground Advantage, should be there in 2-5 days",
+  pickup: "Bet — free local pickup in NYC, lmk what day works and we'll meet up"
+};
+document.querySelectorAll('[data-tpl]').forEach(function (b) { b.addEventListener('click', async function () { try { await navigator.clipboard.writeText(TPLS[b.dataset.tpl]); $('owner-tpl-msg').textContent = 'Copied — paste it into the DM.'; } catch (e) {} }); });
+$('owner-login-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  let acct = null; try { acct = JSON.parse(localStorage.getItem(ACCT_KEY) || 'null'); } catch (err) {}
+  if (!acct) { $('owner-auth-msg').textContent = 'No owner account on this device yet — make one from the homepage admin dot first, or log in with the owner email.'; return; }
+  const h = await sha('clutch-owner:' + $('owner-pin').value);
+  if (h === acct.pinHash) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (err) {} showAdmin(); }
+  else $('owner-auth-msg').textContent = 'Wrong PIN.';
+});
+$('owner-logout').addEventListener('click', async function () { await sb.auth.signOut(); try { sessionStorage.removeItem('clutch-owner-session'); } catch (e) {} location.reload(); });
+(async function () {
+  const userRes = await sb.auth.getUser();
+  const user = userRes.data && userRes.data.user;
+  if (user && user.email === OWNER_EMAIL) { $('admin-who').textContent = 'Logged in as owner: ' + user.email; showAdmin(); return; }
+  if (user) { $('admin-who').textContent = 'Logged in as ' + user.email + ' — that account is not the owner, so admin is locked.'; return; }
+  if (sessionStorage.getItem('clutch-owner-session') === '1') { $('admin-who').textContent = 'Owner session on this device.'; showAdmin(); return; }
+  $('admin-who').textContent = 'Not logged in as the owner. Log in on the account page, or use your PIN below.';
+})();
+</script></body></html>

@@ -647,9 +647,9 @@ if (copyBtn) copyBtn.addEventListener('click', async () => {
   }
 });
 
-// Owner admin portal — hidden in the map. Tiny dot in the hero (bottom-right)
-// opens it; #owner in the URL also opens it. Records are saved on this
-// device only (localStorage) — signups live in Gmail, linked from the panel.
+// Owner admin portal — now a separate page, /admin.html. The tiny dot hidden in
+// the exact middle of the top CLUTCH logo takes you there; #owner in the URL does too.
+// Records are saved on this device only (localStorage) — signups live in Gmail.
 const ownerPanel = $('owner'), ownerDot = $('owner-dot');
 let ownerAuthed = false;
 async function hashPin(pin) {
@@ -682,12 +682,7 @@ function showOwnerAdmin() {
   ownerAuthed = true;
   renderOwner();
 }
-function openOwner() {
-  if (!ownerPanel) return;
-  ownerPanel.hidden = false;
-  ownerPanel.scrollIntoView({ behavior: 'smooth' });
-  if (ownerAuthed) renderOwner(); else showOwnerAuth();
-}
+function openOwner() { location.href = '/admin.html'; }
 if (ownerDot) ownerDot.addEventListener('click', openOwner);
 if (location.hash === '#owner') openOwner();
 const signupForm = $('owner-signup-form');
