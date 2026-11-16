@@ -190,6 +190,11 @@ section,.nav{background-color:transparent}
 .stock button:hover{transform:translateY(-2px)}
 .stock button.on{border-color:var(--tan);background:rgba(201,168,106,.12)}
 
+/* Sold-out confetti (homepage, when all 30 are gone) */
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:99}
+.confetti span{position:absolute;top:-10px;font-size:1.4rem;animation:confetti-fall 3s linear infinite}
+@keyframes confetti-fall{to{transform:translateY(110vh) rotate(360deg)}}
+
 </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Product","name":"CLUTCH UES Mesh Basketball Shorts — Drop 01",
@@ -264,11 +269,13 @@ section,.nav{background-color:transparent}
     <button type="button" data-tab="money">Money</button>
     <button type="button" data-tab="taxes">Taxes</button>
     <button type="button" data-tab="accounts">Accounts</button>
+    <button type="button" data-tab="today">📋 Today</button>
   </nav>
 
   <div data-panel="dash">
     <div class="owner-stats" id="owner-stats"></div>
     <div id="owner-alerts"></div>
+    <div id="owner-countdown" class="fine" style="font-size:1.05rem;margin:.5rem 0"></div>
     <p><button class="btn ghost" type="button" id="owner-live-toggle">Turn on drop-day live mode</button></p>
     <div id="owner-live-feed"></div>
     <h3>Sales by day</h3>
@@ -277,7 +284,9 @@ section,.nav{background-color:transparent}
     <p class="fine" id="owner-daily-goal"></p>
     <div id="owner-stuck"></div>
     <div id="owner-calendar"></div>
+    <div id="owner-postcal"></div>
     <div id="owner-referrals"></div>
+    <div id="owner-refcodes"></div>
     <p class="fine" id="owner-breakeven"></p>
     <div id="owner-vip"></div>
     <div id="owner-size-report" class="fine"></div>
@@ -299,6 +308,8 @@ section,.nav{background-color:transparent}
       <button class="btn buy live" type="submit">Add order</button>
     </form>
     <p style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="order-search" type="search" placeholder="Search orders — buyer, size, pay…" style="flex:1;min-width:160px"><select id="order-filter"><option value="">All statuses</option><option>Pending</option><option>Underpaid</option><option>Paid</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option></select></p>
+    <p><button class="btn ghost" type="button" id="owner-print-all">🖨 Print all packing slips</button> <button class="btn ghost" type="button" id="owner-runsheet">📦 Copy post office run sheet</button></p>
+    <pre id="owner-runsheet-out" class="fine" style="white-space:pre-wrap"></pre>
     <div class="fine" id="owner-orders"></div>
     <p>
       <button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
@@ -355,6 +366,7 @@ section,.nav{background-color:transparent}
       <button class="btn buy live" type="submit">Add code</button>
     </form>
     <p class="fine" id="discount-list"></p>
+    <div id="owner-giftcards"></div>
     <h3>QR codes — scan to pay / scan to shop</h3>
     <p class="fine">Pay QR (Greenlight, $35):</p>
     <p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fgl.me%2Fu%2FqqMvQlZ6mTpb" alt="QR code — pay $35 via Greenlight" width="180" height="180" loading="lazy"></p>
@@ -432,9 +444,16 @@ First paid, first served.
     <form id="owner-assign-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
       <input id="assign-text" type="text" placeholder="Task — e.g. Reply to all DMs" style="flex:2;min-width:180px">
       <select id="assign-who"><option>Sebastian</option><option>Emeri</option><option>Ajan</option></select>
+      <input id="assign-due" type="date" style="width:9.5rem">
       <button class="btn buy live" type="submit">Assign</button>
     </form>
     <p class="fine" id="owner-assignments"></p>
+    <div id="owner-seeding"></div>
+    <form id="owner-seed-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <input id="seed-name" type="text" placeholder="Who got a free pair? — e.g. Yup (@yup.wav)" style="flex:2;min-width:180px">
+      <input id="seed-got" type="text" placeholder="What they got" style="flex:1;min-width:120px">
+      <button class="btn buy live" type="submit">Add to seeding</button>
+    </form>
     <h3>Handoff notes</h3>
     <form id="owner-note-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
       <input id="owner-note-text" type="text" placeholder="Leave a note for Emeri / Ajan…" style="flex:2;min-width:180px">
@@ -450,6 +469,7 @@ First paid, first served.
     <h3>Profit — the money.</h3>
     <p class="fine">Revenue minus what each pair actually cost you (Kevin + shipping + anything else). Update the costs below when you know the real numbers and the profit updates instantly.</p>
     <div id="owner-profit"></div>
+    <div id="owner-fund"></div>
     <p class="fine">Cost per pair $ <input id="cost-perPair" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Shipping per order $ <input id="cost-shipping" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Other costs $ <input id="cost-other" type="number" min="0" step="0.01" style="width:5rem"> <button class="btn ghost" type="button" id="owner-cost-save">Save costs</button></p>
     <p class="fine">Defaults: $10 per pair ($300 ÷ 30) and ~$9 shipping per order (USPS Ground Advantage estimate — change it once you print real labels).</p>
     <p class="fine">Tax set-aside % <input id="owner-tax-pct" type="number" min="0" max="100" step="1" value="15" style="width:4rem"> <button class="btn ghost" type="button" id="owner-tax-save">Save</button></p>
@@ -474,6 +494,12 @@ First paid, first served.
     <div id="owner-tax-checks"></div>
     <p class="fine">Key facts (checked Nov 2026): if your net profit hits $400 in a year, you likely have to file a federal return and pay 15.3% self-employment tax — even as a dependent. Federal income tax is likely $0 while your total income is under the $16,100 standard deduction. No 1099-K is expected from Cash App / Greenlight at 30 pairs ($1,050 max) — that only kicks in over $20,000 AND 200+ transactions — but the income is taxable whether or not a form shows up. NY sales tax on the shorts is a separate question for a parent.</p>
   </div>
+  <div data-panel="today" hidden>
+    <h3>Today — <span id="owner-today-date"></span></h3>
+    <p class="fine">Your list for today, rebuilt every morning. Checks save on this device — staff never see this tab.</p>
+    <div id="owner-today"></div>
+  </div>
+
   <div data-panel="accounts" hidden>
     <h3>Accounts — everyone who signed up.</h3>
     <p class="fine">Owner only. <b>Passwords are never shown here — and never stored where anyone can read them.</b> When someone makes an account, Supabase scrambles their password into a one-way hash. Nobody can reverse it — not you, not me, not anyone with the database. That's what keeps people's accounts safe if the database ever leaks. If someone's locked out, send them a reset link and they'll pick a new password themselves.</p>
@@ -673,6 +699,14 @@ Name: [your name]</pre>
     <button class="btn buy live" type="submit">Post review</button>
   </form>
   <p id="review-msg" class="msg" role="status"></p>
+  <h3>Got the shorts? Send your fit pic</h3>
+  <p class="fine">Wore them? Send a link to your IG post or photo — the best fits go on this wall.</p>
+  <form id="fitpic-form" novalidate>
+    <input id="fitpic-name" type="text" placeholder="Your name / @" style="width:100%;padding:.7rem;border:1px solid var(--line);border-radius:8px;background:#111;color:var(--ink);margin:.3rem 0">
+    <input id="fitpic-link" type="url" placeholder="Link to your IG post or photo" style="width:100%;padding:.7rem;border:1px solid var(--line);border-radius:8px;background:#111;color:var(--ink);margin:.3rem 0">
+    <button class="btn buy live" type="submit">Send it</button>
+  </form>
+  <p class="fine" id="fitpic-msg"></p>
 </section>
 
 <section id="faq" class="faq">
@@ -962,6 +996,21 @@ if (revForm) revForm.addEventListener('submit', e => {
   renderReviews(); revForm.reset();
   const m = $('review-msg'); if (m) { m.className = 'msg ok'; m.textContent = 'Thanks — review posted.'; }
 });
+// Fit pic — send a photo link to the company inbox
+const fitForm = $('fitpic-form');
+if (fitForm) fitForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = ($('fitpic-name').value || '').trim(), link = ($('fitpic-link').value || '').trim();
+  const msg = $('fitpic-msg');
+  if (!name || !link) { if (msg) msg.textContent = 'Add your name and a link to the photo.'; return; }
+  try {
+    const r = await fetch(FORM_ENDPOINT, { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ name, link, _subject: 'CLUTCH fit pic — ' + name }) });
+    const data = await r.json().catch(() => ({}));
+    if (String(data.success) !== 'true') throw new Error('no');
+    if (msg) { msg.className = 'msg ok'; msg.textContent = 'Sent — thanks! Your fit pic may end up on the reviews wall.'; }
+    fitForm.reset();
+  } catch (_) { if (msg) msg.textContent = "Didn't go through — DM the photo to @clutchny1 instead."; }
+});
 
 // Copy order DM
 const copyBtn = $('copy-order');
@@ -1011,7 +1060,7 @@ function showOwnerAdmin(staffMode) {
   if (login) login.hidden = true;
   if (admin) admin.hidden = false;
   if (logout) logout.hidden = false;
-  if (staffMode) { const hide = staffMode === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'edit', 'staff', 'profit', 'money', 'taxes', 'accounts'] : ['payments', 'email', 'edit', 'staff', 'profit', 'money', 'taxes', 'accounts']; document.querySelectorAll('.owner-tabs button').forEach(b => { if (hide.includes(b.dataset.tab)) b.style.display = 'none'; }); }
+  if (staffMode) { const hide = staffMode === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'edit', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today'] : ['payments', 'email', 'edit', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today']; document.querySelectorAll('.owner-tabs button').forEach(b => { if (hide.includes(b.dataset.tab)) b.style.display = 'none'; }); }
   ownerAuthed = true;
   renderOwner();
 }
@@ -1050,7 +1099,7 @@ if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
 });
 
 const OWNER_KEY = 'clutch-admin-v1';
-const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {} };
+const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {} };
 function loadOwner() {
   try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
   catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
@@ -1085,6 +1134,13 @@ function renderOwner() {
       <p class="fine">🧾 Tax set-aside (${d.taxPct || 15}% of profit): <b>$${(profitTotal * ((d.taxPct || 15) / 100)).toFixed(2)}</b> — keep that untouched. Safe to spend: <b>$${(profitTotal * (1 - (d.taxPct || 15) / 100)).toFixed(2)}</b>. <span class="fine">(Rough estimate, not tax advice — ask a parent/adult before tax time.)</span></p>`;
   }
   ['perPair', 'shipping', 'other'].forEach(k => { const inp = $('cost-' + k); if (inp && document.activeElement !== inp) inp.value = costs[k]; });
+  const fundEl = $('owner-fund');
+  if (fundEl) {
+    const goal = d.fundGoal || 487;
+    const pct = Math.min(100, Math.max(0, Math.round(profitTotal / goal * 100)));
+    fundEl.innerHTML = `<h3>🎯 Drop 002 fund</h3><p class="fine">Drop 01 profit fills the Drop 002 budget — goal $${goal} (40 pairs at $9 + shipping, your own math). You're at <b>$${Math.max(0, profitTotal).toFixed(2)}</b> — ${pct}% there.</p><div style="background:#222;border-radius:8px;height:14px;overflow:hidden"><div style="width:${pct}%;height:100%;background:#c9a86a"></div></div><p class="fine">Goal $ <input id="owner-fund-goal" type="number" min="0" step="1" style="width:6rem" value="${goal}"> <button class="btn ghost" type="button" id="owner-fund-save">Save goal</button></p>`;
+    $('owner-fund-save').addEventListener('click', () => { const dd = loadOwner(); const v = parseFloat(($('owner-fund-goal').value || '487')); if (!isNaN(v) && v > 0) dd.fundGoal = v; saveOwner(dd); renderOwner(); });
+  }
   const txEl = $('owner-taxes');
   if (txEl) {
     const seTaxable = Math.max(0, profitTotal * 0.9235);
@@ -1156,7 +1212,13 @@ function renderOwner() {
   const asEl = $('owner-assignments');
   if (asEl) {
     const as = d.assignments || [];
-    asEl.innerHTML = as.length ? as.map((a, i) => `<div style="margin:.3rem 0"><input type="checkbox" data-assign-done="${i}" ${a.done ? 'checked' : ''}> <b>${a.who}</b> — ${a.done ? '<s>' + a.text + '</s>' : a.text} ${a.claimedBy ? `<span class="fine">👀 ${a.claimedBy} is on it</span>` : `<button class="btn ghost" type="button" data-assign-claim="${i}">I'm on it</button>`}</div>`).join('') : 'No tasks assigned yet.';
+    asEl.innerHTML = as.length ? as.map((a, i) => { const overdue = a.due && !a.done && a.due < new Date().toISOString().slice(0, 10); return `<div style="margin:.3rem 0"><input type="checkbox" data-assign-done="${i}" ${a.done ? 'checked' : ''}> <b>${a.who}</b> — ${a.done ? '<s>' + a.text + '</s>' : a.text}${a.due ? ` <span class="fine"${overdue ? ' style="color:#ff8a7a"' : ''}>due ${a.due}${overdue ? ' — OVERDUE' : ''}</span>` : ''} ${a.claimedBy ? `<span class="fine">👀 ${a.claimedBy} is on it</span>` : `<button class="btn ghost" type="button" data-assign-claim="${i}">I'm on it</button>`}</div>`; }).join('') : 'No tasks assigned yet.';
+  const seedEl = $('owner-seeding');
+  if (seedEl) {
+    const sd = d.seeding || [];
+    seedEl.innerHTML = '<h3>🌱 Seeding tracker</h3>' + (sd.length ? sd.map((s, i) => `<div style="margin:.3rem 0"><input type="checkbox" data-seed-posted="${i}" ${s.posted ? 'checked' : ''}> <b>${s.name}</b> — ${s.got} ${s.posted ? '✅ posted' : "— hasn't posted yet"}</div>`).join('') : '<p class="fine">Nobody seeded yet.</p>');
+    seedEl.querySelectorAll('[data-seed-posted]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); dd.seeding[+c.dataset.seedPosted].posted = c.checked; saveOwner(dd); renderOwner(); }));
+  }
     asEl.querySelectorAll('[data-assign-done]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); dd.assignments[+c.dataset.assignDone].done = c.checked; saveOwner(dd); renderOwner(); }));
     asEl.querySelectorAll('[data-assign-claim]').forEach(b => b.addEventListener('click', () => { const dd = loadOwner(); dd.assignments[+b.dataset.assignClaim].claimedBy = dd.assignments[+b.dataset.assignClaim].who; saveOwner(dd); renderOwner(); }));
   }
@@ -1215,12 +1277,20 @@ function renderOwner() {
     const stuck = d.orders.filter(o => (o.status || 'Paid') === 'Pending' && o.at && o.at <= yest);
     stEl.innerHTML = stuck.length ? `<div style="background:#3a1d1d;border:1px solid #ff8a7a;border-radius:8px;padding:.6rem;margin:.4rem 0">🚨 STUCK PAYMENT${stuck.length > 1 ? 'S' : ''} — ${stuck.map(o => o.buyer + ' (' + o.size + ', since ' + o.at + ')').join(', ')} — ping your parent to approve the Greenlight payment.</div>` : '';
   }
+  updateCountdown();
   const calEl = $('owner-calendar');
   if (calEl) {
     const items = [['Mon Nov 24', 'Test-pack one pair + weigh it'], ['Tue Nov 25', 'Print all labels on Pirate Ship'], ['Wed Nov 26', 'Thanksgiving — prep day, no school'], ['Fri Nov 27 6PM', 'DROP DAY — go live, watch orders come in'], ['Sat Nov 28', 'Ship day 1 — post office run'], ['Sun Nov 29', 'Ship day 2 — mark everything Shipped']];
     const cc = d.calendarChecks || {};
     calEl.innerHTML = '<h3>📅 Drop week</h3>' + items.map((it, i) => `<label style="display:block;margin:.3rem 0"><input type="checkbox" data-calcheck="${i}" ${cc[i] ? 'checked' : ''}> <b>${it[0]}</b> — ${cc[i] ? '<s>' + it[1] + '</s>' : it[1]}</label>`).join('');
     calEl.querySelectorAll('[data-calcheck]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); if (!dd.calendarChecks) dd.calendarChecks = {}; dd.calendarChecks[+c.dataset.calcheck] = c.checked; saveOwner(dd); renderOwner(); }));
+  const pcEl = $('owner-postcal');
+  if (pcEl) {
+    const days = [['Mon Nov 16', 'Day 11 countdown — behind the scenes of the print'], ['Tue Nov 17', 'Day 10 — fit check in the shorts'], ['Wed Nov 18', 'Day 9 — how the map print was fixed'], ['Thu Nov 19', 'Day 8 — repost the story section'], ['Fri Nov 20', 'Day 7 — one week out, sizes reminder'], ['Sat Nov 21', 'Day 6 — basketball in the shorts'], ['Sun Nov 22', 'Day 5 — Drop 002 teaser'], ['Mon Nov 23', 'Day 4 — packing prep'], ['Tue Nov 24', 'Day 3 — test-pack + weigh a pair'], ['Wed Nov 25', 'Day 2 — print all labels'], ['Thu Nov 26', 'Day 1 — Thanksgiving, drop-eve post'], ['Fri Nov 27', 'DROP DAY — go live 6PM']];
+    const pc = d.postCal || {};
+    pcEl.innerHTML = '<h3>📅 Post calendar — what to post each day</h3>' + days.map((x, i) => `<label style="display:block;margin:.3rem 0"><input type="checkbox" data-postcal="${i}" ${pc[i] ? 'checked' : ''}> <b>${x[0]}</b> — ${pc[i] ? '<s>' + x[1] + '</s>' : x[1]}</label>`).join('');
+    pcEl.querySelectorAll('[data-postcal]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); if (!dd.postCal) dd.postCal = {}; dd.postCal[+c.dataset.postcal] = c.checked; saveOwner(dd); renderOwner(); }));
+  }
   }
   const rfEl = $('owner-referrals');
   if (rfEl) {
@@ -1228,6 +1298,14 @@ function renderOwner() {
     d.orders.forEach(o => { if (o.ref) byRef[o.ref] = (byRef[o.ref] || 0) + 1; });
     const top = Object.entries(byRef).sort((a, b) => b[1] - a[1]).slice(0, 5);
     rfEl.innerHTML = top.length ? '<h3>🏆 Referral leaderboard</h3>' + top.map(([r, n], i) => `<div>${i === 0 ? '🥇' : (i + 1) + '.'} <b>${r}</b> — ${n} buyer${n === 1 ? '' : 's'}${i === 0 ? ' — top referrer gets a free pair' : ''}</div>`).join('') : '<p class="fine">No referrals yet — buyers can put who sent them at checkout.</p>';
+  const rcEl = $('owner-refcodes');
+  if (rcEl) {
+    const handles = [...new Set(d.orders.map(o => (o.buyer || '').match(/@([\w.]+)/)).filter(Boolean).map(m => m[1].toUpperCase()))];
+    let changed = false;
+    handles.forEach(h => { const code = h + '10'; if (!d.discounts.some(x => x.code === code)) { d.discounts.push({ code, pct: 10, active: true }); changed = true; } });
+    if (changed) saveOwner(d);
+    rcEl.innerHTML = handles.length ? '<h3>🔑 Personal referral codes</h3><p class="fine">Every buyer gets their own 10%-off code to share — it works in the discount box on the homepage order flow.</p>' + handles.map(h => `<div><b>${h}10</b> — @${h.toLowerCase()}'s code</div>`).join('') : '<p class="fine">No buyers with an @ yet — referral codes appear here once someone orders.</p>';
+  }
   }
   const vipEl = $('owner-vip');
   if (vipEl) {
@@ -1296,6 +1374,29 @@ function renderOwner() {
   if (signEl && document.activeElement !== signEl) signEl.value = d.signups || 0;
   const listEl = $('owner-signup-list');
   if (listEl) listEl.textContent = d.signupEmails.length ? d.signupEmails.join(', ') : 'No signup emails saved here yet — check Gmail for the real list.';
+  const tdEl = $('owner-today');
+  if (tdEl) {
+    const now = new Date();
+    const ymd = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    const dropDay = new Date(2026, 10, 27), todayDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const daysLeft = Math.round((dropDay - todayDay) / 864e5);
+    const dt = $('owner-today-date'); if (dt) dt.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + (daysLeft > 0 ? ' — ' + daysLeft + ' days to drop' : daysLeft === 0 ? ' — DROP DAY' : ' — drop day passed');
+    const items = [];
+    if (daysLeft > 0) items.push(`Post today's countdown reel (Day ${daysLeft})`);
+    items.push('Reply to every comment + DM');
+    items.push('Check Kevin / manufacturer updates');
+    items.push('Check new orders + stock');
+    items.push('Check new signups');
+    const pend = d.orders.filter(o => (o.status || 'Paid') === 'Pending').length;
+    if (pend) items.push(`Confirm ${pend} pending order${pend === 1 ? '' : 's'} (Greenlight approvals)`);
+    Object.entries(d.stock).forEach(([sz, n]) => { if (n <= 2 && n > 0) items.push(`Size ${sz} is almost gone (${n} left) — post about it`); });
+    if (daysLeft === 1) items.push('Tomorrow is drop day — prep packing slips + labels');
+    if (daysLeft === 0) items.push('DROP DAY — go live at 6PM', 'Send the drop-day email (BCC)', 'Watch Greenlight approvals all night');
+    if (daysLeft < 0) items.push('Ship remaining orders + mark them Shipped');
+    const done = (d.dailyTasks || {})[ymd] || {};
+    tdEl.innerHTML = items.map((it, i) => `<label style="display:block;margin:.4rem 0"><input type="checkbox" data-daily="${i}" ${done[i] ? 'checked' : ''}> ${done[i] ? '<s>' + it + '</s>' : it}</label>`).join('');
+    tdEl.querySelectorAll('[data-daily]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); if (!dd.dailyTasks) dd.dailyTasks = {}; if (!dd.dailyTasks[ymd]) dd.dailyTasks[ymd] = {}; dd.dailyTasks[ymd][+c.dataset.daily] = c.checked; saveOwner(dd); renderOwner(); }));
+  }
   const ordersEl = $('owner-orders');
   if (ordersEl) {
     const q = (($('order-search') ? $('order-search').value : '') || '').toLowerCase();
@@ -1315,12 +1416,12 @@ function renderOwner() {
         const dup = d.orders.filter(x => x.buyer === o.buyer).length > 1;
         const flagged = (d.flagged || []).includes(o.buyer);
         const hist = (o.history || []).slice(-2).map(h => `<span class="fine">${h.at} — ${h.text}</span>`).join('<br>');
-        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. <b>${o.buyer}</b>${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''}${((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}${hist ? '<br>' + hist : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}</div>`;
+        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. ${((o.buyer || '').match(/@([\w.]+)/) ? `<a href="https://www.instagram.com/${(o.buyer.match(/@([\w.]+)/))[1]}/" target="_blank" rel="noopener"><b>${o.buyer}</b></a>` : `<b>${o.buyer}</b>`)}${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''}${((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}${hist ? '<br>' + hist : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}</div>`;
       }).join('');
       ordersEl.querySelectorAll('[data-order-status]').forEach(b => b.addEventListener('click', () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus];
         o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Underpaid' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid';
-        if (o.status === 'Delivered') { try { navigator.clipboard.writeText(`Your CLUTCH Drop 01 shorts were delivered 🙏 thank you for supporting — you're officially one of the first 30. Wear them well. — @clutchny1`).then(() => { const m = $('owner-msg'); if (m) m.textContent = 'Delivered! Thank-you DM copied — paste it to ' + o.buyer + '.'; }).catch(() => {}); } catch (_) {} }
+        if (o.status === 'Delivered') { try { navigator.clipboard.writeText(`Your CLUTCH Drop 01 shorts were delivered 🙏 thank you for supporting — you're officially one of the first 30. Wear them well. If you loved them, drop a review on the site: https://clutchbuiltdifferent.com/#reviews — @clutchny1`).then(() => { const m = $('owner-msg'); if (m) m.textContent = 'Delivered! Thank-you DM copied — paste it to ' + o.buyer + '.'; }).catch(() => {}); } catch (_) {} }
         if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ ' + o.status });
         saveOwner(dd); renderOwner();
       }));
@@ -1375,6 +1476,14 @@ function renderOwner() {
       const dd = loadOwner(); dd.staff = (dd.staff || []).filter((_, x) => x !== +b.dataset.staffRemove); saveOwner(dd); renderOwner();
     }));
   }
+  const gcEl = $('owner-giftcards');
+  if (gcEl) {
+    const gcs = d.giftCards || [];
+    const redeemed = code => d.orders.some(o => (o.note || '').includes(code));
+    gcEl.innerHTML = `<h3>🎁 Gift cards — $25, good for Drop 002</h3><p class="fine">Sell a gift card now (DM @clutchny1), the buyer redeems the code at checkout for $25 off. Codes work on the live checkout.</p>` + (gcs.length ? gcs.map((g, i) => `<div style="margin:.3rem 0"><b>${g.code}</b> — $25 — ${redeemed(g.code) ? '✅ redeemed' : '🟢 active'} <button class="btn ghost" type="button" data-gc-copy="${i}">Copy</button></div>`).join('') : '<p class="fine">No gift cards yet.</p>') + `<p><button class="btn buy live" type="button" id="owner-gc-new">+ New $25 gift card</button></p>`;
+    gcEl.querySelectorAll('[data-gc-copy]').forEach(b => b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(gcs[+b.dataset.gcCopy].code); const m = $('owner-msg'); if (m) m.textContent = 'Gift card code copied.'; } catch (_) {} }));
+    $('owner-gc-new').addEventListener('click', () => { const dd = loadOwner(); if (!dd.giftCards) dd.giftCards = []; let code = ''; do { code = 'GIFT-' + Math.random().toString(36).slice(2, 6).toUpperCase(); } while (dd.giftCards.some(g => g.code === code)); dd.giftCards.push({ code, amount: 25 }); saveOwner(dd); renderOwner(); });
+  }
   const discEl = $('discount-list');
   if (discEl) {
     const list = getDiscounts();
@@ -1417,6 +1526,11 @@ function syncSizePicker(d) {
   const leftEl = $('stock-left');
   const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
   if (leftEl) leftEl.textContent = left === 30 ? '30 of 30 left — nobody has bought yet. Be first.' : `${30 - left} of 30 gone — ${left} left.`;
+  if (left === 0 && !document.getElementById('confetti')) {
+    const c = document.createElement('div'); c.className = 'confetti'; c.id = 'confetti';
+    c.innerHTML = Array.from({ length: 24 }, () => { const e = ['🎉', '✨', '🔥', '🩳'][Math.floor(Math.random() * 4)]; return `<span style="left:${Math.random() * 100}%;animation-delay:${(Math.random() * 2).toFixed(1)}s">${e}</span>`; }).join('');
+    document.body.appendChild(c);
+  }
   const swEl = $('size-waitlist');
   if (swEl) {
     const soldOut = ['S', 'M', 'L', 'XL'].filter(s => d.stock[s] === 0);
@@ -1676,6 +1790,40 @@ if (soldOutBtn) soldOutBtn.addEventListener('click', async () => {
   const txt = `SOLD OUT. Thank you NYC 🙏\nAll 30 pairs of Drop 01 are gone. Drop 02 is coming — join the waitlist at clutchbuiltdifferent.com/drop002.html\n#CLUTCH #BuiltDifferent`;
   try { await navigator.clipboard.writeText(txt); const m = $('owner-msg'); if (m) m.textContent = 'Sold-out post copied.'; } catch (_) {}
 });
+const printAllBtn = $('owner-print-all');
+if (printAllBtn) printAllBtn.addEventListener('click', () => {
+  const d = loadOwner();
+  const open = d.orders.filter(o => (o.status || 'Paid') === 'Paid' || (o.status || 'Paid') === 'Shipped');
+  if (!open.length) { const m = $('owner-msg'); if (m) m.textContent = 'No unshipped orders to print.'; return; }
+  const w = window.open('', '_blank');
+  w.document.write('<html><head><title>CLUTCH packing slips</title></head><body style="font-family:sans-serif">' + open.map(o => `<div style="border:1px solid #000;padding:12px;margin:12px"><b>CLUTCH Drop 01</b><br>${o.buyer} — size ${o.size}<br>Ship to: ${o.address || ''}<br>${o.tracking ? 'Tracking: ' + o.tracking : ''}<br>Total: $${o.total === undefined ? 35 : o.total}</div>`).join('') + '</body></html>');
+  w.document.close(); w.print();
+});
+const runSheetBtn = $('owner-runsheet');
+if (runSheetBtn) runSheetBtn.addEventListener('click', async () => {
+  const d = loadOwner();
+  const open = d.orders.filter(o => (o.status || 'Paid') === 'Paid' || (o.status || 'Paid') === 'Shipped');
+  const text = open.length ? open.map(o => `${o.buyer} — ${o.size} — ${o.address || 'no address'}`).join('\n') : 'No unshipped orders.';
+  const out = $('owner-runsheet-out'); if (out) out.textContent = text;
+  try { await navigator.clipboard.writeText(text); const m = $('owner-msg'); if (m) m.textContent = 'Run sheet copied — ' + open.length + ' stop(s).'; } catch (_) {}
+});
+const seedForm = $('owner-seed-form');
+if (seedForm) seedForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const d = loadOwner(); if (!d.seeding) d.seeding = [];
+  const name = ($('seed-name').value || '').trim(), got = ($('seed-got').value || '').trim();
+  if (!name) return;
+  d.seeding.push({ name, got: got || 'Free Drop 01 pair', posted: false });
+  saveOwner(d); renderOwner(); seedForm.reset();
+});
+function updateCountdown() {
+  const el = $('owner-countdown'); if (!el) return;
+  const ms = new Date('2026-11-27T18:00:00-05:00').getTime() - Date.now();
+  if (ms <= 0) { el.innerHTML = '<b>🔴 DROP DAY — live now</b>'; return; }
+  const dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5), mm = Math.floor(ms % 36e5 / 6e4);
+  el.innerHTML = '<b>⏳ Drop day in ' + dd + 'd ' + hh + 'h ' + mm + 'm</b> — Fri Nov 27, 6PM ET.';
+}
+setInterval(updateCountdown, 30000);
 const assignForm = $('owner-assign-form');
 if (assignForm) assignForm.addEventListener('submit', e => {
   e.preventDefault();
@@ -1683,7 +1831,7 @@ if (assignForm) assignForm.addEventListener('submit', e => {
   const text = ($('assign-text').value || '').trim();
   const who = $('assign-who').value || 'Emeri';
   if (!text) return;
-  d.assignments.push({ text, who, done: false });
+  d.assignments.push({ text, who, done: false, due: ($('assign-due').value || '') });
   logActivity(`Assigned to ${who}: ${text}`);
   saveOwner(d); renderOwner(); assignForm.reset();
 });

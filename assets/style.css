@@ -171,3 +171,8 @@ section,.nav{background-color:transparent}
 .stock button{transition:transform .15s,border-color .2s}
 .stock button:hover{transform:translateY(-2px)}
 .stock button.on{border-color:var(--tan);background:rgba(201,168,106,.12)}
+
+/* Sold-out confetti (homepage, when all 30 are gone) */
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:99}
+.confetti span{position:absolute;top:-10px;font-size:1.4rem;animation:confetti-fall 3s linear infinite}
+@keyframes confetti-fall{to{transform:translateY(110vh) rotate(360deg)}}

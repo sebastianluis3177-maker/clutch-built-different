@@ -22,6 +22,10 @@
 <div class="size-btns" id="co-sizes">
 <button type="button" data-size="S">S</button><button type="button" data-size="M">M</button><button type="button" data-size="L">L</button><button type="button" data-size="XL">XL</button>
 </div><p class="fine" id="co-stock-note"></p></div>
+<div class="field"><label><input id="co-bundle" type="checkbox" style="width:auto"> Add a second pair — 2 for $45 (save $5)</label>
+<div class="size-btns" id="co-sizes2" hidden>
+<button type="button" data-size="S">S</button><button type="button" data-size="M">M</button><button type="button" data-size="L">L</button><button type="button" data-size="XL">XL</button>
+</div></div>
 
 <div class="field"><label>Your name / Instagram @</label><input id="co-buyer" type="text" placeholder="@yourhandle" required></div>
 <div class="field"><label>Your email (for your order + tracking)</label><input id="co-email" type="email" placeholder="you@email.com" required></div>
@@ -49,7 +53,7 @@
 <div class="summary" id="co-summary">
 <div><span>UES Mesh Shorts</span><span>$25.00</span></div>
 <div><span>Shipping</span><span id="co-ship-line">$10.00</span></div>
-<div id="co-disc-line" style="display:none"><span>Discount (CLUTCH10)</span><span id="co-disc-amt">−$0.00</span></div>
+<div id="co-disc-line" style="display:none"><span id="co-disc-label">Discount</span><span id="co-disc-amt">−$0.00</span></div>
 <div class="total"><span>Total</span><span id="co-total">$35.00</span></div>
 </div>
 
@@ -70,12 +74,12 @@
 const SB_URL = 'https://fgnuaxhujvxkfzzcvdqf.supabase.co';
 const SB_KEY = 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz';
 const GREENLIGHT = 'https://gl.me/u/qqMvQlZ6mTpb';
-let size = '', discountPct = 0, stock = { S: 10, M: 10, L: 5, XL: 5 };
+let size = '', size2 = '', discountPct = 0, discountFixed = 0, giftCode = '', stock = { S: 10, M: 10, L: 5, XL: 5 };
 const $ = id => document.getElementById(id);
 function total() {
   const ship = $('co-ship').value === 'pickup' ? 0 : 10;
-  const sub = 25 + ship;
-  const disc = Math.round(sub * discountPct / 100 * 100) / 100;
+  const sub = ($('co-bundle').checked ? 45 : 25) + ship;
+  const disc = discountFixed ? Math.min(discountFixed, sub) : Math.round(sub * discountPct / 100 * 100) / 100;
   return { ship, disc, total: sub - disc };
 }
 function renderSummary() {
@@ -90,6 +94,16 @@ document.querySelectorAll('#co-sizes button').forEach(b => b.addEventListener('c
   document.querySelectorAll('#co-sizes button').forEach(x => x.classList.remove('on'));
   b.classList.add('on'); size = b.dataset.size; renderSummary();
 }));
+$('co-bundle').addEventListener('change', () => {
+  $('co-sizes2').hidden = !$('co-bundle').checked;
+  if (!$('co-bundle').checked) { size2 = ''; document.querySelectorAll('#co-sizes2 button').forEach(x => x.classList.remove('on')); }
+  renderSummary();
+});
+document.querySelectorAll('#co-sizes2 button').forEach(b => b.addEventListener('click', () => {
+  if (b.disabled) return;
+  document.querySelectorAll('#co-sizes2 button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); size2 = b.dataset.size; renderSummary();
+}));
 $('co-ship').addEventListener('change', () => {
   const pickup = $('co-ship').value === 'pickup';
   $('co-address-wrap').style.display = pickup ? 'none' : '';
@@ -98,8 +112,9 @@ $('co-ship').addEventListener('change', () => {
 });
 $('co-apply-discount').addEventListener('click', () => {
   const code = ($('co-discount').value || '').trim().toUpperCase();
-  if (code === 'CLUTCH10') { discountPct = 10; $('co-discount-msg').textContent = 'Applied — 10% off.'; }
-  else { discountPct = 0; $('co-discount-msg').textContent = "That code didn't work."; }
+  if (code === 'CLUTCH10') { discountPct = 10; discountFixed = 0; giftCode = ''; $('co-disc-label').textContent = 'Discount (CLUTCH10)'; $('co-discount-msg').textContent = 'Applied — 10% off.'; }
+  else if (/^GIFT-[A-Z0-9]{4}$/.test(code)) { discountPct = 0; discountFixed = 25; giftCode = code; $('co-disc-label').textContent = 'Gift card (' + code + ')'; $('co-discount-msg').textContent = 'Applied — $25 off your gift card.'; }
+  else { discountPct = 0; discountFixed = 0; giftCode = ''; $('co-discount-msg').textContent = "That code didn't work."; }
   renderSummary();
 });
 // live stock from Supabase (public read) — sold-out sizes disable
@@ -107,7 +122,7 @@ if (typeof fetch === 'function') try {
 fetch(SB_URL + '/rest/v1/clutch_stock?select=size,stock_left', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } })
   .then(r => r.json()).then(rows => {
     (rows || []).forEach(x => { if (stock[x.size] !== undefined) stock[x.size] = x.stock_left; });
-    document.querySelectorAll('#co-sizes button').forEach(b => {
+    document.querySelectorAll('#co-sizes button, #co-sizes2 button').forEach(b => {
       const n = stock[b.dataset.size];
       if (n === 0) { b.disabled = true; b.textContent = b.dataset.size + ' — sold out'; }
       else if (n <= 2) { b.textContent = b.dataset.size + ' — only ' + n + ' left'; }
@@ -119,18 +134,20 @@ fetch(SB_URL + '/rest/v1/clutch_stock?select=size,stock_left', { headers: { apik
 $('checkout-form').addEventListener('submit', async e => {
   e.preventDefault();
   if (!size) { alert('Pick a size first.'); return; }
+  if ($('co-bundle').checked && !size2) { alert('Pick a second size for the bundle.'); return; }
   const buyer = $('co-buyer').value.trim();
   const email = $('co-email').value.trim();
   const ship = $('co-ship').value;
   const address = ship === 'pickup' ? 'pickup — ' + $('co-slot').value : $('co-address').value.trim();
   if (!buyer || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || (ship !== 'pickup' && !address)) { alert('Fill in your name, a valid email, and a shipping address (or pick local pickup).'); return; }
   const t = total();
-  const orderText = 'CLUTCH Drop 01 — ' + buyer + ' — size ' + size + ' — ' + (ship === 'pickup' ? 'NYC pickup' : 'ship to ' + address) + ' — $' + t.total.toFixed(2);
+  const sizeStr = $('co-bundle').checked ? size + ' + ' + size2 + ' (bundle)' : size;
+  const orderText = 'CLUTCH Drop 01 — ' + buyer + ' — size ' + sizeStr + ' — ' + (ship === 'pickup' ? 'NYC pickup' : 'ship to ' + address) + ' — $' + t.total.toFixed(2);
   // save as Pending in Supabase so admin sees it (fire-and-forget — never block checkout on it)
   if (typeof fetch === 'function') {
-    const orderRow = { buyer: buyer + ' (' + email + ')', size, pay: 'Greenlight', total: t.total, status: 'Pending', address, note: $('co-note').value.trim(), ref: $('co-ref').value.trim().replace(/^@/, '') };
+    const orderRow = { buyer: buyer + ' (' + email + ')', size: sizeStr, pay: 'Greenlight', total: t.total, status: 'Pending', address, note: (giftCode ? 'Gift card ' + giftCode + '. ' : '') + $('co-note').value.trim(), ref: $('co-ref').value.trim().replace(/^@/, '') };
     fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(orderRow) })
-      .then(r => { if (!r.ok) return fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ buyer: orderRow.buyer, size, pay: 'Greenlight', total: t.total, status: 'Pending', address }) }); })
+      .then(r => { if (!r.ok) return fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ buyer: orderRow.buyer, size: sizeStr, pay: 'Greenlight', total: t.total, status: 'Pending', address }) }); })
       .catch(() => {});
   }
   $('checkout-form').hidden = true;
