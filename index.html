@@ -988,7 +988,7 @@ async function sbSyncCheck() {
   const rows = await sbGet('clutch_stock', '?select=size,stock_left&limit=1');
   sbSyncOn = Array.isArray(rows);
   const el = document.getElementById('owner-sync-status');
-  if (el) el.textContent = sbSyncOn ? 'Supabase sync: ON — orders + stock sync across your phone and laptop.' : 'Supabase sync: OFF — orders + stock save on this device only. Paste the SQL I gave you into Supabase SQL Editor to turn it on.';
+  if (el) el.textContent = sbSyncOn ? 'Supabase sync: ON — orders, stock, money, expenses, discounts, templates, packing + notes sync across your phone and laptop.' : 'Supabase sync: OFF — admin saves on this device only. Paste the SQL I gave you into Supabase SQL Editor to turn it on.';
   if (sbSyncOn) {
     const stockRows = await sbGet('clutch_stock', '?select=size,stock_left');
     if (stockRows && stockRows.length) {
@@ -1162,9 +1162,16 @@ const REV_KEY = 'clutch-reviews-v1';
 function loadReviews() { try { return JSON.parse(localStorage.getItem(REV_KEY) || '[]'); } catch (_) { return []; } }
 function renderReviews() {
   const list = $('review-list'); if (!list) return;
+  const draw = rs => { list.innerHTML = rs.length ? rs.map(r => `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px"><b>${r.name}</b> ${'★'.repeat(r.stars)}<br>${r.text}</div>`).join('') : 'No reviews yet — be the first after you get your pair.'; };
   const rs = loadReviews();
-  if (!rs.length) { list.textContent = 'No reviews yet — be the first after you get your pair.'; return; }
-  list.innerHTML = rs.map(r => `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px"><b>${r.name}</b> ${'★'.repeat(r.stars)}<br>${r.text}</div>`).join('');
+  draw(rs);
+  // Reviews posted from any device live in Supabase — show those too.
+  if (supabaseClient) sbGet('clutch_reviews', '?select=name,stars,text,created_at&order=created_at.desc&limit=50').then(rows => {
+    if (!Array.isArray(rows) || !rows.length) return;
+    const seen = new Set(rs.map(r => [r.name, r.stars, r.text].join('|')));
+    const extra = rows.filter(r => !seen.has([r.name, r.stars, r.text].join('|'))).map(r => ({ name: r.name, stars: r.stars, text: r.text }));
+    if (extra.length) draw(rs.concat(extra));
+  });
 }
 renderReviews();
 const revForm = $('review-form');
@@ -1256,6 +1263,7 @@ function showOwnerAdmin(staffMode) {
   renderOwner();
   loadBannerSchedule();
   if (isHardOwner()) mydaySyncLoad();
+  syncAdminState();
 }
 function updateTabGroups() {
   document.querySelectorAll('.tab-group').forEach(g => {
@@ -1361,7 +1369,7 @@ function applyApproval(action, p, actor) {
   const who = actor || 'gated owner';
   switch (action) {
     case 'publish-edits': {
-      try { localStorage.setItem(EDIT_KEY, JSON.stringify(p.edits || {})); } catch (_) {}
+      saveEdits(p.edits || {});
       applyEdits(); renderOwner(); publishEditsLive(); return true;
     }
     case 'go-live': { doGoLive(); return true; }
@@ -1369,7 +1377,7 @@ function applyApproval(action, p, actor) {
       d.liveMode = !!p.liveMode; saveOwner(d); renderOwner(); return true;
     }
     case 'site-edits': {
-      try { localStorage.setItem(EDIT_KEY, JSON.stringify(p.edits || {})); } catch (_) {}
+      saveEdits(p.edits || {});
       applyEdits(); renderOwner(); return true;
     }
     case 'stock-edit': {
@@ -1406,7 +1414,7 @@ function applyApproval(action, p, actor) {
       if (o.status === 'Cancelled') return true;
       o.status = 'Cancelled';
       if (d.stock[o.size] !== undefined) d.stock[o.size]++;
-      if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: d.stock[o.size] });
+      if (sbSyncOn) { sbPatch('clutch_stock', o.size, { stock_left: d.stock[o.size] }); sbOrderPatch(o, { status: 'Cancelled' }); }
       logActivity('Cancelled order #' + (ix + 1) + ' (' + o.buyer + ', ' + o.size + ') — approved for ' + who);
       saveOwner(d); renderOwner(); return true;
     }
@@ -1416,7 +1424,7 @@ function applyApproval(action, p, actor) {
       if (o.status === 'Refunded') return true;
       o.status = 'Refunded';
       if (d.stock[o.size] !== undefined) d.stock[o.size]++;
-      if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: d.stock[o.size] });
+      if (sbSyncOn) { sbPatch('clutch_stock', o.size, { stock_left: d.stock[o.size] }); sbOrderPatch(o, { status: 'Refunded' }); }
       logActivity('Refunded order #' + (ix + 1) + ' (' + o.buyer + ', ' + o.size + ') — approved for ' + who);
       saveOwner(d); renderOwner(); return true;
     }
@@ -1427,7 +1435,7 @@ function applyApproval(action, p, actor) {
       o.size = p.newSize;
       if (d.stock[p.fromSize] !== undefined) d.stock[p.fromSize]++;
       if (d.stock[p.newSize] !== undefined) d.stock[p.newSize]--;
-      if (sbSyncOn) { sbPatch('clutch_stock', p.fromSize, { stock_left: d.stock[p.fromSize] }); sbPatch('clutch_stock', p.newSize, { stock_left: d.stock[p.newSize] }); }
+      if (sbSyncOn) { sbPatch('clutch_stock', p.fromSize, { stock_left: d.stock[p.fromSize] }); sbPatch('clutch_stock', p.newSize, { stock_left: d.stock[p.newSize] }); sbOrderPatch(o, { size: p.newSize }); }
       if (!o.history) o.history = [];
       o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: 'Swapped ' + p.fromSize + ' → ' + p.newSize });
       logActivity('Swapped order #' + (ix + 1) + ' (' + o.buyer + ') ' + p.fromSize + ' → ' + p.newSize + ' — approved for ' + who);
@@ -1448,6 +1456,7 @@ function applyApproval(action, p, actor) {
       const changed = new Set();
       p.orders.forEach(o => {
         d.orders.push({ buyer: o.buyer, size: o.size, pay: o.pay, total: o.total, status: 'Paid', address: o.address || '', at: o.at || new Date().toISOString().slice(0, 10) });
+        if (sbSyncOn) sbPost('clutch_orders', { buyer: o.buyer, size: o.size, pay: o.pay, total: o.total, status: 'Paid', address: o.address || '' });
         if (d.stock[o.size] > 0) { d.stock[o.size]--; changed.add(o.size); }
       });
       if (sbSyncOn) changed.forEach(s => sbPatch('clutch_stock', s, { stock_left: d.stock[s] }));
@@ -1473,7 +1482,7 @@ function applyApproval(action, p, actor) {
     }
     case 'discount-single': {
       const e = loadEdits(); e.discountCode = p.code; e.discountPct = p.pct;
-      try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+      saveEdits(e);
       applyEdits(); renderOwner(); return true;
     }
     case 'staff-add': {
@@ -1484,6 +1493,7 @@ function applyApproval(action, p, actor) {
     }
     case 'staff-remove': {
       d.staff = (d.staff || []).filter(s => s.email !== p.email);
+      if (sbSyncOn && p.email) sbDeleteBy('clutch_staff', 'email', p.email);
       saveOwner(d); renderOwner(); return true;
     }
     case 'money-add': {
@@ -1502,7 +1512,7 @@ function applyApproval(action, p, actor) {
     case 'giftcard-new': {
       if (!p.code) return false;
       if (!(d.giftCards || []).some(g => g.code === p.code)) (d.giftCards = d.giftCards || []).push({ code: p.code, amount: 25 });
-      if (sbSyncOn) sbPost('clutch_giftcards', { code: p.code, amount: 25, used: false });
+      if (sbSyncOn) sbPost('clutch_giftcards', { code: p.code, value: 25 });
       saveOwner(d); renderOwner(); return true;
     }
     case 'expense-add': {
@@ -1593,19 +1603,335 @@ function loadOwner() {
   try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
   catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
 }
-function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (_) {} }
+function saveOwner(d) { ensureSyncCids(d); try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (_) {} scheduleAdminFlush(); }
 function orderProfit(o, costs) { const tot = (o.total === undefined ? 35 : o.total); return tot - (+costs.perPair || 0) - (+costs.shipping || 0); }
 function logActivity(text) { try { const d = loadOwner(); if (!d.activity) d.activity = []; d.activity.unshift({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text }); d.activity = d.activity.slice(0, 50); saveOwner(d); } catch (_) {} }
+// ---- Full admin sync (Supabase) -------------------------------------
+// Everything an admin creates or changes syncs through Supabase so the
+// main-site admin, the standalone admin, phone + laptop all show the same
+// numbers. Only the PIN (clutch-owner-acct-v1) and the GitHub token
+// (clutch-gh-token-v1) stay per-device by design. New tables: SQL Parts
+// 11-19. Each row dataset gets a stable client id (cid) so merges never
+// duplicate. Tables that don't exist yet (SQL not run) are skipped silently
+// and the UI keeps working off localStorage until the new parts run.
+function clientId() { try { if (window.crypto && crypto.randomUUID) return 'c' + crypto.randomUUID().replace(/-/g, '').slice(0, 12); } catch (_) {} return 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
+const SYNC_ROW_TABLES = { discounts: 'clutch_discounts', expenses: 'clutch_expenses', moneyEntries: 'clutch_money_entries', activity: 'clutch_activity', templates: 'clutch_templates' };
+const SYNC_SETTINGS_KEYS = { costs: 'admin_costs', liveMode: 'admin_live_mode', taxPct: 'admin_tax_pct', fundGoal: 'admin_fund_goal', startBalance: 'admin_start_balance', signups: 'admin_signups', signupEmails: 'admin_signup_emails', seeding: 'admin_seeding', postCal: 'admin_post_cal', dropChecklist: 'admin_drop_checklist', calendarChecks: 'admin_calendar_checks', taxChecks: 'admin_tax_checks', dailyTasks: 'admin_daily_tasks', flagged: 'admin_flagged', notes: 'admin_notes', assignments: 'admin_assignments' };
+let sbTablesKnown = {};
+let lastSyncedState = null;
+let adminStateSynced = false;
+let adminFlushTimer = null;
+function ensureSyncCids(d) { Object.keys(SYNC_ROW_TABLES).forEach(f => { (d[f] || []).forEach(x => { if (x && !x.cid) x.cid = clientId(); }); }); }
+function syncRowFromSb(f, r) {
+  const x = { cid: r.client_id };
+  if (f === 'discounts') { x.code = r.code; x.pct = r.pct; x.active = r.active; }
+  else if (f === 'expenses' || f === 'moneyEntries') { x.label = r.label; x.amount = r.amount; x.at = r.entry_date; }
+  else if (f === 'activity') { x.at = r.logged_at; x.text = r.text; }
+  else if (f === 'templates') { x.label = r.label; x.text = r.text; }
+  return x;
+}
+function syncRowToSb(f, x) {
+  const row = { client_id: x.cid };
+  if (f === 'discounts') { row.code = x.code; row.pct = x.pct; row.active = !!x.active; }
+  else if (f === 'expenses' || f === 'moneyEntries') { row.label = x.label; row.amount = x.amount; row.entry_date = x.at; }
+  else if (f === 'activity') { row.logged_at = x.at; row.text = x.text; }
+  else if (f === 'templates') { row.label = x.label; row.text = x.text; }
+  return row;
+}
+function stripCid(x) { const c = Object.assign({}, x); delete c.cid; return c; }
+async function sbUpsert(table, row, onConflict) {
+  if (!supabaseClient) return false;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(row) });
+    return r.ok;
+  } catch (_) { return false; }
+}
+async function sbDeleteBy(table, col, val) {
+  if (!supabaseClient) return false;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${col}=eq.${encodeURIComponent(val)}`, { method: 'DELETE', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
+    return r.ok;
+  } catch (_) { return false; }
+}
+async function sbPatchWhere(table, query, row) {
+  if (!supabaseClient) return false;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, { method: 'PATCH', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) });
+    return r.ok;
+  } catch (_) { return false; }
+}
+// PATCH one order in Supabase — by its Supabase id when known, else by
+// buyer+size (best effort, same match the bulk-ship helper uses).
+async function sbOrderPatch(o, fields) {
+  if (!supabaseClient || !sbSyncOn) return false;
+  if (o.sbId || o.id) return sbPatch('clutch_orders', o.sbId || o.id, fields);
+  return sbPatchWhere('clutch_orders', 'buyer=eq.' + encodeURIComponent(o.buyer || '') + '&size=eq.' + encodeURIComponent(o.size || ''), fields);
+}
+function snapshotAdminState(d) {
+  const snap = {};
+  Object.keys(SYNC_ROW_TABLES).forEach(f => { snap[f] = JSON.parse(JSON.stringify(d[f] || [])); });
+  Object.keys(SYNC_SETTINGS_KEYS).forEach(f => { snap['set:' + f] = JSON.stringify(d[f] === undefined ? null : d[f]); });
+  return snap;
+}
+function scheduleAdminFlush() {
+  if (adminFlushTimer) return;
+  adminFlushTimer = setTimeout(() => { adminFlushTimer = null; flushAdminState(); }, 300);
+}
+async function flushAdminState() {
+  if (!supabaseClient || !lastSyncedState) return;
+  const d = loadOwner();
+  ensureSyncCids(d);
+  for (const f of Object.keys(SYNC_ROW_TABLES)) {
+    if (sbTablesKnown[f] === false) continue;
+    const cur = d[f] || [];
+    const prev = lastSyncedState[f] || [];
+    const prevByCid = {}; prev.forEach(x => { if (x.cid) prevByCid[x.cid] = x; });
+    const curByCid = {}; cur.forEach(x => { if (x.cid) curByCid[x.cid] = x; });
+    let ok = true;
+    for (const x of cur) {
+      const p = prevByCid[x.cid];
+      if (!p) { if (!(await sbUpsert(SYNC_ROW_TABLES[f], syncRowToSb(f, x), 'client_id'))) ok = false; }
+      else if (JSON.stringify(syncRowToSb(f, x)) !== JSON.stringify(syncRowToSb(f, p))) { if (!(await sbPatchWhere(SYNC_ROW_TABLES[f], 'client_id=eq.' + encodeURIComponent(x.cid), syncRowToSb(f, x)))) ok = false; }
+    }
+    for (const p of prev) {
+      if (p.cid && !curByCid[p.cid]) { if (!(await sbDeleteBy(SYNC_ROW_TABLES[f], 'client_id', p.cid))) ok = false; }
+    }
+    if (ok) { lastSyncedState[f] = JSON.parse(JSON.stringify(cur)); sbTablesKnown[f] = true; }
+    else if (sbTablesKnown[f] === undefined) sbTablesKnown[f] = true;
+  }
+  if (sbTablesKnown.settings === false) return;
+  let settingsOk = true;
+  for (const f of Object.keys(SYNC_SETTINGS_KEYS)) {
+    const cur = JSON.stringify(d[f] === undefined ? null : d[f]);
+    if (cur === lastSyncedState['set:' + f]) continue;
+    if (await sbUpsert('clutch_settings', { key: SYNC_SETTINGS_KEYS[f], value: cur }, 'key')) lastSyncedState['set:' + f] = cur;
+    else settingsOk = false;
+  }
+  if (settingsOk) sbTablesKnown.settings = true;
+}
+function mergeRowDataset(f, local, incoming) {
+  const byCid = {};
+  const out = [];
+  const seenContent = new Set();
+  incoming.forEach(x => { if (x.cid) byCid[x.cid] = x; out.push(x); seenContent.add(JSON.stringify(stripCid(x))); });
+  local.forEach(x => {
+    if (x.cid && byCid[x.cid]) return;
+    const c = JSON.stringify(stripCid(x));
+    if (seenContent.has(c)) return;
+    out.push(x); seenContent.add(c);
+  });
+  return out;
+}
+function orderMatchKey(o) { return [(o.buyer || ''), (o.size || ''), (o.total === undefined ? 35 : o.total), (o.at || '')].join('|'); }
+async function syncOrdersFromSb(d) {
+  const rows = await sbGet('clutch_orders', '?select=*&order=created_at.asc&limit=200');
+  if (!Array.isArray(rows)) return false;
+  const queues = {};
+  rows.forEach(r => { const k = orderMatchKey({ buyer: r.buyer, size: r.size, total: r.total, at: (r.created_at || '').slice(0, 10) }); (queues[k] = queues[k] || []).push(r); });
+  const merged = [];
+  const toPush = [];
+  const pack = loadPacking();
+  let packChanged = false;
+  (d.orders || []).forEach((o, i) => {
+    const q = queues[orderMatchKey(o)];
+    const r = q && q.length ? q.shift() : null;
+    if (r) {
+      // Local o.note is always an admin note (only the Note button writes
+      // it — checkout writes the buyer note straight to Supabase). Keep it
+      // separate so it never clobbers the buyer note in clutch_orders.note.
+      const adminNote = (o.note && o.note !== r.note) ? o.note : (r.admin_note || '');
+      if (o.note && o.note !== r.note && !r.admin_note) sbPatch('clutch_orders', r.id, { admin_note: o.note });
+      merged.push({ buyer: r.buyer, size: r.size, pay: r.pay, total: r.total, status: r.status, tracking: r.tracking || '', address: r.address || '', note: r.note || '', adminNote, at: (r.created_at || '').slice(0, 10), history: o.history || [], ref: r.ref || o.ref || '', id: r.id, sbId: r.id });
+      const oldKey = 'idx-' + i, newKey = 'id-' + r.id;
+      if (pack[oldKey] && !pack[newKey]) { pack[newKey] = pack[oldKey]; delete pack[oldKey]; packChanged = true; }
+    } else {
+      merged.push(o);
+      toPush.push(o);
+    }
+  });
+  rows.forEach(r => {
+    if (merged.some(o => o.sbId === r.id)) return;
+    merged.push({ buyer: r.buyer, size: r.size, pay: r.pay, total: r.total, status: r.status, tracking: r.tracking || '', address: r.address || '', note: r.note || '', adminNote: r.admin_note || '', at: (r.created_at || '').slice(0, 10), history: [], ref: r.ref || '', id: r.id, sbId: r.id });
+  });
+  d.orders = merged;
+  if (packChanged) savePackingRaw(pack);
+  toPush.forEach(o => { if (sbSyncOn) sbPost('clutch_orders', { buyer: o.buyer, size: o.size, pay: o.pay, total: o.total, status: o.status || 'Paid', address: o.address || '', admin_note: o.note || '' }); });
+  return true;
+}
+async function syncStaffFromSb(d) {
+  const rows = await sbGet('clutch_staff', '?select=email,name,role');
+  if (!Array.isArray(rows)) return false;
+  const byEmail = {};
+  rows.forEach(r => { byEmail[(r.email || '').toLowerCase()] = r; });
+  const merged = [];
+  (d.staff || []).forEach(s => {
+    const r = byEmail[(s.email || '').toLowerCase()];
+    if (r) merged.push({ email: r.email, name: r.name || s.name || '', role: r.role || s.role || 'staff' });
+    else { merged.push(s); if (sbSyncOn) sbPost('clutch_staff', { email: s.email, name: s.name || '', role: s.role || 'staff' }); }
+  });
+  rows.forEach(r => { if (!merged.some(s => (s.email || '').toLowerCase() === (r.email || '').toLowerCase())) merged.push({ email: r.email, name: r.name || '', role: r.role || 'staff' }); });
+  d.staff = merged;
+  return true;
+}
+async function syncGiftCardsFromSb(d) {
+  const rows = await sbGet('clutch_giftcards', '?select=code,value');
+  if (!Array.isArray(rows)) return false;
+  const byCode = {};
+  rows.forEach(r => { byCode[(r.code || '').toUpperCase()] = r; });
+  const merged = [];
+  (d.giftCards || []).forEach(g => {
+    const r = byCode[(g.code || '').toUpperCase()];
+    if (r) merged.push({ code: r.code, amount: r.value === undefined || r.value === null ? 25 : r.value });
+    else { merged.push(g); if (sbSyncOn) sbPost('clutch_giftcards', { code: g.code, value: 25 }); }
+  });
+  rows.forEach(r => { if (!merged.some(g => (g.code || '').toUpperCase() === (r.code || '').toUpperCase())) merged.push({ code: r.code, amount: r.value === undefined || r.value === null ? 25 : r.value }); });
+  d.giftCards = merged;
+  return true;
+}
+async function syncAdminState() {
+  if (adminStateSynced || !supabaseClient) return;
+  adminStateSynced = true;
+  const d = loadOwner();
+  ensureSyncCids(d);
+  try { await syncOrdersFromSb(d); } catch (_) {}
+  try { await syncStaffFromSb(d); } catch (_) {}
+  try { await syncGiftCardsFromSb(d); } catch (_) {}
+  for (const f of Object.keys(SYNC_ROW_TABLES)) {
+    try {
+      const rows = await sbGet(SYNC_ROW_TABLES[f], '?select=*&order=created_at.asc&limit=200');
+      if (!Array.isArray(rows)) { sbTablesKnown[f] = false; continue; }
+      sbTablesKnown[f] = true;
+      const incoming = rows.map(r => syncRowFromSb(f, r));
+      const merged = mergeRowDataset(f, d[f] || [], incoming);
+      const incCids = new Set(incoming.map(x => x.cid));
+      for (const x of merged) { if (x.cid && !incCids.has(x.cid)) await sbUpsert(SYNC_ROW_TABLES[f], syncRowToSb(f, x), 'client_id'); }
+      d[f] = f === 'activity' ? merged.slice(-50) : merged;
+    } catch (_) { sbTablesKnown[f] = false; }
+  }
+  try {
+    const srows = await sbGet('clutch_settings', '?select=key,value');
+    if (Array.isArray(srows)) {
+      sbTablesKnown.settings = true;
+      const byKey = {};
+      srows.forEach(r => { byKey[r.key] = r.value; });
+      for (const f of Object.keys(SYNC_SETTINGS_KEYS)) {
+        const k = SYNC_SETTINGS_KEYS[f];
+        if (byKey[k] !== undefined) { try { const v = JSON.parse(byKey[k]); if (v !== undefined && v !== null) d[f] = v; } catch (_) {} }
+        else if (d[f] !== undefined && JSON.stringify(d[f]) !== JSON.stringify(OWNER_DEFAULT[f])) {
+          await sbUpsert('clutch_settings', { key: k, value: JSON.stringify(d[f]) }, 'key');
+        }
+      }
+      if (byKey.admin_published !== undefined) { try { localStorage.setItem(PUB_KEY, byKey.admin_published); } catch (_) {} }
+    } else sbTablesKnown.settings = false;
+  } catch (_) { sbTablesKnown.settings = false; }
+  try { await syncPackingFromSb(); } catch (_) {}
+  try { await syncCustNotesFromSb(); } catch (_) {}
+  try { await syncSiteEditsFromSb(); } catch (_) {}
+  saveOwner(d);
+  lastSyncedState = snapshotAdminState(d);
+  renderOwner();
+}
 // Packing checklist per order (localStorage, keyed by order id when known, else list index)
 const PACK_KEY = 'clutch-packing-v1';
 const PACK_STEPS = ['packed', 'label', 'photo', 'dropped'];
 const PACK_LABELS = { packed: 'Packed', label: 'Label printed', photo: 'Photo taken', dropped: 'Dropped at post office' };
 function loadPacking() { try { return JSON.parse(localStorage.getItem(PACK_KEY) || '{}'); } catch (_) { return {}; } }
-function savePacking(p) { try { localStorage.setItem(PACK_KEY, JSON.stringify(p)); } catch (_) {} }
+function savePackingRaw(p) { try { localStorage.setItem(PACK_KEY, JSON.stringify(p)); } catch (_) {} }
+let packSyncedState = null;
+let packFlushTimer = null;
+function savePacking(p) { savePackingRaw(p); if (packFlushTimer) return; packFlushTimer = setTimeout(() => { packFlushTimer = null; flushPacking(); }, 300); }
+async function flushPacking() {
+  if (!supabaseClient || packSyncedState === null || sbTablesKnown.packing === false) return;
+  const cur = loadPacking();
+  let ok = true;
+  for (const k of Object.keys(cur)) {
+    if (JSON.stringify(cur[k]) !== JSON.stringify(packSyncedState[k])) { if (!(await sbUpsert('clutch_packing', { order_key: k, steps: cur[k] }, 'order_key'))) ok = false; }
+  }
+  for (const k of Object.keys(packSyncedState)) {
+    if (!(k in cur)) { if (!(await sbDeleteBy('clutch_packing', 'order_key', k))) ok = false; }
+  }
+  if (ok) packSyncedState = JSON.parse(JSON.stringify(cur));
+}
+async function syncPackingFromSb() {
+  const rows = await sbGet('clutch_packing', '?select=order_key,steps');
+  const local = loadPacking();
+  if (!Array.isArray(rows)) { sbTablesKnown.packing = false; packSyncedState = JSON.parse(JSON.stringify(local)); return false; }
+  sbTablesKnown.packing = true;
+  const byKey = {}; rows.forEach(r => { byKey[r.order_key] = r.steps || {}; });
+  let changed = false;
+  Object.keys(byKey).forEach(k => { if (JSON.stringify(local[k] || {}) !== JSON.stringify(byKey[k])) { local[k] = byKey[k]; changed = true; } });
+  for (const k of Object.keys(local)) { if (!(k in byKey)) await sbUpsert('clutch_packing', { order_key: k, steps: local[k] }, 'order_key'); }
+  if (changed) savePackingRaw(local);
+  packSyncedState = JSON.parse(JSON.stringify(local));
+  return true;
+}
 // Per-customer notes (localStorage, keyed by buyer email when known, else buyer name)
 const CUST_NOTES_KEY = 'clutch-customer-notes-v1';
 function loadCustNotes() { try { return JSON.parse(localStorage.getItem(CUST_NOTES_KEY) || '{}'); } catch (_) { return {}; } }
-function saveCustNotes(n) { try { localStorage.setItem(CUST_NOTES_KEY, JSON.stringify(n)); } catch (_) {} }
+function saveCustNotesRaw(n) { try { localStorage.setItem(CUST_NOTES_KEY, JSON.stringify(n)); } catch (_) {} }
+let custSyncedState = null;
+let custFlushTimer = null;
+function saveCustNotes(n) { saveCustNotesRaw(n); if (custFlushTimer) return; custFlushTimer = setTimeout(() => { custFlushTimer = null; flushCustNotes(); }, 300); }
+async function flushCustNotes() {
+  if (!supabaseClient || custSyncedState === null || sbTablesKnown.custNotes === false) return;
+  const cur = loadCustNotes();
+  let ok = true;
+  for (const k of Object.keys(cur)) {
+    if (cur[k] !== custSyncedState[k]) { if (!(await sbUpsert('clutch_customer_notes', { buyer_key: k, note: cur[k] }, 'buyer_key'))) ok = false; }
+  }
+  for (const k of Object.keys(custSyncedState)) {
+    if (!(k in cur)) { if (!(await sbDeleteBy('clutch_customer_notes', 'buyer_key', k))) ok = false; }
+  }
+  if (ok) custSyncedState = JSON.parse(JSON.stringify(cur));
+}
+async function syncCustNotesFromSb() {
+  const rows = await sbGet('clutch_customer_notes', '?select=buyer_key,note');
+  const local = loadCustNotes();
+  if (!Array.isArray(rows)) { sbTablesKnown.custNotes = false; custSyncedState = JSON.parse(JSON.stringify(local)); return false; }
+  sbTablesKnown.custNotes = true;
+  const byKey = {}; rows.forEach(r => { byKey[r.buyer_key] = r.note || ''; });
+  let changed = false;
+  Object.keys(byKey).forEach(k => { if ((local[k] || '') !== byKey[k]) { local[k] = byKey[k]; changed = true; } });
+  for (const k of Object.keys(local)) { if (!(k in byKey)) await sbUpsert('clutch_customer_notes', { buyer_key: k, note: local[k] }, 'buyer_key'); }
+  if (changed) saveCustNotesRaw(local);
+  custSyncedState = JSON.parse(JSON.stringify(local));
+  return true;
+}
+// Site text-edit drafts — sync so an edit started on the phone can be
+// published from the laptop. Debounced: the editor saves on every keystroke.
+let editsSyncedState = null;
+let editsFlushTimer = null;
+function saveEditsRaw(e) { try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {} }
+function saveEdits(e) {
+  saveEditsRaw(e);
+  if (editsFlushTimer) return;
+  editsFlushTimer = setTimeout(() => { editsFlushTimer = null; flushSiteEdits(); }, 1200);
+}
+async function flushSiteEdits() {
+  if (!supabaseClient || editsSyncedState === null || sbTablesKnown.siteEdits === false) return;
+  const cur = loadEdits();
+  let ok = true;
+  for (const k of Object.keys(cur)) {
+    if (cur[k] !== editsSyncedState[k]) { if (!(await sbUpsert('clutch_site_edits', { edit_key: k, value: String(cur[k]) }, 'edit_key'))) ok = false; }
+  }
+  for (const k of Object.keys(editsSyncedState)) {
+    if (!(k in cur)) { if (!(await sbDeleteBy('clutch_site_edits', 'edit_key', k))) ok = false; }
+  }
+  if (ok) editsSyncedState = JSON.parse(JSON.stringify(cur));
+}
+async function syncSiteEditsFromSb() {
+  const rows = await sbGet('clutch_site_edits', '?select=edit_key,value');
+  const local = loadEdits();
+  if (!Array.isArray(rows)) { sbTablesKnown.siteEdits = false; editsSyncedState = JSON.parse(JSON.stringify(local)); return false; }
+  sbTablesKnown.siteEdits = true;
+  const byKey = {}; rows.forEach(r => { byKey[r.edit_key] = r.value || ''; });
+  let changed = false;
+  Object.keys(byKey).forEach(k => { if ((local[k] || '') !== byKey[k]) { local[k] = byKey[k]; changed = true; } });
+  for (const k of Object.keys(local)) { if (!(k in byKey)) await sbUpsert('clutch_site_edits', { edit_key: k, value: String(local[k]) }, 'edit_key'); }
+  if (changed) { try { localStorage.setItem(EDIT_KEY, JSON.stringify(local)); } catch (_) {} applyEdits(); }
+  editsSyncedState = JSON.parse(JSON.stringify(local));
+  return true;
+}
 function custKey(buyer) { const m = String(buyer || '').match(/[\w.+-]+@[\w-]+\.[\w.]+/); return m ? m[0].toLowerCase() : String(buyer || '').trim(); }
 let openProfiles = {};
 // Team notes board — Supabase clutch_notes when the table exists, else localStorage fallback
@@ -2094,13 +2420,14 @@ function renderOwner() {
       const dd = loadOwner(); const o = dd.orders[+b.dataset.payoutUnder];
       if (!confirm(`${o.buyer} paid less than $${o.total === undefined ? 35 : o.total}. Mark underpaid? You keep the money and DO NOT send the shorts. No refund.`)) return;
       o.status = 'Underpaid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Underpaid — DO NOT SHIP, money kept, no refund' });
+      if (sbSyncOn) sbOrderPatch(o, { status: 'Underpaid' });
       logActivity(`Underpaid order #${+b.dataset.payoutUnder + 1} (${o.buyer}) — not shipped`); saveOwner(dd); renderOwner();
     }));
     payoutEl.querySelectorAll('[data-payout-paid]').forEach(b => b.addEventListener('click', () => {
       const dd = loadOwner(); const o = dd.orders[+b.dataset.payoutPaid];
       o.status = 'Paid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Paid (Greenlight approved)' });
       if (dd.stock[o.size] !== undefined && dd.stock[o.size] > 0) dd.stock[o.size]--;
-      if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: dd.stock[o.size] });
+      if (sbSyncOn) { sbPatch('clutch_stock', o.size, { stock_left: dd.stock[o.size] }); sbOrderPatch(o, { status: 'Paid' }); }
       logActivity(`Marked order #${+b.dataset.payoutPaid + 1} paid (${o.buyer})`); saveOwner(dd); renderOwner();
     }));
   }
@@ -2335,11 +2662,12 @@ function renderOwner() {
         const ckey = custKey(o.buyer);
         const escAttr = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         const profHtml = openProfiles[o.buyer] ? '<div style="margin-top:.5rem;padding:.5rem;border:1px dashed var(--line);border-radius:8px"><b>Customer profile — ' + o.buyer + '</b><br><span class="fine">' + mine.length + ' order' + (mine.length === 1 ? '' : 's') + ' · $' + spent.toFixed(2) + ' spent · sizes: ' + mine.map(x => x.size).join(', ') + '</span>' + mine.map(x => '<br><span class="fine">#' + (d.orders.indexOf(x) + 1) + ' — ' + x.size + ' — $' + (x.total === undefined ? 35 : x.total) + ' — ' + (x.status || 'Paid') + '</span>').join('') + '<br><label class="fine">Notes on this customer<br><textarea data-cust-note="' + escAttr(ckey) + '" rows="2" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#111;color:var(--ink)">' + escAttr(custNotes[ckey] || '') + '</textarea></label></div>' : '';
-        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px"><input type="checkbox" data-bulk-order="${i}"${bulkSelected.has(i) ? ' checked' : ''}> ${i + 1}. ${((o.buyer || '').match(/@([\w.]+)/) ? `<a href="https://www.instagram.com/${(o.buyer.match(/@([\w.]+)/))[1]}/" target="_blank" rel="noopener"><b>${o.buyer}</b></a>` : `<b>${o.buyer}</b>`)}${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''}${((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}${hist ? '<br>' + hist : ''}${packHtml}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${(o.status || 'Paid') === 'Paid' ? ` <button class="btn ghost" type="button" data-order-shipit="${i}">✅ Mark shipped</button>` : ''} <button class="btn ghost" type="button" data-order-profile="${i}">${openProfiles[o.buyer] ? 'Hide profile' : 'Profile'}</button>${(['S', 'M', 'L', 'XL'].includes(o.size) && ['Pending', 'Paid', 'Shipped'].includes(o.status || 'Paid')) ? ` <select data-order-swap-size="${i}" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">${['S', 'M', 'L', 'XL'].map(s2 => `<option${s2 === o.size ? ' selected' : ''}>${s2}</option>`).join('')}</select> <button class="btn ghost" type="button" data-order-swap="${i}">Swap size</button>` : ''}${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}${profHtml}</div>`;
+        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px"><input type="checkbox" data-bulk-order="${i}"${bulkSelected.has(i) ? ' checked' : ''}> ${i + 1}. ${((o.buyer || '').match(/@([\w.]+)/) ? `<a href="https://www.instagram.com/${(o.buyer.match(/@([\w.]+)/))[1]}/" target="_blank" rel="noopener"><b>${o.buyer}</b></a>` : `<b>${o.buyer}</b>`)}${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''}${((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 Buyer note: ' + o.note : ''}${o.adminNote ? '<br>🗒️ Admin note: ' + o.adminNote : ''}${hist ? '<br>' + hist : ''}${packHtml}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${(o.status || 'Paid') === 'Paid' ? ` <button class="btn ghost" type="button" data-order-shipit="${i}">✅ Mark shipped</button>` : ''} <button class="btn ghost" type="button" data-order-profile="${i}">${openProfiles[o.buyer] ? 'Hide profile' : 'Profile'}</button>${(['S', 'M', 'L', 'XL'].includes(o.size) && ['Pending', 'Paid', 'Shipped'].includes(o.status || 'Paid')) ? ` <select data-order-swap-size="${i}" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">${['S', 'M', 'L', 'XL'].map(s2 => `<option${s2 === o.size ? ' selected' : ''}>${s2}</option>`).join('')}</select> <button class="btn ghost" type="button" data-order-swap="${i}">Swap size</button>` : ''}${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}${profHtml}</div>`;
       }).join('');
       ordersEl.querySelectorAll('[data-order-status]').forEach(b => b.addEventListener('click', () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus];
         o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Underpaid' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid';
+        if (sbSyncOn) sbOrderPatch(o, { status: o.status });
         if (o.status === 'Delivered') { try { navigator.clipboard.writeText(`Your CLUTCH Drop 01 shorts were delivered 🙏 thank you for supporting — you're officially one of the first 30. Wear them well. If you loved them, drop a review on the site: https://clutchbuiltdifferent.com/#reviews — @clutchny1`).then(() => { const m = $('owner-msg'); if (m) m.textContent = 'Delivered! Thank-you DM copied — paste it to ' + o.buyer + '.'; }).catch(() => {}); } catch (_) {} }
         if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ ' + o.status });
         saveOwner(dd); renderOwner();
@@ -2347,12 +2675,12 @@ function renderOwner() {
       ordersEl.querySelectorAll('[data-order-tracking]').forEach(b => b.addEventListener('click', () => {
         const t = prompt('Tracking number for this order:');
         if (t === null) return;
-        const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner();
+        const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); if (sbSyncOn) sbOrderPatch(dd.orders[+b.dataset.orderTracking], { tracking: t.trim() }); saveOwner(dd); renderOwner();
       }));
       ordersEl.querySelectorAll('[data-order-note]').forEach(b => b.addEventListener('click', () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderNote];
-        const t = prompt('Note for this order (customer notes, gift message, etc.):', o.note || '');
-        if (t === null) return; o.note = t.trim(); saveOwner(dd); renderOwner();
+        const t = prompt('Admin note for this order (only the team sees this):', o.adminNote || o.note || '');
+        if (t === null) return; o.adminNote = t.trim(); if (sbSyncOn) sbOrderPatch(o, { admin_note: t.trim() }); saveOwner(dd); renderOwner();
       }));
       ordersEl.querySelectorAll('[data-order-ship]').forEach(b => b.addEventListener('click', async () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderShip];
@@ -2376,6 +2704,7 @@ function renderOwner() {
         let tr = (o.tracking || '').trim();
         if (!tr) { tr = prompt('Tracking number for this order:'); if (tr == null) return; tr = String(tr).trim(); if (!tr) return; }
         o.tracking = tr; o.status = 'Shipped';
+        if (sbSyncOn) sbOrderPatch(o, { status: 'Shipped', tracking: tr });
         if (!o.history) o.history = [];
         o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Shipped — tracking ' + tr });
         logActivity(`Shipped order #${+b.dataset.orderShipit + 1} (${o.buyer}, ${o.size})`);
@@ -2448,7 +2777,7 @@ function renderOwner() {
     staffEl.querySelectorAll('[data-staff-remove]').forEach(b => b.addEventListener('click', () => {
       const dd = loadOwner(); const removed = (dd.staff || [])[+b.dataset.staffRemove];
       if (isGated()) { requestApproval('staff-remove', 'Remove ' + (removed ? removed.email : 'staff member'), { email: removed ? removed.email : '' }); approvalQueuedMsg(); return; }
-      dd.staff = (dd.staff || []).filter((_, x) => x !== +b.dataset.staffRemove); saveOwner(dd); renderOwner();
+      dd.staff = (dd.staff || []).filter((_, x) => x !== +b.dataset.staffRemove); if (sbSyncOn && removed && removed.email) sbDeleteBy('clutch_staff', 'email', removed.email); saveOwner(dd); renderOwner();
     }));
   }
   const gcEl = $('owner-giftcards');
@@ -2571,7 +2900,7 @@ window.addEventListener('message', function (ev) {
   if (d.type === 'clutch-edit-ready') { var vm = $('owner-visual-msg'); if (vm) vm.textContent = 'Ready — click any heading or paragraph in the frame and type.'; return; }
   if (d.type === 'clutch-edit' && d.key) {
     var e = loadEdits(); e['text:' + d.key] = (d.text || '').trim();
-    try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+    saveEdits(e);
     var vm2 = $('owner-visual-msg'); if (vm2) vm2.textContent = 'Saved on this device — hit "Publish my edits live" below to make it live for everyone.';
   }
 });
@@ -2624,7 +2953,7 @@ function fillPreview() {
 function savePreviewEdits() {
   const e = loadEdits();
   Object.keys(PV_IDS).forEach(k => { const el = $(PV_IDS[k]); if (el) e[k] = el.textContent.trim(); });
-  try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+  saveEdits(e);
   const map = { lede: 'edit-lede', price: 'edit-price', when: 'edit-when', buynote: 'edit-buynote', announce: 'edit-announce' };
   Object.keys(map).forEach(k => { const f = $(map[k]); if (f) f.value = e[k] || ''; });
 }
@@ -2689,7 +3018,7 @@ async function loadBannerSchedule() {
     if (!e.bannerAt && v.at) {
       e.bannerAt = v.at;
       if (!e.announce && v.text) e.announce = v.text;
-      try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+      saveEdits(e);
       applyEdits();
     }
   } catch (_) {}
@@ -2754,7 +3083,7 @@ if (editForm) editForm.addEventListener('submit', e => {
       return;
     }
   }
-  try { localStorage.setItem(EDIT_KEY, JSON.stringify(edits)); } catch (_) {}
+  saveEdits(edits);
   applyEdits();
   saveBannerSchedule();
   const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Publish my edits live" below to make them live for everyone (needs your GitHub key, one-time setup).';
@@ -2763,7 +3092,7 @@ const editBannerClear = $('edit-banner-clear');
 if (editBannerClear) editBannerClear.addEventListener('click', () => {
   const w = $('edit-banner-when'); if (w) w.value = '';
   const e = loadEdits(); e.bannerAt = '';
-  try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+  saveEdits(e);
   applyEdits(); saveBannerSchedule();
 });
 const editCopy = $('owner-edit-copy');
@@ -2774,7 +3103,7 @@ if (editCopy) editCopy.addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(text); const m = $('owner-edit-msg'); if (m) m.textContent = 'Copied — paste it to Jerry in chat and I\u2019ll push it live.'; } catch (_) {}
 });
 const editReset = $('owner-edit-reset');
-if (editReset) editReset.addEventListener('click', () => { try { localStorage.removeItem(EDIT_KEY); } catch (_) {} location.reload(); });
+if (editReset) editReset.addEventListener('click', () => { try { localStorage.removeItem(EDIT_KEY); } catch (_) {} if (supabaseClient && editsSyncedState) Object.keys(editsSyncedState).forEach(k => sbDeleteBy('clutch_site_edits', 'edit_key', k)); location.reload(); });
 // Publish edits straight to GitHub (owner only) — needs a GitHub personal access token (classic, repo scope)
 const GH_KEY = 'clutch-gh-token-v1';
 const PUB_KEY = 'clutch-site-published-v1';
@@ -2840,7 +3169,7 @@ async function publishEditsLive(m) {
     if (m) m.textContent = 'Uploading the new version…';
     const put = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/index.html', { method: 'PUT', headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Update site from admin: hero/price/date/note/banner', content: b64e(html), sha: data.sha, branch: 'main' }) });
     if (!put.ok) { const err = await put.json().catch(() => ({})); throw new Error('GitHub would not save it (' + put.status + (err.message ? ' — ' + err.message : '') + ').'); }
-    try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' })); } catch (_) {}
+    try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' })); if (supabaseClient) sbUpsert('clutch_settings', { key: 'admin_published', value: localStorage.getItem(PUB_KEY) }, 'key'); } catch (_) {}
     if (m) m.textContent = schedFuture ? '✅ Published — the banner is scheduled and will appear ' + new Date(Date.parse(schedAt)).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '. The rest of the site updates in about a minute.' : '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
   } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
 }
@@ -3249,7 +3578,7 @@ async function doGoLive() {
   const d = loadOwner(); d.liveMode = true; saveOwner(d);
   const e = loadEdits(); e.announce = '🔴 PREORDERS ARE LIVE — Drop 01 preorders are open. 30 pieces, first paid, first served.';
   e.bannerAt = '';
-  try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+  saveEdits(e);
   applyEdits(); renderOwner(); saveBannerSchedule();
   const hasToken = (() => { try { return !!localStorage.getItem(GH_KEY); } catch (_) { return false; } })();
   if (msg) msg.textContent = hasToken ? 'Live mode on. Publishing the banner…' : 'Live mode on. No GitHub key saved — the banner is set on this device only until you publish.';

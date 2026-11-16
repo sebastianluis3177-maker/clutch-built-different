@@ -544,18 +544,321 @@ const OWNER_KEY = 'clutch-admin-v1';
 const ACCT_KEY = 'clutch-owner-acct-v1';
 const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, stock002: { S: 14, M: 14, L: 6, XL: 6 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {} };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
-function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
+function saveOwner(d) { ensureSyncCids(d); try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} scheduleAdminFlush(); }
+// ---- Full admin sync (Supabase) -------------------------------------
+// Everything an admin creates or changes syncs through Supabase so the
+// main-site admin, the standalone admin, phone + laptop all show the same
+// numbers. Only the PIN (clutch-owner-acct-v1) and the GitHub token
+// (clutch-gh-token-v1) stay per-device by design. New tables: SQL Parts
+// 11-19. Each row dataset gets a stable client id (cid) so merges never
+// duplicate. Tables that don't exist yet (SQL not run) are skipped silently
+// and the UI keeps working off localStorage until the new parts run.
+function clientId() { try { if (window.crypto && crypto.randomUUID) return 'c' + crypto.randomUUID().replace(/-/g, '').slice(0, 12); } catch (e) {} return 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
+var SYNC_ROW_TABLES = { discounts: 'clutch_discounts', expenses: 'clutch_expenses', moneyEntries: 'clutch_money_entries', activity: 'clutch_activity', templates: 'clutch_templates' };
+var SYNC_SETTINGS_KEYS = { costs: 'admin_costs', liveMode: 'admin_live_mode', taxPct: 'admin_tax_pct', fundGoal: 'admin_fund_goal', startBalance: 'admin_start_balance', signups: 'admin_signups', signupEmails: 'admin_signup_emails', seeding: 'admin_seeding', postCal: 'admin_post_cal', dropChecklist: 'admin_drop_checklist', calendarChecks: 'admin_calendar_checks', taxChecks: 'admin_tax_checks', dailyTasks: 'admin_daily_tasks', flagged: 'admin_flagged', notes: 'admin_notes', assignments: 'admin_assignments' };
+var sbTablesKnown = {};
+var lastSyncedState = null;
+var adminStateSynced = false;
+var adminFlushTimer = null;
+function ensureSyncCids(d) { Object.keys(SYNC_ROW_TABLES).forEach(function (f) { (d[f] || []).forEach(function (x) { if (x && !x.cid) x.cid = clientId(); }); }); }
+function syncRowFromSb(f, r) {
+  var x = { cid: r.client_id };
+  if (f === 'discounts') { x.code = r.code; x.pct = r.pct; x.active = r.active; }
+  else if (f === 'expenses' || f === 'moneyEntries') { x.label = r.label; x.amount = r.amount; x.at = r.entry_date; }
+  else if (f === 'activity') { x.at = r.logged_at; x.text = r.text; }
+  else if (f === 'templates') { x.label = r.label; x.text = r.text; }
+  return x;
+}
+function syncRowToSb(f, x) {
+  var row = { client_id: x.cid };
+  if (f === 'discounts') { row.code = x.code; row.pct = x.pct; row.active = !!x.active; }
+  else if (f === 'expenses' || f === 'moneyEntries') { row.label = x.label; row.amount = x.amount; row.entry_date = x.at; }
+  else if (f === 'activity') { row.logged_at = x.at; row.text = x.text; }
+  else if (f === 'templates') { row.label = x.label; row.text = x.text; }
+  return row;
+}
+function stripCid(x) { var c = Object.assign({}, x); delete c.cid; return c; }
+async function tplGet(table, select, orderBy) {
+  try {
+    var q = sb.from(table).select(select || '*');
+    if (orderBy) q = q.order(orderBy, { ascending: true });
+    var r = await q;
+    if (r.error || !r.data) return null;
+    return r.data;
+  } catch (e) { return null; }
+}
+async function tplUpsert(table, row, onConflict) {
+  try { var r = await sb.from(table).upsert(row, { onConflict: onConflict }); return !r.error; } catch (e) { return false; }
+}
+async function tplDeleteBy(table, col, val) {
+  try { var r = await sb.from(table).delete().eq(col, val); return !r.error; } catch (e) { return false; }
+}
+async function tplPatchBy(table, col, val, row) {
+  try { var r = await sb.from(table).update(row).eq(col, val); return !r.error; } catch (e) { return false; }
+}
+function tplOrderPatch(o, fields) {
+  try {
+    if (o.sbId || o.id) { sb.from('clutch_orders').update(fields).eq('id', o.sbId || o.id).then(function () {}, function () {}); }
+    else { sb.from('clutch_orders').update(fields).eq('buyer', o.buyer || '').eq('size', o.size || '').then(function () {}, function () {}); }
+  } catch (e) {}
+}
+function snapshotAdminState(d) {
+  var snap = {};
+  Object.keys(SYNC_ROW_TABLES).forEach(function (f) { snap[f] = JSON.parse(JSON.stringify(d[f] || [])); });
+  Object.keys(SYNC_SETTINGS_KEYS).forEach(function (f) { snap['set:' + f] = JSON.stringify(d[f] === undefined ? null : d[f]); });
+  return snap;
+}
+function scheduleAdminFlush() {
+  if (adminFlushTimer) return;
+  adminFlushTimer = setTimeout(function () { adminFlushTimer = null; flushAdminState(); }, 300);
+}
+async function flushAdminState() {
+  if (typeof sb === 'undefined' || !lastSyncedState) return;
+  var d = loadOwner();
+  ensureSyncCids(d);
+  for (var fi = 0; fi < Object.keys(SYNC_ROW_TABLES).length; fi++) {
+    var f = Object.keys(SYNC_ROW_TABLES)[fi];
+    if (sbTablesKnown[f] === false) continue;
+    var cur = d[f] || [];
+    var prev = lastSyncedState[f] || [];
+    var prevByCid = {}; prev.forEach(function (x) { if (x.cid) prevByCid[x.cid] = x; });
+    var curByCid = {}; cur.forEach(function (x) { if (x.cid) curByCid[x.cid] = x; });
+    var ok = true;
+    for (var i = 0; i < cur.length; i++) {
+      var x = cur[i];
+      var p = prevByCid[x.cid];
+      if (!p) { if (!(await tplUpsert(SYNC_ROW_TABLES[f], syncRowToSb(f, x), 'client_id'))) ok = false; }
+      else if (JSON.stringify(syncRowToSb(f, x)) !== JSON.stringify(syncRowToSb(f, p))) { if (!(await tplPatchBy(SYNC_ROW_TABLES[f], 'client_id', x.cid, syncRowToSb(f, x)))) ok = false; }
+    }
+    for (var j = 0; j < prev.length; j++) {
+      var pp = prev[j];
+      if (pp.cid && !curByCid[pp.cid]) { if (!(await tplDeleteBy(SYNC_ROW_TABLES[f], 'client_id', pp.cid))) ok = false; }
+    }
+    if (ok) { lastSyncedState[f] = JSON.parse(JSON.stringify(cur)); sbTablesKnown[f] = true; }
+    else if (sbTablesKnown[f] === undefined) sbTablesKnown[f] = true;
+  }
+  if (sbTablesKnown.settings === false) return;
+  var settingsOk = true;
+  for (var k = 0; k < Object.keys(SYNC_SETTINGS_KEYS).length; k++) {
+    var f2 = Object.keys(SYNC_SETTINGS_KEYS)[k];
+    var cur2 = JSON.stringify(d[f2] === undefined ? null : d[f2]);
+    if (cur2 === lastSyncedState['set:' + f2]) continue;
+    if (await tplUpsert('clutch_settings', { key: SYNC_SETTINGS_KEYS[f2], value: cur2 }, 'key')) lastSyncedState['set:' + f2] = cur2;
+    else settingsOk = false;
+  }
+  if (settingsOk) sbTablesKnown.settings = true;
+}
+function mergeRowDataset(f, local, incoming) {
+  var byCid = {};
+  var out = [];
+  var seenContent = new Set();
+  incoming.forEach(function (x) { if (x.cid) byCid[x.cid] = x; out.push(x); seenContent.add(JSON.stringify(stripCid(x))); });
+  local.forEach(function (x) {
+    if (x.cid && byCid[x.cid]) return;
+    var c = JSON.stringify(stripCid(x));
+    if (seenContent.has(c)) return;
+    out.push(x); seenContent.add(c);
+  });
+  return out;
+}
+function orderMatchKey(o) { return [(o.buyer || ''), (o.size || ''), (o.total === undefined ? 35 : o.total), (o.at || '')].join('|'); }
+async function syncOrdersFromSb(d) {
+  var rows = await tplGet('clutch_orders', '*', 'created_at');
+  if (!Array.isArray(rows)) return false;
+  var queues = {};
+  rows.forEach(function (r) { var k = orderMatchKey({ buyer: r.buyer, size: r.size, total: r.total, at: (r.created_at || '').slice(0, 10) }); (queues[k] = queues[k] || []).push(r); });
+  var merged = [];
+  var toPush = [];
+  var pack = loadPacking();
+  var packChanged = false;
+  (d.orders || []).forEach(function (o, i) {
+    var q = queues[orderMatchKey(o)];
+    var r = q && q.length ? q.shift() : null;
+    if (r) {
+      var adminNote = (o.note && o.note !== r.note) ? o.note : (r.admin_note || '');
+      if (o.note && o.note !== r.note && !r.admin_note) { try { sb.from('clutch_orders').update({ admin_note: o.note }).eq('id', r.id).then(function () {}, function () {}); } catch (e) {} }
+      merged.push({ buyer: r.buyer, size: r.size, pay: r.pay, total: r.total, status: r.status, tracking: r.tracking || '', address: r.address || '', note: r.note || '', adminNote: adminNote, at: (r.created_at || '').slice(0, 10), history: o.history || [], ref: r.ref || o.ref || '', id: r.id, sbId: r.id });
+      var oldKey = 'idx-' + i, newKey = 'id-' + r.id;
+      if (pack[oldKey] && !pack[newKey]) { pack[newKey] = pack[oldKey]; delete pack[oldKey]; packChanged = true; }
+    } else {
+      merged.push(o);
+      toPush.push(o);
+    }
+  });
+  rows.forEach(function (r) {
+    if (merged.some(function (o) { return o.sbId === r.id; })) return;
+    merged.push({ buyer: r.buyer, size: r.size, pay: r.pay, total: r.total, status: r.status, tracking: r.tracking || '', address: r.address || '', note: r.note || '', adminNote: r.admin_note || '', at: (r.created_at || '').slice(0, 10), history: [], ref: r.ref || '', id: r.id, sbId: r.id });
+  });
+  d.orders = merged;
+  if (packChanged) savePackingRaw(pack);
+  toPush.forEach(function (o) { try { sb.from('clutch_orders').insert({ buyer: o.buyer, size: o.size, pay: o.pay, total: o.total, status: o.status || 'Paid', address: o.address || '', admin_note: o.note || '' }); } catch (e) {} });
+  return true;
+}
+async function syncStaffFromSb(d) {
+  var rows = await tplGet('clutch_staff', 'email,name,role');
+  if (!Array.isArray(rows)) return false;
+  var byEmail = {};
+  rows.forEach(function (r) { byEmail[(r.email || '').toLowerCase()] = r; });
+  var merged = [];
+  (d.staff || []).forEach(function (s) {
+    var r = byEmail[(s.email || '').toLowerCase()];
+    if (r) merged.push({ email: r.email, name: r.name || s.name || '', role: r.role || s.role || 'staff' });
+    else { merged.push(s); try { sb.from('clutch_staff').insert({ email: s.email, name: s.name || '', role: s.role || 'staff' }); } catch (e) {} }
+  });
+  rows.forEach(function (r) { if (!merged.some(function (s) { return (s.email || '').toLowerCase() === (r.email || '').toLowerCase(); })) merged.push({ email: r.email, name: r.name || '', role: r.role || 'staff' }); });
+  d.staff = merged;
+  return true;
+}
+async function syncGiftCardsFromSb(d) {
+  var rows = await tplGet('clutch_giftcards', 'code,value');
+  if (!Array.isArray(rows)) return false;
+  var byCode = {};
+  rows.forEach(function (r) { byCode[(r.code || '').toUpperCase()] = r; });
+  var merged = [];
+  (d.giftCards || []).forEach(function (g) {
+    var r = byCode[(g.code || '').toUpperCase()];
+    if (r) merged.push({ code: r.code, amount: r.value === undefined || r.value === null ? 25 : r.value });
+    else { merged.push(g); try { sb.from('clutch_giftcards').insert({ code: g.code, value: 25 }); } catch (e) {} }
+  });
+  rows.forEach(function (r) { if (!merged.some(function (g) { return (g.code || '').toUpperCase() === (r.code || '').toUpperCase(); })) merged.push({ code: r.code, amount: r.value === undefined || r.value === null ? 25 : r.value }); });
+  d.giftCards = merged;
+  return true;
+}
+async function syncAdminState() {
+  if (adminStateSynced || typeof sb === 'undefined') return;
+  adminStateSynced = true;
+  var d = loadOwner();
+  ensureSyncCids(d);
+  try { await syncOrdersFromSb(d); } catch (e) {}
+  try { await syncStaffFromSb(d); } catch (e) {}
+  try { await syncGiftCardsFromSb(d); } catch (e) {}
+  var rowFields = Object.keys(SYNC_ROW_TABLES);
+  for (var fi = 0; fi < rowFields.length; fi++) {
+    var f = rowFields[fi];
+    try {
+      var rows = await tplGet(SYNC_ROW_TABLES[f], '*', 'created_at');
+      if (!Array.isArray(rows)) { sbTablesKnown[f] = false; continue; }
+      sbTablesKnown[f] = true;
+      var incoming = rows.map(function (r) { return syncRowFromSb(f, r); });
+      var merged = mergeRowDataset(f, d[f] || [], incoming);
+      var incCids = new Set(incoming.map(function (x) { return x.cid; }));
+      for (var mi = 0; mi < merged.length; mi++) { var x = merged[mi]; if (x.cid && !incCids.has(x.cid)) await tplUpsert(SYNC_ROW_TABLES[f], syncRowToSb(f, x), 'client_id'); }
+      d[f] = f === 'activity' ? merged.slice(-50) : merged;
+    } catch (e2) { sbTablesKnown[f] = false; }
+  }
+  try {
+    var srows = await tplGet('clutch_settings', 'key,value');
+    if (Array.isArray(srows)) {
+      sbTablesKnown.settings = true;
+      var byKey = {};
+      srows.forEach(function (r) { byKey[r.key] = r.value; });
+      var setFields = Object.keys(SYNC_SETTINGS_KEYS);
+      for (var si = 0; si < setFields.length; si++) {
+        var f2 = setFields[si];
+        var k = SYNC_SETTINGS_KEYS[f2];
+        if (byKey[k] !== undefined) { try { var v = JSON.parse(byKey[k]); if (v !== undefined && v !== null) d[f2] = v; } catch (e3) {} }
+        else if (d[f2] !== undefined && JSON.stringify(d[f2]) !== JSON.stringify(DEF[f2])) {
+          await tplUpsert('clutch_settings', { key: k, value: JSON.stringify(d[f2]) }, 'key');
+        }
+      }
+      if (byKey.admin_published !== undefined) { try { localStorage.setItem(PUB_KEY, byKey.admin_published); } catch (e4) {} }
+    } else sbTablesKnown.settings = false;
+  } catch (e5) { sbTablesKnown.settings = false; }
+  try { await syncPackingFromSb(); } catch (e6) {}
+  try { await syncCustNotesFromSb(); } catch (e6) {}
+  try { await syncSiteEditsFromSb(); } catch (e6) {}
+  saveOwner(d);
+  lastSyncedState = snapshotAdminState(d);
+  renderOwner();
+}
 // Packing checklist per order (localStorage, keyed by order id when known, else list index)
 var PACK_STEPS = ['packed', 'label', 'photo', 'dropped'];
 // Bulk order selection (orders panel) — index into d.orders → true
 var bulkSelected = {};
 var PACK_LABELS = { packed: 'Packed', label: 'Label printed', photo: 'Photo taken', dropped: 'Dropped at post office' };
 function loadPacking() { try { return JSON.parse(localStorage.getItem('clutch-packing-v1') || '{}'); } catch (e) { return {}; } }
-function savePacking(p) { try { localStorage.setItem('clutch-packing-v1', JSON.stringify(p)); } catch (e) {} }
+function savePackingRaw(p) { try { localStorage.setItem('clutch-packing-v1', JSON.stringify(p)); } catch (e) {} }
+var packingFlushTimer = null;
+var lastSyncedPacking = null;
+function savePacking(p) {
+  savePackingRaw(p);
+  if (packingFlushTimer) return;
+  packingFlushTimer = setTimeout(function () { packingFlushTimer = null; flushPacking(); }, 300);
+}
+async function flushPacking() {
+  if (typeof sb === 'undefined') return;
+  var p = loadPacking();
+  var prev = lastSyncedPacking || {};
+  for (var k = 0; k < Object.keys(p).length; k++) {
+    var key = Object.keys(p)[k];
+    var cur = JSON.stringify(p[key]);
+    if (cur === JSON.stringify(prev[key])) continue;
+    if (await tplUpsert('clutch_packing', { order_key: key, steps: p[key] }, 'order_key')) { prev[key] = JSON.parse(cur); }
+  }
+  for (var j = 0; j < Object.keys(prev).length; j++) {
+    var pk = Object.keys(prev)[j];
+    if (!p[pk]) { if (await tplDeleteBy('clutch_packing', 'order_key', pk)) delete prev[pk]; }
+  }
+  lastSyncedPacking = prev;
+}
+async function syncPackingFromSb() {
+  var rows = await tplGet('clutch_packing', 'order_key,steps');
+  if (!Array.isArray(rows)) return;
+  // Supabase wins per key (same as main.js); local-only keys are pushed up.
+  var merged = loadPacking();
+  var byKey = {};
+  rows.forEach(function (r) { byKey[r.order_key] = r.steps || {}; });
+  var changed = false;
+  Object.keys(byKey).forEach(function (k) { if (JSON.stringify(merged[k] || {}) !== JSON.stringify(byKey[k])) { merged[k] = byKey[k]; changed = true; } });
+  for (var k = 0; k < Object.keys(merged).length; k++) {
+    var key = Object.keys(merged)[k];
+    if (!(key in byKey)) { await tplUpsert('clutch_packing', { order_key: key, steps: merged[key] }, 'order_key'); }
+  }
+  if (changed) savePackingRaw(merged);
+  lastSyncedPacking = JSON.parse(JSON.stringify(merged));
+}
 // Per-customer notes (localStorage, keyed by buyer email when known, else buyer name)
 var CUST_NOTES_KEY = 'clutch-customer-notes-v1';
 function loadCustNotes() { try { return JSON.parse(localStorage.getItem(CUST_NOTES_KEY) || '{}'); } catch (e) { return {}; } }
-function saveCustNotes(n) { try { localStorage.setItem(CUST_NOTES_KEY, JSON.stringify(n)); } catch (e) {} }
+function saveCustNotesRaw(n) { try { localStorage.setItem(CUST_NOTES_KEY, JSON.stringify(n)); } catch (e) {} }
+var custNotesFlushTimer = null;
+var lastSyncedCustNotes = null;
+function saveCustNotes(n) {
+  saveCustNotesRaw(n);
+  if (custNotesFlushTimer) return;
+  custNotesFlushTimer = setTimeout(function () { custNotesFlushTimer = null; flushCustNotes(); }, 300);
+}
+async function flushCustNotes() {
+  if (typeof sb === 'undefined') return;
+  var n = loadCustNotes();
+  var prev = lastSyncedCustNotes || {};
+  for (var k = 0; k < Object.keys(n).length; k++) {
+    var key = Object.keys(n)[k];
+    if (n[key] === prev[key]) continue;
+    if (await tplUpsert('clutch_customer_notes', { buyer_key: key, note: n[key] }, 'buyer_key')) prev[key] = n[key];
+  }
+  for (var j = 0; j < Object.keys(prev).length; j++) {
+    var ck = Object.keys(prev)[j];
+    if (!n[ck]) { if (await tplDeleteBy('clutch_customer_notes', 'buyer_key', ck)) delete prev[ck]; }
+  }
+  lastSyncedCustNotes = prev;
+}
+async function syncCustNotesFromSb() {
+  var rows = await tplGet('clutch_customer_notes', 'buyer_key,note');
+  if (!Array.isArray(rows)) return;
+  // Supabase wins per key (same as main.js); local-only keys are pushed up.
+  var merged = loadCustNotes();
+  var byKey = {};
+  rows.forEach(function (r) { byKey[r.buyer_key] = r.note || ''; });
+  var changed = false;
+  Object.keys(byKey).forEach(function (k) { if ((merged[k] || '') !== byKey[k]) { merged[k] = byKey[k]; changed = true; } });
+  for (var k = 0; k < Object.keys(merged).length; k++) {
+    var key = Object.keys(merged)[k];
+    if (!(key in byKey)) { await tplUpsert('clutch_customer_notes', { buyer_key: key, note: merged[key] }, 'buyer_key'); }
+  }
+  if (changed) saveCustNotesRaw(merged);
+  lastSyncedCustNotes = JSON.parse(JSON.stringify(merged));
+}
 function custKey(buyer) { var m = String(buyer || '').match(/[\w.+-]+@[\w-]+\.[\w.]+/); return m ? m[0].toLowerCase() : String(buyer || '').trim(); }
 var openProfiles = {};
 // Team notes board — Supabase clutch_notes when the table exists, else localStorage fallback
@@ -610,11 +913,14 @@ function showAdmin(staffMode) {
       var v = null; try { v = JSON.parse(r.data[0].value || '{}'); } catch (e) {}
       if (!v || !v.at) return;
       var e = loadEdits();
-      if (!e.bannerAt) { e.bannerAt = v.at; try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (err2) {} applyEdits(); }
+      if (!e.bannerAt) { e.bannerAt = v.at; saveEdits(e); applyEdits(); }
     }).catch(function () {});
   } catch (e2) {}
   // My Day sync (best effort; localStorage is the fallback until the table answers).
   mydaySbSyncLoad();
+  // Full admin sync: orders, staff, gift cards, discounts, expenses, money,
+  // activity, templates, settings, packing, customer notes, site edits.
+  syncAdminState();
 }
 // Hide a whole tab group when every button in it is hidden (per role).
 function updateTabGroups() {
@@ -721,7 +1027,7 @@ function applyApproval(action, p, actor) {
   const who = actor || 'gated owner';
   switch (action) {
     case 'publish-edits': {
-      try { localStorage.setItem(EDIT_KEY, JSON.stringify(p.edits || {})); } catch (_) {}
+      saveEdits(p.edits || {});
       mirrorBannerSchedule();
       applyEdits(); renderOwner(); publishEditsLive(); return true;
     }
@@ -730,7 +1036,7 @@ function applyApproval(action, p, actor) {
       d.liveMode = !!p.liveMode; saveOwner(d); renderOwner(); return true;
     }
     case 'site-edits': {
-      try { localStorage.setItem(EDIT_KEY, JSON.stringify(p.edits || {})); } catch (_) {}
+      saveEdits(p.edits || {});
       mirrorBannerSchedule();
       applyEdits(); renderOwner(); return true;
     }
@@ -753,6 +1059,8 @@ function applyApproval(action, p, actor) {
       if (o.status === 'Cancelled') return true;
       o.status = 'Cancelled';
       if (d.stock[o.size] !== undefined) d.stock[o.size]++;
+      try { sb.from('clutch_stock').update({ stock_left: d.stock[o.size] }).eq('size', o.size).then(function () {}, function () {}); } catch (e) {}
+      tplOrderPatch(o, { status: 'Cancelled' });
       logActivity('Cancelled order #' + (ix + 1) + ' (' + o.buyer + ', ' + o.size + ') — approved for ' + who);
       saveOwner(d); renderOwner(); return true;
     }
@@ -762,6 +1070,8 @@ function applyApproval(action, p, actor) {
       if (o2.status === 'Refunded') return true;
       o2.status = 'Refunded';
       if (d.stock[o2.size] !== undefined) d.stock[o2.size]++;
+      try { sb.from('clutch_stock').update({ stock_left: d.stock[o2.size] }).eq('size', o2.size).then(function () {}, function () {}); } catch (e) {}
+      tplOrderPatch(o2, { status: 'Refunded' });
       logActivity('Refunded order #' + (ix2 + 1) + ' (' + o2.buyer + ', ' + o2.size + ') — approved for ' + who);
       saveOwner(d); renderOwner(); return true;
     }
@@ -773,6 +1083,7 @@ function applyApproval(action, p, actor) {
       if (d.stock[p.fromSize] !== undefined) d.stock[p.fromSize]++;
       if (d.stock[p.newSize] !== undefined) d.stock[p.newSize]--;
       try { sb.from('clutch_stock').update({ stock_left: d.stock[p.fromSize] }).eq('size', p.fromSize).then(function () {}, function () {}); sb.from('clutch_stock').update({ stock_left: d.stock[p.newSize] }).eq('size', p.newSize).then(function () {}, function () {}); } catch (e) {}
+      tplOrderPatch(o3, { size: p.newSize });
       if (!o3.history) o3.history = [];
       o3.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: 'Swapped ' + p.fromSize + ' → ' + p.newSize });
       logActivity('Swapped order #' + (ix3 + 1) + ' (' + o3.buyer + ') ' + p.fromSize + ' → ' + p.newSize + ' — approved for ' + who);
@@ -782,6 +1093,7 @@ function applyApproval(action, p, actor) {
       if (!p.order) return false;
       var o4 = p.order;
       d.orders.push({ buyer: o4.buyer, size: o4.size, pay: o4.pay, total: o4.total, status: 'Paid', address: o4.address || '', at: o4.at || new Date().toISOString().slice(0, 10) });
+      try { sb.from('clutch_orders').insert({ buyer: o4.buyer, size: o4.size, pay: o4.pay, total: o4.total, status: 'Paid', address: o4.address || '' }); } catch (e) {}
       if (d.stock[o4.size] > 0) d.stock[o4.size]--;
       logActivity('Added order — ' + o4.buyer + ', size ' + o4.size + ', $' + o4.total + ' — approved for ' + who);
       saveOwner(d); renderOwner(); return true;
@@ -790,6 +1102,7 @@ function applyApproval(action, p, actor) {
       if (!p.orders || !p.orders.length) return false;
       p.orders.forEach(function (o5) {
         d.orders.push({ buyer: o5.buyer, size: o5.size, pay: o5.pay, total: o5.total, status: 'Paid', address: o5.address || '', at: o5.at || new Date().toISOString().slice(0, 10) });
+        try { sb.from('clutch_orders').insert({ buyer: o5.buyer, size: o5.size, pay: o5.pay, total: o5.total, status: 'Paid', address: o5.address || '' }); } catch (e) {}
         if (d.stock[o5.size] > 0) d.stock[o5.size]--;
       });
       logActivity('Bulk import — ' + p.orders.length + ' orders added — approved for ' + who);
@@ -832,7 +1145,7 @@ function applyApproval(action, p, actor) {
     }
     case 'discount-single': {
       var e = loadEdits(); e.discountCode = p.code; e.discountPct = p.pct;
-      try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+      saveEdits(e);
       applyEdits(); renderOwner(); return true;
     }
     case 'staff-add': {
@@ -842,6 +1155,7 @@ function applyApproval(action, p, actor) {
       saveOwner(d); renderOwner(); return true;
     }
     case 'staff-remove': {
+      try { sb.from('clutch_staff').delete().eq('email', p.email).then(function () {}, function () {}); } catch (e) {}
       d.staff = (d.staff || []).filter(function (s) { return s.email !== p.email; });
       saveOwner(d); renderOwner(); return true;
     }
@@ -1328,8 +1642,8 @@ function renderOwner() {
   if (payoutEl) {
     var pend = d.orders.map(function (o, i) { return { o: o, i: i }; }).filter(function (x) { return (x.o.status || 'Paid') === 'Pending'; });
     payoutEl.innerHTML = pend.length ? '<h3>⏳ Waiting on payment (' + pend.length + ')</h3>' + pend.map(function (x) { return '<div style="margin:.3rem 0">' + x.o.buyer + ' — ' + x.o.size + ' — $' + (x.o.total === undefined ? 35 : x.o.total) + ' <button class="btn ghost" type="button" data-payout-paid="' + x.i + '">Paid in full</button> <button class="btn ghost" type="button" data-payout-under="' + x.i + '">Paid less — don\'t ship</button></div>'; }).join('') + '<p class="fine">Total waiting: $' + pend.reduce(function (a, x) { return a + (x.o.total === undefined ? 35 : x.o.total); }, 0).toFixed(2) + ' — Greenlight payments your parent still has to approve. Paid less than the total? Hit "Paid less" — you keep the money, the shorts stay yours, no refund.</p>' : '<p class="fine">No payments waiting — everything is paid or shipped.</p>';
-    payoutEl.querySelectorAll('[data-payout-under]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.payoutUnder]; if (!confirm(o.buyer + ' paid less than $' + (o.total === undefined ? 35 : o.total) + '. Mark underpaid? You keep the money and DO NOT send the shorts. No refund.')) return; o.status = 'Underpaid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Underpaid — DO NOT SHIP, money kept, no refund' }); saveOwner(dd); renderOwner(); }); });
-    payoutEl.querySelectorAll('[data-payout-paid]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.payoutPaid]; o.status = 'Paid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Paid (Greenlight approved)' }); if (dd.stock[o.size] !== undefined && dd.stock[o.size] > 0) dd.stock[o.size]--; saveOwner(dd); renderOwner(); }); });
+    payoutEl.querySelectorAll('[data-payout-under]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.payoutUnder]; if (!confirm(o.buyer + ' paid less than $' + (o.total === undefined ? 35 : o.total) + '. Mark underpaid? You keep the money and DO NOT send the shorts. No refund.')) return; o.status = 'Underpaid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Underpaid — DO NOT SHIP, money kept, no refund' }); tplOrderPatch(o, { status: 'Underpaid' }); saveOwner(dd); renderOwner(); }); });
+    payoutEl.querySelectorAll('[data-payout-paid]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.payoutPaid]; o.status = 'Paid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Paid (Greenlight approved)' }); if (dd.stock[o.size] !== undefined && dd.stock[o.size] > 0) dd.stock[o.size]--; tplOrderPatch(o, { status: 'Paid' }); try { sb.from('clutch_stock').update({ stock_left: dd.stock[o.size] }).eq('size', o.size).then(function () {}, function () {}); } catch (e) {} saveOwner(dd); renderOwner(); }); });
   }
   var beEl = $('owner-breakeven');
   if (beEl) {
@@ -1544,16 +1858,16 @@ function renderOwner() {
       var ckey = custKey(o.buyer);
       var escAttr = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
       var profHtml = openProfiles[o.buyer] ? '<div style="margin-top:.5rem;padding:.5rem;border:1px dashed var(--line);border-radius:8px"><b>Customer profile — ' + o.buyer + '</b><br><span class="fine">' + mine.length + ' order' + (mine.length === 1 ? '' : 's') + ' · $' + spent.toFixed(2) + ' spent · sizes: ' + mine.map(function (x) { return x.size; }).join(', ') + '</span>' + mine.map(function (x) { return '<br><span class="fine">#' + (d.orders.indexOf(x) + 1) + ' — ' + x.size + ' — $' + (x.total === undefined ? 35 : x.total) + ' — ' + (x.status || 'Paid') + '</span>'; }).join('') + '<br><label class="fine">Notes on this customer<br><textarea data-cust-note="' + escAttr(ckey) + '" rows="2" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#111;color:var(--ink)">' + escAttr(custNotes[ckey] || '') + '</textarea></label></div>' : '';
-      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px"><input type="checkbox" data-bulk-order="' + i + '"' + (bulkSelected[i] ? ' checked' : '') + '> ' + (i + 1) + '. ' + (dm ? '<a href="https://www.instagram.com/' + dm[1] + '/" target="_blank" rel="noopener"><b>' + o.buyer + '</b></a>' : '<b>' + o.buyer + '</b>') + (flagged ? ' 🚩' : '') + (dup ? ' ⚠️ ordered twice' : '') + ((o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : '') + (((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : '') + ' — ' + o.size + ' — ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + ' — <b>' + (o.status || 'Paid') + '</b> <span class="fine">profit ' + (op >= 0 ? '+' : '−') + '$' + Math.abs(op).toFixed(2) + '</span>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + (o.note ? '<br>📝 ' + o.note : '') + (hist ? '<br>' + hist : '') + packHtml + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button> <button class="btn ghost" type="button" data-order-note="' + i + '">Note</button> <button class="btn ghost" type="button" data-order-slip="' + i + '">Print slip</button> <button class="btn ghost" type="button" data-order-ship="' + i + '">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="' + i + '">' + (flagged ? 'Unflag' : 'Flag') + '</button>' + ((o.status || 'Paid') === 'Paid' ? ' <button class="btn ghost" type="button" data-order-shipit="' + i + '">✅ Mark shipped</button>' : '') + ' <button class="btn ghost" type="button" data-order-profile="' + i + '">' + (openProfiles[o.buyer] ? 'Hide profile' : 'Profile') + '</button>' + ((['S', 'M', 'L', 'XL'].indexOf(o.size) !== -1 && ['Pending', 'Paid', 'Shipped'].indexOf(o.status || 'Paid') !== -1) ? ' <select data-order-swap-size="' + i + '" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">' + ['S', 'M', 'L', 'XL'].map(function (s2) { return '<option' + (s2 === o.size ? ' selected' : '') + '>' + s2 + '</option>'; }).join('') + '</select> <button class="btn ghost" type="button" data-order-swap="' + i + '">Swap size</button>' : '') + (canCancel ? ' <button class="btn ghost" type="button" data-order-cancel="' + i + '">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="' + i + '">Refund</button>' : '') + profHtml + '</div>';
+      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px"><input type="checkbox" data-bulk-order="' + i + '"' + (bulkSelected[i] ? ' checked' : '') + '> ' + (i + 1) + '. ' + (dm ? '<a href="https://www.instagram.com/' + dm[1] + '/" target="_blank" rel="noopener"><b>' + o.buyer + '</b></a>' : '<b>' + o.buyer + '</b>') + (flagged ? ' 🚩' : '') + (dup ? ' ⚠️ ordered twice' : '') + ((o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : '') + (((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : '') + ' — ' + o.size + ' — ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + ' — <b>' + (o.status || 'Paid') + '</b> <span class="fine">profit ' + (op >= 0 ? '+' : '−') + '$' + Math.abs(op).toFixed(2) + '</span>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + (o.note ? '<br>📝 Buyer: ' + o.note : '') + (o.adminNote ? '<br>🗒️ Admin: ' + o.adminNote : '') + (hist ? '<br>' + hist : '') + packHtml + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button> <button class="btn ghost" type="button" data-order-note="' + i + '">Note</button> <button class="btn ghost" type="button" data-order-slip="' + i + '">Print slip</button> <button class="btn ghost" type="button" data-order-ship="' + i + '">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="' + i + '">' + (flagged ? 'Unflag' : 'Flag') + '</button>' + ((o.status || 'Paid') === 'Paid' ? ' <button class="btn ghost" type="button" data-order-shipit="' + i + '">✅ Mark shipped</button>' : '') + ' <button class="btn ghost" type="button" data-order-profile="' + i + '">' + (openProfiles[o.buyer] ? 'Hide profile' : 'Profile') + '</button>' + ((['S', 'M', 'L', 'XL'].indexOf(o.size) !== -1 && ['Pending', 'Paid', 'Shipped'].indexOf(o.status || 'Paid') !== -1) ? ' <select data-order-swap-size="' + i + '" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">' + ['S', 'M', 'L', 'XL'].map(function (s2) { return '<option' + (s2 === o.size ? ' selected' : '') + '>' + s2 + '</option>'; }).join('') + '</select> <button class="btn ghost" type="button" data-order-swap="' + i + '">Swap size</button>' : '') + (canCancel ? ' <button class="btn ghost" type="button" data-order-cancel="' + i + '">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="' + i + '">Refund</button>' : '') + profHtml + '</div>';
     }).join('');
-    el.querySelectorAll('[data-order-status]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus]; o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Underpaid' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ ' + o.status }); saveOwner(dd); renderOwner(); if (o.status === 'Delivered') { try { navigator.clipboard.writeText('Your CLUTCH Drop 01 shorts were delivered 🙏 thank you for supporting — you are officially one of the first 30. Wear them well. If you loved them, drop a review on the site: https://clutchbuiltdifferent.com/#reviews — @clutchny1').then(function () { $('owner-msg').textContent = 'Delivered! Thank-you DM copied — paste it to ' + o.buyer + '.'; }).catch(function () {}); } catch (e) {} } }); });
+    el.querySelectorAll('[data-order-status]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus]; o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Underpaid' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ ' + o.status }); tplOrderPatch(o, { status: o.status }); saveOwner(dd); renderOwner(); if (o.status === 'Delivered') { try { navigator.clipboard.writeText('Your CLUTCH Drop 01 shorts were delivered 🙏 thank you for supporting — you are officially one of the first 30. Wear them well. If you loved them, drop a review on the site: https://clutchbuiltdifferent.com/#reviews — @clutchny1').then(function () { $('owner-msg').textContent = 'Delivered! Thank-you DM copied — paste it to ' + o.buyer + '.'; }).catch(function () {}); } catch (e) {} } }); });
     el.querySelectorAll('[data-order-ship]').forEach(function (b) { b.addEventListener('click', async function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderShip]; try { await navigator.clipboard.writeText(o.address || ''); } catch (e) {} window.open('https://www.pirateship.com', '_blank'); $('owner-msg').textContent = 'Address copied — paste it into Pirate Ship to buy the label.'; }); });
     el.querySelectorAll('[data-pack-key]').forEach(function (c) { c.addEventListener('change', function () { var p = loadPacking(); var k = c.dataset.packKey; if (!p[k]) p[k] = {}; p[k][c.dataset.packStep] = c.checked; savePacking(p); renderOwner(); }); });
     el.querySelectorAll('[data-order-shipit]').forEach(function (b) { b.addEventListener('click', async function () {
       const dd = loadOwner(); const o = dd.orders[+b.dataset.orderShipit];
       var tr = (o.tracking || '').trim();
       if (!tr) { tr = prompt('Tracking number for this order:'); if (tr == null) return; tr = String(tr).trim(); if (!tr) return; }
-      o.tracking = tr; o.status = 'Shipped';
+      o.tracking = tr; o.status = 'Shipped'; tplOrderPatch(o, { status: 'Shipped', tracking: tr });
       if (!o.history) o.history = [];
       o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Shipped — tracking ' + tr });
       logAct('Shipped order #' + (+b.dataset.orderShipit + 1) + ' (' + o.buyer + ', ' + o.size + ')');
@@ -1563,11 +1877,11 @@ function renderOwner() {
     el.querySelectorAll('[data-order-profile]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderProfile]; openProfiles[o.buyer] = !openProfiles[o.buyer]; renderOwner(); }); });
     el.querySelectorAll('[data-cust-note]').forEach(function (t) { t.addEventListener('change', function () { var n = loadCustNotes(); n[t.dataset.custNote] = t.value.trim(); saveCustNotes(n); $('owner-msg').textContent = 'Customer note saved.'; }); });
     el.querySelectorAll('[data-order-flag]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); if (!dd.flagged) dd.flagged = []; const o = dd.orders[+b.dataset.orderFlag]; dd.flagged = dd.flagged.indexOf(o.buyer) !== -1 ? dd.flagged.filter(function (x) { return x !== o.buyer; }) : dd.flagged.concat([o.buyer]); saveOwner(dd); renderOwner(); }); });
-    el.querySelectorAll('[data-order-tracking]').forEach(function (b) { b.addEventListener('click', function () { const t = prompt('Tracking number:'); if (t === null) return; const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner(); }); });
-    el.querySelectorAll('[data-order-note]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderNote]; const t = prompt('Note for this order (customer notes, gift message, etc.):', o.note || ''); if (t === null) return; o.note = t.trim(); saveOwner(dd); renderOwner(); }); });
+    el.querySelectorAll('[data-order-tracking]').forEach(function (b) { b.addEventListener('click', function () { const t = prompt('Tracking number:'); if (t === null) return; const dd = loadOwner(); var oo = dd.orders[+b.dataset.orderTracking]; oo.tracking = t.trim(); tplOrderPatch(oo, { tracking: oo.tracking }); saveOwner(dd); renderOwner(); }); });
+    el.querySelectorAll('[data-order-note]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderNote]; const t = prompt('Admin note for this order (only you see this — never shown to the buyer):', o.adminNote || ''); if (t === null) return; o.adminNote = t.trim(); tplOrderPatch(o, { admin_note: o.adminNote }); saveOwner(dd); renderOwner(); }); });
     el.querySelectorAll('[data-order-slip]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderSlip]; const w = window.open('', '_blank', 'width=500,height=600'); if (!w) return; w.document.write('<html><head><title>Packing slip — CLUTCH</title><style>body{font-family:monospace;padding:24px}h1{font-size:28px}hr{border:1px dashed #000}</style></head><body><h1>CLUTCH — Packing slip</h1><hr><p><b>Order #' + (+b.dataset.orderSlip + 1) + '</b> · ' + (o.at || '') + '</p><p>Buyer: <b>' + o.buyer + '</b><br>Size: <b>' + o.size + '</b> · UES Mesh Shorts<br>Pay: ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + '<br>Status: ' + (o.status || 'Paid') + '</p><p>Ship to:<br>' + (o.address || 'pickup') + '</p>' + (o.tracking ? '<p>Tracking: ' + o.tracking + '</p>' : '') + (o.note ? '<p>Note: ' + o.note + '</p>' : '') + '<hr><p>Built Different — clutchbuiltdifferent.com</p><script>window.print()<\/script></body></html>'); w.document.close(); }); });
-    el.querySelectorAll('[data-order-refund]').forEach(function (b) { b.addEventListener('click', function () { const dd0 = loadOwner(); const o0 = dd0.orders[+b.dataset.orderRefund]; if (isGated()) { requestApproval('order-refund', 'Refund order #' + (+b.dataset.orderRefund + 1) + ' — ' + o0.buyer + ' (' + o0.size + ')', { buyer: o0.buyer, size: o0.size, fromSize: o0.size, total: o0.total }); approvalQueuedMsg(); return; } if (!confirm('Refund this order? The size goes back into stock and it stops counting toward revenue/profit.')) return; const dd = loadOwner(); const o = dd.orders[+b.dataset.orderRefund]; if (o.status !== 'Refunded' && o.status !== 'Cancelled') { o.status = 'Refunded'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; logAct('Refunded order #' + (+b.dataset.orderRefund + 1) + ' (' + o.buyer + ', ' + o.size + ')'); } saveOwner(dd); renderOwner(); }); });
-    el.querySelectorAll('[data-order-cancel]').forEach(function (b) { b.addEventListener('click', function () { const dd0 = loadOwner(); const o0 = dd0.orders[+b.dataset.orderCancel]; if (isGated()) { requestApproval('order-cancel', 'Cancel order #' + (+b.dataset.orderCancel + 1) + ' — ' + o0.buyer + ' (' + o0.size + ')', { buyer: o0.buyer, size: o0.size, fromSize: o0.size, total: o0.total }); approvalQueuedMsg(); return; } if (!confirm('Cancel this order? The size goes back into stock.')) return; const dd = loadOwner(); const o = dd.orders[+b.dataset.orderCancel]; if (o.status !== 'Cancelled') { o.status = 'Cancelled'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; logAct('Cancelled order #' + (+b.dataset.orderCancel + 1) + ' (' + o.buyer + ', ' + o.size + ')'); } saveOwner(dd); renderOwner(); }); });
+    el.querySelectorAll('[data-order-refund]').forEach(function (b) { b.addEventListener('click', function () { const dd0 = loadOwner(); const o0 = dd0.orders[+b.dataset.orderRefund]; if (isGated()) { requestApproval('order-refund', 'Refund order #' + (+b.dataset.orderRefund + 1) + ' — ' + o0.buyer + ' (' + o0.size + ')', { buyer: o0.buyer, size: o0.size, fromSize: o0.size, total: o0.total }); approvalQueuedMsg(); return; } if (!confirm('Refund this order? The size goes back into stock and it stops counting toward revenue/profit.')) return; const dd = loadOwner(); const o = dd.orders[+b.dataset.orderRefund]; if (o.status !== 'Refunded' && o.status !== 'Cancelled') { o.status = 'Refunded'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; try { sb.from('clutch_stock').update({ stock_left: dd.stock[o.size] }).eq('size', o.size).then(function () {}, function () {}); } catch (e) {} tplOrderPatch(o, { status: 'Refunded' }); logAct('Refunded order #' + (+b.dataset.orderRefund + 1) + ' (' + o.buyer + ', ' + o.size + ')'); } saveOwner(dd); renderOwner(); }); });
+    el.querySelectorAll('[data-order-cancel]').forEach(function (b) { b.addEventListener('click', function () { const dd0 = loadOwner(); const o0 = dd0.orders[+b.dataset.orderCancel]; if (isGated()) { requestApproval('order-cancel', 'Cancel order #' + (+b.dataset.orderCancel + 1) + ' — ' + o0.buyer + ' (' + o0.size + ')', { buyer: o0.buyer, size: o0.size, fromSize: o0.size, total: o0.total }); approvalQueuedMsg(); return; } if (!confirm('Cancel this order? The size goes back into stock.')) return; const dd = loadOwner(); const o = dd.orders[+b.dataset.orderCancel]; if (o.status !== 'Cancelled') { o.status = 'Cancelled'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; try { sb.from('clutch_stock').update({ stock_left: dd.stock[o.size] }).eq('size', o.size).then(function () {}, function () {}); } catch (e) {} tplOrderPatch(o, { status: 'Cancelled' }); logAct('Cancelled order #' + (+b.dataset.orderCancel + 1) + ' (' + o.buyer + ', ' + o.size + ')'); } saveOwner(dd); renderOwner(); }); });
     el.querySelectorAll('[data-order-swap]').forEach(function (b) { b.addEventListener('click', function () {
       const dd = loadOwner(); const o = dd.orders[+b.dataset.orderSwap];
       const sel = el.querySelector('[data-order-swap-size="' + b.dataset.orderSwap + '"]');
@@ -1581,7 +1895,7 @@ function renderOwner() {
       o.size = ns;
       if (!o.history) o.history = [];
       o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: 'Swapped ' + oldSize + ' → ' + ns });
-      logAct('Swapped order #' + (+b.dataset.orderSwap + 1) + ' (' + o.buyer + ') ' + oldSize + ' → ' + ns);
+      tplOrderPatch(o, { size: ns }); logAct('Swapped order #' + (+b.dataset.orderSwap + 1) + ' (' + o.buyer + ') ' + oldSize + ' → ' + ns);
       saveOwner(dd); renderOwner();
       try { sb.from('clutch_stock').update({ stock_left: dd.stock[oldSize] }).eq('size', oldSize).then(function () {}, function () {}); sb.from('clutch_stock').update({ stock_left: dd.stock[ns] }).eq('size', ns).then(function () {}, function () {}); } catch (e) {}
       $('owner-msg').textContent = 'Swapped ' + o.buyer + ' to ' + ns + ' — stock updated.';
@@ -1592,7 +1906,7 @@ function renderOwner() {
   if (staffEl) {
     var staff = (d.staff || []).concat(OWNER_EMAILS.map(function (e) { return { email: e, role: 'owner', name: 'Sebastian' }; }));
     staffEl.innerHTML = staff.length ? staff.map(function (s, i) { return '<div style="margin:.4rem 0">' + (s.name ? s.name + ' — ' : '') + s.email + ' · <b>' + roleLabel(s.role) + '</b>' + (OWNER_EMAILS.indexOf(s.email) === -1 ? ' <button class="btn ghost" type="button" data-staff-remove="' + i + '">Remove</button>' : '') + '</div>'; }).join('') : 'No staff yet — add Emeri + Ajan below.';
-    staffEl.querySelectorAll('[data-staff-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); var removed = (dd.staff || [])[+b.dataset.staffRemove]; if (isGated()) { requestApproval('staff-remove', 'Remove ' + (removed ? removed.email : 'staff member'), { email: removed ? removed.email : '' }); approvalQueuedMsg(); return; } dd.staff = (dd.staff || []).filter(function (_, x) { return x !== +b.dataset.staffRemove; }); saveOwner(dd); renderOwner(); }); });
+    staffEl.querySelectorAll('[data-staff-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); var removed = (dd.staff || [])[+b.dataset.staffRemove]; if (isGated()) { requestApproval('staff-remove', 'Remove ' + (removed ? removed.email : 'staff member'), { email: removed ? removed.email : '' }); approvalQueuedMsg(); return; } var remEmail = removed ? removed.email : ''; try { sb.from('clutch_staff').delete().eq('email', remEmail).then(function () {}, function () {}); } catch (e) {} dd.staff = (dd.staff || []).filter(function (_, x) { return x !== +b.dataset.staffRemove; }); saveOwner(dd); renderOwner(); }); });
   }
   var gcEl = $('owner-giftcards');
   if (gcEl) {
@@ -1633,6 +1947,7 @@ $('owner-order-form').addEventListener('submit', function (e) {
   var order = { buyer: $('owner-buyer').value.trim(), size: size, pay: payVal, total: payVal === 'Free' ? 0 : 35, status: 'Paid', address: $('owner-address').value.trim(), at: new Date().toISOString().slice(0, 10) };
   if (isGated()) { requestApproval('order-add', 'New Paid order — ' + order.buyer + ' (' + size + ', $' + order.total + ')', { order: order }); $('owner-msg').textContent = 'Sent for approval — Sebastian will review it.'; return; }
   d.orders.push(order);
+  try { sb.from('clutch_orders').insert({ buyer: order.buyer, size: order.size, pay: order.pay, total: order.total, status: 'Paid', address: order.address || '' }); } catch (e) {}
   d.stock[size]--; saveOwner(d); renderOwner(); e.target.reset();
 });
 document.querySelectorAll('[data-sell]').forEach(function (b) { b.addEventListener('click', function () { const d = loadOwner(); const s = b.dataset.sell; if ((d.stock[s] || 0) <= 0) return; if (isGated()) { requestApproval('stock-edit', 'Sell 1 × size ' + s + ': ' + d.stock[s] + ' → ' + (d.stock[s] - 1), { stock: Object.assign({}, d.stock, { [s]: d.stock[s] - 1 }) }); approvalQueuedMsg(); return; } if ((d.stock[s] || 0) > 0) { d.stock[s]--; try { sb.from('clutch_stock').update({ stock_left: d.stock[s] }).eq('size', s).then(function () {}, function () {}); } catch (e) {} } saveOwner(d); renderOwner(); }); });
@@ -1713,7 +2028,7 @@ async function doGoLive() {
   var d = loadOwner(); d.liveMode = true; saveOwner(d);
   var e = loadEdits(); e.announce = '🔴 PREORDERS ARE LIVE — Drop 01 preorders are open. 30 pieces, first paid, first served.';
   e.bannerAt = '';
-  try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+  saveEdits(e);
   mirrorBannerSchedule();
   applyEdits(); renderOwner();
   var hasToken = (function () { try { return !!localStorage.getItem(GH_KEY); } catch (_) { return false; } })();
@@ -1816,6 +2131,49 @@ $('owner-seed-form').addEventListener('submit', function (e) {
 // Edit the website from admin — edits save on this device, and copy out to Jerry to push live for everyone
 const EDIT_KEY = 'clutch-site-edits-v1';
 function loadEdits() { try { return JSON.parse(localStorage.getItem(EDIT_KEY) || '{}'); } catch (_) { return {}; } }
+// Site text edits sync to Supabase (clutch_site_edits, Part 18) so drafts are
+// the same on every device; the publish flow is unchanged — it reads
+// loadEdits() and pushes to GitHub the same way. Only intentional direct
+// EDIT_KEY write left is inside syncSiteEditsFromSb.
+function saveEditsRaw(e) { try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {} }
+var editsFlushTimer = null;
+var lastSyncedEdits = null;
+function saveEdits(e) {
+  saveEditsRaw(e);
+  if (editsFlushTimer) return;
+  editsFlushTimer = setTimeout(function () { editsFlushTimer = null; flushEdits(); }, 1200);
+}
+async function flushEdits() {
+  if (typeof sb === 'undefined') return;
+  var e = loadEdits();
+  var prev = lastSyncedEdits || {};
+  for (var k = 0; k < Object.keys(e).length; k++) {
+    var key = Object.keys(e)[k];
+    if (e[key] === prev[key]) continue;
+    if (await tplUpsert('clutch_site_edits', { edit_key: key, value: String(e[key]) }, 'edit_key')) prev[key] = e[key];
+  }
+  for (var j = 0; j < Object.keys(prev).length; j++) {
+    var ek = Object.keys(prev)[j];
+    if (e[ek] === undefined) { if (await tplDeleteBy('clutch_site_edits', 'edit_key', ek)) delete prev[ek]; }
+  }
+  lastSyncedEdits = prev;
+}
+async function syncSiteEditsFromSb() {
+  var rows = await tplGet('clutch_site_edits', 'edit_key,value');
+  if (!Array.isArray(rows)) return;
+  // Supabase wins per key (same as main.js); local-only keys are pushed up.
+  var merged = loadEdits();
+  var byKey = {};
+  rows.forEach(function (r) { byKey[r.edit_key] = r.value || ''; });
+  var changed = false;
+  Object.keys(byKey).forEach(function (k) { if ((merged[k] || '') !== byKey[k]) { merged[k] = byKey[k]; changed = true; } });
+  for (var k = 0; k < Object.keys(merged).length; k++) {
+    var key = Object.keys(merged)[k];
+    if (!(key in byKey)) { await tplUpsert('clutch_site_edits', { edit_key: key, value: String(merged[key]) }, 'edit_key'); }
+  }
+  if (changed) { saveEditsRaw(merged); try { if (typeof applyEdits === 'function') applyEdits(); } catch (e) {} }
+  lastSyncedEdits = JSON.parse(JSON.stringify(merged));
+}
 // Banner schedule mirror — clutch_settings exists, so the schedule lives in
 // Supabase too (best effort, silent on failure; local edits stay the source).
 function mirrorBannerSchedule() {
@@ -1833,7 +2191,7 @@ function fillPreview() {
 function savePreviewEdits() {
   var e = loadEdits();
   Object.keys(PV_IDS).forEach(function(k) { var el = $(PV_IDS[k]); if (el) e[k] = el.textContent.trim(); });
-  try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+  saveEdits(e);
   var map = { lede: 'edit-lede', price: 'edit-price', when: 'edit-when', buynote: 'edit-buynote', announce: 'edit-announce' };
   Object.keys(map).forEach(function(k) { var f = $(map[k]); if (f) f.value = e[k] || ''; });
 }
@@ -1910,7 +2268,7 @@ if (editForm) editForm.addEventListener('submit', e => {
       return;
     }
   }
-  try { localStorage.setItem(EDIT_KEY, JSON.stringify(edits)); } catch (_) {}
+  saveEdits(edits);
   mirrorBannerSchedule();
   applyEdits();
   const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Publish my edits live" below to make them live for everyone (needs your GitHub key, one-time setup).';
@@ -1922,7 +2280,7 @@ if (editCopy) editCopy.addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(text); const m = $('owner-edit-msg'); if (m) m.textContent = 'Copied — paste it to Jerry in chat and I\u2019ll push it live.'; } catch (_) {}
 });
 const editReset = $('owner-edit-reset');
-if (editReset) editReset.addEventListener('click', () => { try { localStorage.removeItem(EDIT_KEY); } catch (_) {} location.reload(); });
+if (editReset) editReset.addEventListener('click', () => { try { localStorage.removeItem(EDIT_KEY); } catch (_) {} try { sb.from('clutch_site_edits').delete().neq('edit_key', '').then(function () {}, function () {}); } catch (_) {} location.reload(); });
 // Publish edits straight to GitHub (owner only) — needs a GitHub personal access token (classic, repo scope)
 const GH_KEY = 'clutch-gh-token-v1';
 const PUB_KEY = 'clutch-site-published-v1';
@@ -2013,11 +2371,12 @@ window.addEventListener('message', function (ev) {
   if (d.type === 'clutch-edit-ready') { var vm = $('owner-visual-msg'); if (vm) vm.textContent = 'Ready — click any heading or paragraph in the frame and type.'; return; }
   if (d.type === 'clutch-edit' && d.key) {
     var e = loadEdits(); e['text:' + d.key] = (d.text || '').trim();
-    try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (e2) {}
+    saveEdits(e);
     var vm2 = $('owner-visual-msg'); if (vm2) vm2.textContent = 'Saved on this device — hit "Publish my edits live" below to make it live for everyone.';
   }
 }); throw new Error('GitHub would not save it (' + put.status + (err.message ? ' — ' + err.message : '') + ').'); }
     try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' })); } catch (_) {}
+    try { sb.from('clutch_settings').upsert({ key: 'admin_published', value: JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' }) }, { onConflict: 'key' }).then(function () {}, function () {}); } catch (e2) {}
     if (m) m.textContent = schedFuture ? '✅ Published — the banner is scheduled and will appear ' + new Date(e.bannerAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '.' : '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
   } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
 }
@@ -2326,7 +2685,7 @@ if (bcBtn) bcBtn.addEventListener('click', function () { var bw = $('edit-banner
   try {
     const r = await sb.from('clutch_stock').select('size,stock_left').limit(1);
     const on = !r.error;
-    $('owner-sync-status').textContent = on ? 'Supabase sync: ON — orders + stock sync across your phone and laptop.' : 'Supabase sync: OFF — orders + stock save on this device only. Paste the SQL from the file I gave you into Supabase SQL Editor to turn it on.';
+    $('owner-sync-status').textContent = on ? 'Supabase sync: ON — orders, stock, discounts, expenses, money, templates, notes, edits + everything else sync across your phone and laptop. Only the PIN and GitHub token stay on this device.' : 'Supabase sync: OFF — admin data saves on this device only. Paste the SQL from the file I gave you into Supabase SQL Editor to turn it on.';
     if (on) { const s = await sb.from('clutch_stock').select('size,stock_left'); if (s.data) { const d = loadOwner(); s.data.forEach(function (row) { if (d.stock[row.size] !== undefined) d.stock[row.size] = row.stock_left; }); saveOwner(d); renderOwner(); } }
     // Drop 002 stock — same table, keyed by size (never by id).
     try { const s2 = await sb.from('clutch_stock_002').select('size,stock_left'); if (s2.data && s2.data.length) { const d2 = loadOwner(); if (!d2.stock002) d2.stock002 = { S: 14, M: 14, L: 6, XL: 6 }; s2.data.forEach(function (row) { if (d2.stock002[row.size] !== undefined) d2.stock002[row.size] = row.stock_left; }); saveOwner(d2); renderOwner(); } } catch (e2) {}
