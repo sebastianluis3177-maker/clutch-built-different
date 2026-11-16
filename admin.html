@@ -351,10 +351,10 @@ $('owner-discount-save').addEventListener('click', function () {
 });
 (async function () {
   try {
-    const r = await sb.from('clutch_stock').select('size,left').limit(1);
+    const r = await sb.from('clutch_stock').select('size,stock_left').limit(1);
     const on = !r.error;
     $('owner-sync-status').textContent = on ? 'Supabase sync: ON — orders + stock sync across your phone and laptop.' : 'Supabase sync: OFF — orders + stock save on this device only. Paste the SQL from the file I gave you into Supabase SQL Editor to turn it on.';
-    if (on) { const s = await sb.from('clutch_stock').select('size,left'); if (s.data) { const d = loadOwner(); s.data.forEach(function (row) { if (d.stock[row.size] !== undefined) d.stock[row.size] = row.left; }); saveOwner(d); renderOwner(); } }
+    if (on) { const s = await sb.from('clutch_stock').select('size,stock_left'); if (s.data) { const d = loadOwner(); s.data.forEach(function (row) { if (d.stock[row.size] !== undefined) d.stock[row.size] = row.stock_left; }); saveOwner(d); renderOwner(); } }
   } catch (e) {}
 })();
 (async function () {

@@ -642,15 +642,15 @@ async function sbPatch(table, id, row) {
   } catch (_) { return false; }
 }
 async function sbSyncCheck() {
-  const rows = await sbGet('clutch_stock', '?select=size,left&limit=1');
+  const rows = await sbGet('clutch_stock', '?select=size,stock_left&limit=1');
   sbSyncOn = Array.isArray(rows);
   const el = document.getElementById('owner-sync-status');
   if (el) el.textContent = sbSyncOn ? 'Supabase sync: ON — orders + stock sync across your phone and laptop.' : 'Supabase sync: OFF — orders + stock save on this device only. Paste the SQL I gave you into Supabase SQL Editor to turn it on.';
   if (sbSyncOn) {
-    const stockRows = await sbGet('clutch_stock', '?select=size,left');
+    const stockRows = await sbGet('clutch_stock', '?select=size,stock_left');
     if (stockRows && stockRows.length) {
       const d = loadOwner();
-      stockRows.forEach(r => { if (d.stock[r.size] !== undefined) d.stock[r.size] = r.left; });
+      stockRows.forEach(r => { if (d.stock[r.size] !== undefined) d.stock[r.size] = r.stock_left; });
       saveOwner(d); renderOwner();
     }
   }
@@ -1068,7 +1068,7 @@ if (orderForm) orderForm.addEventListener('submit', e => {
   const total = 35 - (appliedDiscount || 0);
   const order = { buyer: $('owner-buyer').value.trim(), size, pay: $('owner-pay').value, total, status: 'Paid', address: ($('owner-address') ? $('owner-address').value.trim() : ''), at: new Date().toISOString().slice(0, 10) };
   d.orders.push(order);
-  if (sbSyncOn) { sbPost('clutch_orders', { buyer: order.buyer, size, pay: order.pay, total, status: 'Paid', address: order.address }); sbPatch('clutch_stock', size, { left: d.stock[size] }); }
+  if (sbSyncOn) { sbPost('clutch_orders', { buyer: order.buyer, size, pay: order.pay, total, status: 'Paid', address: order.address }); sbPatch('clutch_stock', size, { stock_left: d.stock[size] }); }
   if (d.stock[size] > 0) d.stock[size]--;
   saveOwner(d); renderOwner(); orderForm.reset();
   const m = $('owner-msg'); if (m) m.textContent = 'Order logged.';
