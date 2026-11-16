@@ -32,6 +32,13 @@
 <option value="pickup">Free NYC local pickup — $0</option>
 </select></div>
 <div class="field" id="co-address-wrap"><label>Ship to — name + full address</label><input id="co-address" type="text" placeholder="Name, street, city, state, ZIP"></div>
+<div class="field" id="co-slot-wrap" hidden><label>Pickup day + time</label>
+<select id="co-slot">
+<option>Fri Nov 27, 6–8pm (drop night)</option>
+<option>Sat Nov 28, 12–4pm</option>
+<option>Sun Nov 29, 12–4pm</option>
+<option>DM @clutchny1 to arrange another time</option>
+</select></div>
 
 <div class="field"><label>Discount code (optional)</label>
 <div style="display:flex;gap:.5rem"><input id="co-discount" type="text" placeholder="CLUTCH10" style="text-transform:uppercase"><button class="btn ghost" type="button" id="co-apply-discount">Apply</button></div>
@@ -46,6 +53,7 @@
 
 <button class="btn buy live" type="submit" style="width:100%;padding:1rem;font-size:1.1rem">Place order — pay on Greenlight →</button>
 <p class="fine">This saves your order as <b>Pending</b> so Sebastian can see it in admin, then it sends you to the Greenlight pay link to pay. Your parent approves every Greenlight payment. No payment = no order — Sebastian marks it Paid once the money lands. Cash App in the DM is the backup.</p>
+<p class="fine" style="border:1px solid #ff8a7a;border-radius:8px;padding:.6rem">⚠️ <b>Send the exact total shown.</b> All sales are final — if you send less than the total, there is no refund, CLUTCH keeps what was sent, and <b>your shorts will NOT ship</b>. Double-check the total before you pay.</p>
 </form>
 
 <div id="co-done" hidden>
@@ -81,7 +89,9 @@ document.querySelectorAll('#co-sizes button').forEach(b => b.addEventListener('c
   b.classList.add('on'); size = b.dataset.size; renderSummary();
 }));
 $('co-ship').addEventListener('change', () => {
-  $('co-address-wrap').style.display = $('co-ship').value === 'pickup' ? 'none' : '';
+  const pickup = $('co-ship').value === 'pickup';
+  $('co-address-wrap').style.display = pickup ? 'none' : '';
+  $('co-slot-wrap').hidden = !pickup;
   renderSummary();
 });
 $('co-apply-discount').addEventListener('click', () => {
@@ -110,7 +120,7 @@ $('checkout-form').addEventListener('submit', async e => {
   const buyer = $('co-buyer').value.trim();
   const email = $('co-email').value.trim();
   const ship = $('co-ship').value;
-  const address = ship === 'pickup' ? 'pickup' : $('co-address').value.trim();
+  const address = ship === 'pickup' ? 'pickup — ' + $('co-slot').value : $('co-address').value.trim();
   if (!buyer || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || (ship !== 'pickup' && !address)) { alert('Fill in your name, a valid email, and a shipping address (or pick local pickup).'); return; }
   const t = total();
   const orderText = 'CLUTCH Drop 01 — ' + buyer + ' — size ' + size + ' — ' + (ship === 'pickup' ? 'NYC pickup' : 'ship to ' + address) + ' — $' + t.total.toFixed(2);
@@ -124,4 +134,13 @@ $('checkout-form').addEventListener('submit', async e => {
   window.open(GREENLIGHT, '_blank');
 });
 renderSummary();
+// if sales are closed (kill switch in admin), shut the form down
+if (typeof fetch === 'function') try {
+  fetch(SB_URL + '/rest/v1/clutch_settings?select=value&key=eq.sales_closed', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } })
+    .then(r => r.json()).then(rows => {
+      if (rows && rows[0] && rows[0].value === 'true') {
+        document.getElementById('checkout-form').innerHTML = '<h3>Sales are closed.</h3><p class="lede">Drop 01 is sold out or sales are paused right now. Join the waitlist and DM @clutchny1 if you need anything.</p><p><a class="btn buy live" href="/drop002.html">Join the Drop 002 waitlist →</a></p>';
+      }
+    }).catch(() => {});
+} catch (_) {}
 </script></body></html>
