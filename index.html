@@ -198,6 +198,21 @@ section,.nav{background-color:transparent}
 /* Wix-style edit preview: empty banner hint */
 #pv-announce:empty::before{content:"Tap to add an announcement banner\2026";opacity:.55}
 #edit-preview [contenteditable]:focus{outline:2px dashed var(--tan);outline-offset:2px;border-radius:4px}
+
+/* ---- Admin polish: phone layout ---- */
+#owner-orders>div{overflow-wrap:break-word}
+#owner-orders .btn{display:inline-block;width:auto;padding:.5rem .8rem;font-size:.75rem;margin:.25rem .25rem 0 0}
+.stock-bars{margin:1rem 0;display:grid;gap:.5rem}
+.sb-row{display:flex;align-items:center;gap:.7rem;font-size:.9rem}
+.sb-track{flex:1;height:10px;background:#121110;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.sb-fill{height:100%;background:var(--tan)}
+@media(max-width:799px){
+  section{padding:2rem 1rem}
+  .owner-tabs button{padding:.4rem .7rem;font-size:.85rem}
+  .owner-stats{gap:.5rem}
+  .owner-stats b{font-size:1.3rem}
+  #owner-orders .btn{padding:.45rem .65rem;font-size:.72rem}
+}
 </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Product","name":"CLUTCH UES Mesh Basketball Shorts — Drop 01",
@@ -218,7 +233,7 @@ section,.nav{background-color:transparent}
 <main id="top">
 <section class="hero">
   <div class="hero-logo-wrap"><img class="hero-logo" src="data:image/png;base64,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kFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAA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" alt="CLUTCH logo" width="1290" height="1203"><button class="owner-dot" id="owner-dot" type="button" aria-label="owner"></button></div>
-  <p class="eyebrow">Preorders · Drop 01 · Upper East Side</p>
+  <p class="eyebrow" data-edit="hero-eyebrow">Preorders · Drop 01 · Upper East Side</p>
   <h1>CLUTCH<span>Built Different</span></h1>
   <p class="lede">The UES, mapped across a pair of mesh basketball shorts. 30 pieces. One run. No restocks.</p>
   <div class="countdown" id="countdown" aria-live="polite">
@@ -278,6 +293,7 @@ section,.nav{background-color:transparent}
   <div data-panel="dash">
     <div class="owner-stats" id="owner-stats"></div>
     <div id="owner-alerts"></div>
+    <div id="owner-referrers"></div>
     <div id="owner-pin-change" style="border:1px solid var(--line);border-radius:10px;padding:1rem;margin:.8rem 0">
       <h3>Change your PIN</h3>
       <p class="fine">Forgot it or want a new one? Set a new PIN here — it works on this device only.</p>
@@ -289,7 +305,7 @@ section,.nav{background-color:transparent}
       <p class="fine" id="owner-pin-msg"></p>
     </div>
     <div id="owner-countdown" class="fine" style="font-size:1.05rem;margin:.5rem 0"></div>
-    <p><button class="btn ghost" type="button" id="owner-live-toggle">Turn on drop-day live mode</button></p>
+    <p><button class="btn ghost" type="button" id="owner-live-toggle">Turn on preorder-day live mode</button></p>
     <p><button class="btn buy live" type="button" id="owner-go-live-switch">🚀 Go LIVE — email all signups</button></p>
     <p class="fine" id="owner-go-live-switch-msg"></p>
     <div id="owner-live-feed"></div>
@@ -309,7 +325,7 @@ section,.nav{background-color:transparent}
     <p class="fine" id="owner-visits"></p>
     <div id="owner-dropcheck"></div>
     <p><button class="btn ghost" type="button" id="owner-go-live">📣 Copy "we're live" post</button> <button class="btn ghost" type="button" id="owner-soldout-post">Copy sold-out post</button></p>
-    <p class="fine">Drop 01 — Nov 27, 6PM ET · $25 + shipping ($35 total) · 30 pieces · No restocks · All sales final</p>
+    <p class="fine">Drop 01 preorders — Nov 27, 6PM ET · $25 + shipping ($35 total) · 30 pieces · No restocks · All sales final</p>
     <p class="fine">Quick links: <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">IG DMs — @clutchny1</a> · <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Greenlight pay link</a> · <a href="https://clutchbuiltdifferent.com/" target="_blank" rel="noopener">Live site</a></p>
   </div>
 
@@ -326,6 +342,7 @@ section,.nav{background-color:transparent}
     <p><button class="btn ghost" type="button" id="owner-print-all">🖨 Print all packing slips</button> <button class="btn ghost" type="button" id="owner-runsheet">📦 Copy post office run sheet</button></p>
     <pre id="owner-runsheet-out" class="fine" style="white-space:pre-wrap"></pre>
     <div class="fine" id="owner-orders"></div>
+    <div id="owner-unpaid"></div>
     <p>
       <button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
       <button class="btn ghost" type="button" id="owner-clear">Clear orders</button>
@@ -393,9 +410,9 @@ section,.nav{background-color:transparent}
   <div data-panel="email" hidden>
     <h3>Drop-day email</h3>
     <p class="fine">Send to signups on Nov 27, 6PM ET — BCC everyone, never To, so nobody sees anyone else's email.</p>
-    <pre id="owner-email-draft">Subject: CLUTCH Drop 01 is live — 30 pieces, no restocks
+    <pre id="owner-email-draft">Subject: CLUTCH Drop 01 preorders are open — 30 pieces, no restocks
 
-CLUTCH Drop 01 is live.
+CLUTCH Drop 01 preorders are open.
 
 UES Mesh Shorts — $25 + shipping ($35 total).
 30 pieces only. No restocks. All sales final.
@@ -442,6 +459,10 @@ First paid, first served.
         <p class="fine" style="margin-top:1.2rem">👆 Tap any of the words above and type — it saves as you go. Hit "Publish my edits live" below to put it on the real site. Only you can see this tab.</p>
       </div>
     </div>
+    <h3>🎨 Visual editor — click any text on the real site</h3>
+    <p class="fine">This is the live homepage, right here in the admin. Click any heading or paragraph, type, and it saves on this device. Then hit "Publish my edits live" below to make it live for everyone. (Photos and new sections still go through Jerry for now.)</p>
+    <iframe id="owner-visual-frame" title="Visual editor — the live homepage" style="width:100%;height:560px;border:1px solid var(--line);border-radius:10px;background:#fff"></iframe>
+    <p class="fine" id="owner-visual-msg"></p>
     <p class="fine">Change the words below and hit Save — you'll see them change on this device right away. To make them live for everyone, hit "Publish my edits live" below (needs your GitHub key, one-time setup). Or hit "Copy edits for Jerry" and paste them to me in chat, and I'll push them.</p>
     <form id="owner-edit-form">
       <label class="fine">Hero line<br><input id="edit-lede" type="text" style="width:100%" value="The UES, mapped across a pair of mesh basketball shorts. 30 pieces. One run. No restocks."></label>
@@ -558,11 +579,11 @@ First paid, first served.
 
 <section id="how" class="how">
   <p class="eyebrow">How to buy</p>
-  <h2>3 steps. That's it.</h2>
+  <h2 data-edit="how-title">3 steps. That's it.</h2>
   <div class="steps">
-    <div><b>1</b><h3>Pick your size</h3><p>Tap a size below — S 29″, M 31″, L 33″, XL 35″. Waist runs small, between sizes go up.</p></div>
-    <div><b>2</b><h3>DM @clutchny1</h3><p>Hit the buy button, DM your size on Instagram. We'll confirm if it's still there.</p></div>
-    <div><b>3</b><h3>Preorder + pay $35 via Greenlight</h3><p>$25 a pair, plus shipping (about $8–$11 in the US, depends where you are) — $35 total. Pay via Greenlight at the link above, or Cash App in the DM. Local pickup in NYC also works. No hold without payment. All sales final.</p></div>
+    <div><b>1</b><h3 data-edit="step1-title">Pick your size</h3><p data-edit="step1-text">Tap a size below — S 29″, M 31″, L 33″, XL 35″. Waist runs small, between sizes go up.</p></div>
+    <div><b>2</b><h3 data-edit="step2-title">DM @clutchny1</h3><p data-edit="step2-text">Hit the buy button, DM your size on Instagram. We'll confirm if it's still there.</p></div>
+    <div><b>3</b><h3 data-edit="step3-title">Preorder + pay $35 via Greenlight</h3><p data-edit="step3-text">$25 a pair, plus shipping (about $8–$11 in the US, depends where you are) — $35 total. Pay via Greenlight at the link above, or Cash App in the DM. Local pickup in NYC also works. No hold without payment. All sales final.</p></div>
   </div>
 </section>
 
@@ -580,7 +601,7 @@ First paid, first served.
   </div>
   <div class="info">
     <p class="eyebrow">Drop 01 — The Shorts</p>
-    <h2>UES Mesh Shorts</h2>
+    <h2 data-edit="product-title">UES Mesh Shorts</h2>
     <p class="price">$25 <small>USD + shipping</small></p>
     <p>Mesh basketball shorts with the Upper East Side map printed all over. Darker cream / deeper tan colorway.</p>
     <ul class="specs">
@@ -595,6 +616,8 @@ First paid, first served.
     </div>
     <p class="fine" id="size-msg">Tap a size, then hit buy — your DM will say which size you want.</p>
     <p class="fine" id="stock-left">30 of 30 left.</p>
+    <div id="stock-bars" class="stock-bars"></div>
+    <p class="fine"><a href="/live.html">See live preorder-day stock →</a></p>
     <p id="size-waitlist"></p>
     <p class="fine">30 pieces total. All sales final. No restocks. <a href="/track.html">Track your order →</a></p>
   </div>
@@ -602,17 +625,17 @@ First paid, first served.
 
 <section id="story" class="proof">
   <p class="eyebrow light">The story</p>
-  <h2>Built Different isn't a slogan.</h2>
-  <p class="lede light">I'm Sebastian. 7th grade, Upper East Side. I grew up on these blocks — the 6 train, the corner store, the courts after school. One day I wanted shorts that actually looked like where I'm from, so I mapped the whole neighborhood and put it on mesh.</p>
-  <p class="lede light">Making them was the hard part. The first print came back with the map stretched out of shape. So the file got rebuilt from scratch — clean lines, straight grid, logo exactly where it belongs — until the print finally sat right.</p>
-  <p class="lede light">Then the easy way to sell them fell apart. No Stripe, no normal checkout. Most people would've quit there. I rebuilt the whole drop around DMs and Greenlight instead. 30 pairs. One run. No restocks.</p>
-  <p class="lede light">That's why the script on the inside of the pocket says "clutch built different (on the inside)." The outside is the map. The inside is everything it took to get here.</p>
+  <h2 data-edit="story-title">Built Different isn't a slogan.</h2>
+  <p class="lede light" data-edit="story-p1">I'm Sebastian. 7th grade, Upper East Side. I grew up on these blocks — the 6 train, the corner store, the courts after school. One day I wanted shorts that actually looked like where I'm from, so I mapped the whole neighborhood and put it on mesh.</p>
+  <p class="lede light" data-edit="story-p2">Making them was the hard part. The first print came back with the map stretched out of shape. So the file got rebuilt from scratch — clean lines, straight grid, logo exactly where it belongs — until the print finally sat right.</p>
+  <p class="lede light" data-edit="story-p3">Then the easy way to sell them fell apart. No Stripe, no normal checkout. Most people would've quit there. I rebuilt the whole drop around DMs and Greenlight instead. 30 pairs. One run. No restocks.</p>
+  <p class="lede light" data-edit="story-p4">That's why the script on the inside of the pocket says "clutch built different (on the inside)." The outside is the map. The inside is everything it took to get here.</p>
 </section>
 
 <section id="order" class="order">
   <p class="eyebrow">Order in one DM</p>
-  <h2>Copy, paste, send</h2>
-  <p class="lede">Pick your size above, then copy this and paste it into a DM to @clutchny1. That's your whole order.</p>
+  <h2 data-edit="order-title">Copy, paste, send</h2>
+  <p class="lede" data-edit="order-lede">Pick your size above, then copy this and paste it into a DM to @clutchny1. That's your whole order.</p>
   <pre id="order-text">Hi! I want to preorder CLUTCH Drop 01 — UES Mesh Shorts
 Size: [pick a size above]
 Price: $25 + shipping
@@ -627,14 +650,14 @@ Name: [your name]</pre>
 
 <section id="ogs" class="ogs">
   <p class="eyebrow">First 10</p>
-  <h2>The OGs.</h2>
-  <p class="lede">The first 10 people to buy Drop 01 — their names live here forever.</p>
+  <h2 data-edit="ogs-title">The OGs.</h2>
+  <p class="lede" data-edit="ogs-lede">The first 10 people to buy Drop 01 — their names live here forever.</p>
   <div id="ogs-wall"><p class="fine">Loading…</p></div>
 </section>
 
 <section id="sizes" class="sizes">
   <p class="eyebrow">Fit</p>
-  <h2>Size chart</h2>
+  <h2 data-edit="sizes-title">Size chart</h2>
   <div class="fit-tip"><b>Waist runs small.</b> If you're between sizes, size up.</div>
   <div class="table-wrap">
   <table>
@@ -656,8 +679,8 @@ Name: [your name]</pre>
 
 <section id="waitlist" class="notify">
   <p class="eyebrow">Sold out?</p>
-  <h2>Join the waitlist.</h2>
-  <p>If your size sells out, drop your email + size and we'll hit you first if one frees up — or first for Drop 002.</p>
+  <h2 data-edit="waitlist-title">Join the waitlist.</h2>
+  <p data-edit="waitlist-text">If your size sells out, drop your email + size and we'll hit you first if one frees up — or first for Drop 002.</p>
   <form id="waitlist-form" novalidate>
     <label class="sr" for="waitlist-email">Email</label>
     <input id="waitlist-email" name="email" type="email" placeholder="you@email.com" autocomplete="email" required>
@@ -669,8 +692,8 @@ Name: [your name]</pre>
 
 <section id="account" class="notify">
   <p class="eyebrow">Your account</p>
-  <h2>Make an account.</h2>
-  <p>Anyone can make one — sign up with email + password, log in on any device. Only Sebastian's email can open admin.</p>
+  <h2 data-edit="account-title">Make an account.</h2>
+  <p data-edit="account-text">Anyone can make one — sign up with email + password, log in on any device. Only Sebastian's email can open admin.</p>
   <form id="account-form" novalidate>
     <label class="sr" for="account-email">Email</label>
     <input id="account-email" name="email" type="email" placeholder="you@email.com" autocomplete="email" required>
@@ -685,23 +708,23 @@ Name: [your name]</pre>
 </section>
 
 <section id="drop2" class="drop2">
-  <p class="eyebrow light">Drop 002 · Form 001 · Coming soon</p>
+  <p class="eyebrow light" data-edit="drop2-eyebrow">Drop 002 · Form 001 · Coming soon</p>
   <p class="drop2-six" aria-hidden="true">6</p>
-  <h2>Next stop: Drop 002</h2>
-  <p class="lede light">Drop 01 was the map. Drop 002 is the ride that runs under it — the 6 train, Lexington Ave local, and everything that makes New York New York.</p>
+  <h2 data-edit="drop2-title">Next stop: Drop 002</h2>
+  <p class="lede light" data-edit="drop2-lede">Drop 01 was the map. Drop 002 is the ride that runs under it — the 6 train, Lexington Ave local, and everything that makes New York New York.</p>
   <div class="drop2-grid">
-    <div><b>The train</b><p>The 6 — Lexington Ave local. Green and cream, like the real 6 train logo.</p></div>
-    <div><b>The cup</b><p>The blue-and-white Anthora coffee cup. “We are happy to serve you.”</p></div>
-    <div><b>The locals</b><p>The subway itself — and yeah, a rat. It wouldn’t be the 6 without one.</p></div>
+    <div><b data-edit="drop2-train-t">The train</b><p data-edit="drop2-train">The 6 — Lexington Ave local. Green and cream, like the real 6 train logo.</p></div>
+    <div><b data-edit="drop2-cup-t">The cup</b><p data-edit="drop2-cup">The blue-and-white Anthora coffee cup. “We are happy to serve you.”</p></div>
+    <div><b data-edit="drop2-locals-t">The locals</b><p data-edit="drop2-locals">The subway itself — and yeah, a rat. It wouldn’t be the 6 without one.</p></div>
   </div>
-  <p class="fine light">That’s all you get for now. No date, no price, no full design until it’s ready — this one’s staying under wraps.</p>
+  <p class="fine light" data-edit="drop2-note">That’s all you get for now. No date, no price, no full design until it’s ready — this one’s staying under wraps.</p>
   <p class="fine light">First look drops on IG — <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a></p>
   <p><a class="btn ghost" href="/drop002.html">See the Drop 002 page →</a></p>
 </section>
 
 <section id="proof" class="proof">
   <p class="eyebrow">People are watching</p>
-  <h2>Don't take our word for it</h2>
+  <h2 data-edit="proof-title">Don't take our word for it</h2>
   <div class="proof-grid">
     <a href="https://www.instagram.com/reel/Dff0v0Kj5_5/" target="_blank" rel="noopener"><b>Drop 002 sneak peek</b><span>The 6-train teaser reel — live on @clutchny1</span></a>
     <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener"><b>158 views · 41 followers</b><span>The giveaway collab reel hit ~4× the follower count</span></a>
@@ -714,7 +737,7 @@ Name: [your name]</pre>
 
 <section id="ig" class="proof">
   <p class="eyebrow">On Instagram</p>
-  <h2>Latest from @clutchny1</h2>
+  <h2 data-edit="ig-title">Latest from @clutchny1</h2>
   <div class="proof-grid">
     <a href="https://www.instagram.com/reel/Dff0v0Kj5_5/" target="_blank" rel="noopener"><b>Drop 002 sneak peek</b><span>The 6-train teaser reel</span></a>
     <a href="https://www.instagram.com/reel/Dfc_N9YCYgC/" target="_blank" rel="noopener"><b>Day 20 countdown</b><span>20 days til Drop 01</span></a>
@@ -724,7 +747,7 @@ Name: [your name]</pre>
 
 <section id="reviews" class="notify">
   <p class="eyebrow">Reviews</p>
-  <h2>What buyers say.</h2>
+  <h2 data-edit="reviews-title">What buyers say.</h2>
   <div id="review-list" class="fine">No reviews yet — be the first after you get your pair.</div>
   <form id="review-form" novalidate>
     <input id="review-name" type="text" placeholder="Your name / @" required>
@@ -745,22 +768,22 @@ Name: [your name]</pre>
 
 <section id="faq" class="faq">
   <p class="eyebrow">FAQ</p>
-  <h2>Before you ask</h2>
-  <details><summary>When does Drop 01 go live?</summary><p>Friday, November 27, 2026 at 6:00 PM ET, right here on this site.</p></details>
-  <details><summary>What if I send the wrong amount?</summary><p>Send the exact total shown at checkout. All sales are final — if you send the wrong amount, there is no refund, CLUTCH keeps what was sent, and <b>your shorts will not ship</b>. Double-check before you pay.</p></details>
-<details><summary>How do I buy a pair?</summary><p>Tap “Checkout” above, pick your size, fill in your details — then it sends you to the Greenlight link to pay $35 total ($25 if you pick free NYC pickup). First paid, first served. You can also still DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> to buy.</p></details>
-  <details><summary>Cash or card? Shipping?</summary><p>$25 + shipping ($35 total), pay via Greenlight — or Cash App in the DM. We ship in the US with USPS Ground Advantage (about $8–$11, depends where you are) — or free local pickup in NYC. No holds without payment.</p></details>
-  <details><summary>How much?</summary><p>$25 a pair, plus shipping.</p></details>
-  <details><summary>How many are there?</summary><p>30 total: 10 Small, 10 Medium, 5 Large, 5 XL. When a size is gone, it's gone.</p></details>
-  <details><summary>How does sizing run?</summary><p>The waist runs small, so if you're between sizes, size up. Inseam is 5.5" measured flat.</p></details>
-  <details><summary>Will there be a restock?</summary><p>No. Drop 01 is never re-run.</p></details>
-  <details><summary>Can I return or exchange?</summary><p>All sales are final. Check the size chart before you buy.</p></details>
-  <details><summary>How do I hear when it's live?</summary><p>Drop your email below, or follow <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> on Instagram.</p></details>
+  <h2 data-edit="faq-title">Before you ask</h2>
+  <details><summary data-edit="faq-q1">When do preorders open?</summary><p data-edit="faq-a1">Friday, November 27, 2026 at 6:00 PM ET — preorders open right here on this site.</p></details>
+  <details><summary data-edit="faq-q2">What if I send the wrong amount?</summary><p>Send the exact total shown at checkout. All sales are final — if you send the wrong amount, there is no refund, CLUTCH keeps what was sent, and <b>your shorts will not ship</b>. Double-check before you pay.</p></details>
+<details><summary data-edit="faq-q3">How do I buy a pair?</summary><p>Tap “Checkout” above, pick your size, fill in your details — then it sends you to the Greenlight link to pay $35 total ($25 if you pick free NYC pickup). First paid, first served. You can also still DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> to buy.</p></details>
+  <details><summary data-edit="faq-q4">Cash or card? Shipping?</summary><p data-edit="faq-a4">$25 + shipping ($35 total), pay via Greenlight — or Cash App in the DM. We ship in the US with USPS Ground Advantage (about $8–$11, depends where you are) — or free local pickup in NYC. No holds without payment.</p></details>
+  <details><summary data-edit="faq-q5">How much?</summary><p data-edit="faq-a5">$25 a pair, plus shipping.</p></details>
+  <details><summary data-edit="faq-q6">How many are there?</summary><p data-edit="faq-a6">30 total: 10 Small, 10 Medium, 5 Large, 5 XL. When a size is gone, it's gone.</p></details>
+  <details><summary data-edit="faq-q7">How does sizing run?</summary><p data-edit="faq-a7">The waist runs small, so if you're between sizes, size up. Inseam is 5.5" measured flat.</p></details>
+  <details><summary data-edit="faq-q8">Will there be a restock?</summary><p data-edit="faq-a8">No. Drop 01 is never re-run.</p></details>
+  <details><summary data-edit="faq-q9">Can I return or exchange?</summary><p data-edit="faq-a9">All sales are final. Check the size chart before you buy.</p></details>
+  <details><summary data-edit="faq-q10">How do I hear when preorders open?</summary><p>Drop your email below, or follow <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> on Instagram.</p></details>
 </section>
 
 <section id="notify" class="notify">
-  <h2>Don't miss it.</h2>
-  <p>Get a heads-up before the drop goes live.</p>
+  <h2 data-edit="notify-title">Don't miss it.</h2>
+  <p data-edit="notify-text">Get a heads-up before preorders open.</p>
   <form id="notify-form" novalidate>
     <label class="sr" for="email">Email</label>
     <input id="email" name="email" type="email" placeholder="you@email.com" autocomplete="email" required>
@@ -781,7 +804,7 @@ Name: [your name]</pre>
   </div>
   <img class="foot-logo" src="data:image/png;base64,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kFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAA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" alt="" width="1290" height="1203">
   <p class="logo big">CLUTCH</p>
-  <p class="fine">Built Different · Upper East Side, NYC</p>
+  <p class="fine" data-edit="foot-tagline">Built Different · Upper East Side, NYC</p>
   <p class="fine" id="drop-status">PREORDERS open Fri, Nov 27, 6PM ET.</p>
   <p class="fine osm">Background map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> (ODbL)</p>
 </footer>
@@ -950,7 +973,7 @@ function setBuy(live) {
 }
 function tick() {
   const d = DROP - Date.now();
-  if (d <= 0) { $('countdown').classList.add('done'); ['d','h','m','s'].forEach(k => $('cd-'+k).textContent = '00'); setBuy(true); const eb = document.querySelector('.hero .eyebrow'); if (eb) eb.textContent = 'Drop 01 · LIVE NOW'; if (buy) buy.textContent = 'Drop is live — DM @clutchny1'; const st = document.getElementById('drop-status'); if (st) st.textContent = 'LIVE NOW — first paid, first served.'; return false; }
+  if (d <= 0) { $('countdown').classList.add('done'); ['d','h','m','s'].forEach(k => $('cd-'+k).textContent = '00'); setBuy(true); const eb = document.querySelector('.hero .eyebrow'); if (eb) eb.textContent = 'Preorders · LIVE NOW'; if (buy) buy.textContent = 'Preorders are open — DM @clutchny1'; const st = document.getElementById('drop-status'); if (st) st.textContent = 'PREORDERS OPEN — first paid, first served.'; return false; }
   $('cd-d').textContent = pad(Math.floor(d / 864e5));
   $('cd-h').textContent = pad(Math.floor(d / 36e5) % 24);
   $('cd-m').textContent = pad(Math.floor(d / 6e4) % 60);
@@ -1299,7 +1322,7 @@ function renderOwner() {
     actEl.innerHTML = act.length ? act.map(a => `<div style="margin:.3rem 0"><span class="fine">${a.at}</span> — ${a.text}</div>`).join('') : 'No activity yet — actions by you, Emeri, and Ajan will show up here.';
   }
   const liveBtn = $('owner-live-toggle');
-  if (liveBtn) liveBtn.textContent = d.liveMode ? '🔴 LIVE MODE ON — tap to turn off' : 'Turn on drop-day live mode';
+  if (liveBtn) liveBtn.textContent = d.liveMode ? '🔴 LIVE MODE ON — tap to turn off' : 'Turn on preorder-day live mode';
   const payoutEl = $('owner-payouts');
   if (payoutEl) {
     const pend = d.orders.map((o, i) => ({ o, i })).filter(x => (x.o.status || 'Paid') === 'Pending');
@@ -1340,13 +1363,13 @@ function renderOwner() {
   updateCountdown();
   const calEl = $('owner-calendar');
   if (calEl) {
-    const items = [['Mon Nov 24', 'Test-pack one pair + weigh it'], ['Tue Nov 25', 'Print all labels on Pirate Ship'], ['Wed Nov 26', 'Thanksgiving — prep day, no school'], ['Fri Nov 27 6PM', 'DROP DAY — go live, watch orders come in'], ['Sat Nov 28', 'Ship day 1 — post office run'], ['Sun Nov 29', 'Ship day 2 — mark everything Shipped']];
+    const items = [['Mon Nov 24', 'Test-pack one pair + weigh it'], ['Tue Nov 25', 'Print all labels on Pirate Ship'], ['Wed Nov 26', 'Thanksgiving — prep day, no school'], ['Fri Nov 27 6PM', 'PREORDER DAY — go live, watch orders come in'], ['Sat Nov 28', 'Ship day 1 — post office run'], ['Sun Nov 29', 'Ship day 2 — mark everything Shipped']];
     const cc = d.calendarChecks || {};
     calEl.innerHTML = '<h3>📅 Drop week</h3>' + items.map((it, i) => `<label style="display:block;margin:.3rem 0"><input type="checkbox" data-calcheck="${i}" ${cc[i] ? 'checked' : ''}> <b>${it[0]}</b> — ${cc[i] ? '<s>' + it[1] + '</s>' : it[1]}</label>`).join('');
     calEl.querySelectorAll('[data-calcheck]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); if (!dd.calendarChecks) dd.calendarChecks = {}; dd.calendarChecks[+c.dataset.calcheck] = c.checked; saveOwner(dd); renderOwner(); }));
   const pcEl = $('owner-postcal');
   if (pcEl) {
-    const days = [['Mon Nov 16', 'Day 11 countdown — behind the scenes of the print'], ['Tue Nov 17', 'Day 10 — fit check in the shorts'], ['Wed Nov 18', 'Day 9 — how the map print was fixed'], ['Thu Nov 19', 'Day 8 — repost the story section'], ['Fri Nov 20', 'Day 7 — one week out, sizes reminder'], ['Sat Nov 21', 'Day 6 — basketball in the shorts'], ['Sun Nov 22', 'Day 5 — Drop 002 teaser'], ['Mon Nov 23', 'Day 4 — packing prep'], ['Tue Nov 24', 'Day 3 — test-pack + weigh a pair'], ['Wed Nov 25', 'Day 2 — print all labels'], ['Thu Nov 26', 'Day 1 — Thanksgiving, drop-eve post'], ['Fri Nov 27', 'DROP DAY — go live 6PM']];
+    const days = [['Mon Nov 16', 'Day 11 countdown — behind the scenes of the print'], ['Tue Nov 17', 'Day 10 — fit check in the shorts'], ['Wed Nov 18', 'Day 9 — how the map print was fixed'], ['Thu Nov 19', 'Day 8 — repost the story section'], ['Fri Nov 20', 'Day 7 — one week out, sizes reminder'], ['Sat Nov 21', 'Day 6 — basketball in the shorts'], ['Sun Nov 22', 'Day 5 — Drop 002 teaser'], ['Mon Nov 23', 'Day 4 — packing prep'], ['Tue Nov 24', 'Day 3 — test-pack + weigh a pair'], ['Wed Nov 25', 'Day 2 — print all labels'], ['Thu Nov 26', 'Day 1 — Thanksgiving, drop-eve post'], ['Fri Nov 27', 'PREORDER DAY — go live 6PM']];
     const pc = d.postCal || {};
     pcEl.innerHTML = '<h3>📅 Post calendar — what to post each day</h3>' + days.map((x, i) => `<label style="display:block;margin:.3rem 0"><input type="checkbox" data-postcal="${i}" ${pc[i] ? 'checked' : ''}> <b>${x[0]}</b> — ${pc[i] ? '<s>' + x[1] + '</s>' : x[1]}</label>`).join('');
     pcEl.querySelectorAll('[data-postcal]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); if (!dd.postCal) dd.postCal = {}; dd.postCal[+c.dataset.postcal] = c.checked; saveOwner(dd); renderOwner(); }));
@@ -1380,7 +1403,7 @@ function renderOwner() {
   }
   const dcEl = $('owner-dropcheck');
   if (dcEl) {
-    const items = ['Post the day-0 countdown + "drop is live" story', 'Turn on live mode in admin', 'Check Greenlight — approve any waiting payments', 'Print all packing slips', 'Pack + weigh every order', 'Mark everything Shipped + send tracking in DMs'];
+    const items = ['Post the day-0 countdown + "preorders are open" story', 'Turn on live mode in admin', 'Check Greenlight — approve any waiting payments', 'Print all packing slips', 'Pack + weigh every order', 'Mark everything Shipped + send tracking in DMs'];
     const dc = d.dropChecklist || {};
     dcEl.innerHTML = '<h3>📋 Drop-day checklist — Nov 27</h3>' + items.map((it, i) => `<label style="display:block;margin:.3rem 0"><input type="checkbox" data-dropcheck="${i}" ${dc[i] ? 'checked' : ''}> ${dc[i] ? '<s>' + it + '</s>' : it}</label>`).join('');
     dcEl.querySelectorAll('[data-dropcheck]').forEach(c => c.addEventListener('change', () => { const dd = loadOwner(); if (!dd.dropChecklist) dd.dropChecklist = {}; dd.dropChecklist[+c.dataset.dropcheck] = c.checked; saveOwner(dd); renderOwner(); }));
@@ -1426,6 +1449,26 @@ function renderOwner() {
   if (statsEl) statsEl.innerHTML = [
     ['Revenue', '$' + revenue], ['Orders', d.orders.length], ['Shipped', shipped], ['Stock left', stockLeft + ' / 30'], ['Signups', d.signups || d.signupEmails.length]
   ].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
+  // Referral leaderboard — who is sending buyers.
+  const refEl = $('owner-referrers');
+  if (refEl) {
+    const counts = {};
+    d.orders.forEach(o => { const r = (o.ref || '').trim().replace(/^@/, ''); if (r) counts[r] = (counts[r] || 0) + 1; });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    refEl.innerHTML = '<h3>🏆 Top referrers</h3>' + (top.length ? top.map((kv, i) => '<div style="margin:.3rem 0">' + (i + 1) + '. <b>@' + kv[0] + '</b> — ' + kv[1] + ' buyer' + (kv[1] > 1 ? 's' : '') + '</div>').join('') : '<p class="fine">No referrals yet — buyers add who sent them at checkout.</p>');
+  }
+  // Unpaid order chaser — Pending orders that still need to pay on Greenlight.
+  const unpaidEl = $('owner-unpaid');
+  if (unpaidEl) {
+    const pending = d.orders.map((o, i) => ({ o, i })).filter(x => (x.o.status || 'Paid') === 'Pending');
+    unpaidEl.innerHTML = '<h3>💸 Needs payment (' + pending.length + ')</h3>' + (pending.length ? pending.map(x => '<div style="margin:.4rem 0">#' + (x.i + 1) + ' <b>' + x.o.buyer + '</b> — ' + x.o.size + ' — $' + (x.o.total === undefined ? 35 : x.o.total) + ' <button class="btn ghost" type="button" data-order-nudge="' + x.i + '">Copy payment nudge</button></div>').join('') : '<p class="fine">All paid up — no Pending orders.</p>');
+    unpaidEl.querySelectorAll('[data-order-nudge]').forEach(b => b.addEventListener('click', async () => {
+      const o = d.orders[+b.dataset.orderNudge];
+      const text = 'hey! your CLUTCH Drop 01 order is saved — size ' + o.size + ', $' + (o.total === undefined ? 35 : o.total) + '. pay here to lock it in: https://gl.me/u/qqMvQlZ6mTpb — first paid, first served 🙏 @clutchny1';
+      try { await navigator.clipboard.writeText(text); } catch (_) {}
+      const m = $('owner-msg'); if (m) m.textContent = 'Nudge copied — paste it to ' + o.buyer + '.';
+    }));
+  }
   const payEl = $('owner-payments');
   if (payEl) payEl.textContent = `Taken so far: $${revenue} from ${d.orders.length} order${d.orders.length === 1 ? '' : 's'} — $${1000 - revenue} left before the $1,000 / 30-day Greenlight + Cash App cap.`;
   const stockEl = $('owner-stock');
@@ -1440,7 +1483,7 @@ function renderOwner() {
     const ymd = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     const dropDay = new Date(2026, 10, 27), todayDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const daysLeft = Math.round((dropDay - todayDay) / 864e5);
-    const dt = $('owner-today-date'); if (dt) dt.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + (daysLeft > 0 ? ' — ' + daysLeft + ' days to drop' : daysLeft === 0 ? ' — DROP DAY' : ' — drop day passed');
+    const dt = $('owner-today-date'); if (dt) dt.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + (daysLeft > 0 ? ' — ' + daysLeft + ' days to preorders' : daysLeft === 0 ? ' — PREORDER DAY' : ' — preorders are open');
     const items = [];
     if (daysLeft > 0) items.push(`Post today's countdown reel (Day ${daysLeft})`);
     items.push('Reply to every comment + DM');
@@ -1450,8 +1493,8 @@ function renderOwner() {
     const pend = d.orders.filter(o => (o.status || 'Paid') === 'Pending').length;
     if (pend) items.push(`Confirm ${pend} pending order${pend === 1 ? '' : 's'} (Greenlight approvals)`);
     Object.entries(d.stock).forEach(([sz, n]) => { if (n <= 2 && n > 0) items.push(`Size ${sz} is almost gone (${n} left) — post about it`); });
-    if (daysLeft === 1) items.push('Tomorrow is drop day — prep packing slips + labels');
-    if (daysLeft === 0) items.push('DROP DAY — go live at 6PM', 'Send the drop-day email (BCC)', 'Watch Greenlight approvals all night');
+    if (daysLeft === 1) items.push('Tomorrow preorders open — prep packing slips + labels');
+    if (daysLeft === 0) items.push('PREORDER DAY — go live at 6PM', 'Send the preorder-day email (BCC)', 'Watch Greenlight approvals all night');
     if (daysLeft < 0) items.push('Ship remaining orders + mark them Shipped');
     const done = (d.dailyTasks || {})[ymd] || {};
     tdEl.innerHTML = items.map((it, i) => `<label style="display:block;margin:.4rem 0"><input type="checkbox" data-daily="${i}" ${done[i] ? 'checked' : ''}> ${done[i] ? '<s>' + it + '</s>' : it}</label>`).join('');
@@ -1476,7 +1519,7 @@ function renderOwner() {
         const dup = d.orders.filter(x => x.buyer === o.buyer).length > 1;
         const flagged = (d.flagged || []).includes(o.buyer);
         const hist = (o.history || []).slice(-2).map(h => `<span class="fine">${h.at} — ${h.text}</span>`).join('<br>');
-        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. ${((o.buyer || '').match(/@([\w.]+)/) ? `<a href="https://www.instagram.com/${(o.buyer.match(/@([\w.]+)/))[1]}/" target="_blank" rel="noopener"><b>${o.buyer}</b></a>` : `<b>${o.buyer}</b>`)}${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''}${((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}${hist ? '<br>' + hist : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}</div>`;
+        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. ${((o.buyer || '').match(/@([\w.]+)/) ? `<a href="https://www.instagram.com/${(o.buyer.match(/@([\w.]+)/))[1]}/" target="_blank" rel="noopener"><b>${o.buyer}</b></a>` : `<b>${o.buyer}</b>`)}${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''}${((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}${hist ? '<br>' + hist : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${(['S', 'M', 'L', 'XL'].includes(o.size) && ['Pending', 'Paid', 'Shipped'].includes(o.status || 'Paid')) ? ` <select data-order-swap-size="${i}" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">${['S', 'M', 'L', 'XL'].map(s2 => `<option${s2 === o.size ? ' selected' : ''}>${s2}</option>`).join('')}</select> <button class="btn ghost" type="button" data-order-swap="${i}">Swap size</button>` : ''}${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}</div>`;
       }).join('');
       ordersEl.querySelectorAll('[data-order-status]').forEach(b => b.addEventListener('click', () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus];
@@ -1526,6 +1569,24 @@ function renderOwner() {
         if (o.status !== 'Cancelled') { o.status = 'Cancelled'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: dd.stock[o.size] }); logActivity(`Cancelled order #${+b.dataset.orderCancel + 1} (${o.buyer}, ${o.size})`); }
         saveOwner(dd); renderOwner();
       }));
+      ordersEl.querySelectorAll('[data-order-swap]').forEach(b => b.addEventListener('click', () => {
+        const dd = loadOwner(); const o = dd.orders[+b.dataset.orderSwap];
+        const sel = ordersEl.querySelector('[data-order-swap-size="' + b.dataset.orderSwap + '"]');
+        const ns = sel ? sel.value : '';
+        const m = $('owner-msg');
+        if (!ns || ns === o.size) { if (m) m.textContent = 'Pick a different size to swap into.'; return; }
+        if ((dd.stock[ns] || 0) <= 0) { if (m) m.textContent = 'No ' + ns + ' left to swap into.'; return; }
+        const oldSize = o.size;
+        if (dd.stock[oldSize] !== undefined) dd.stock[oldSize]++;
+        if (dd.stock[ns] !== undefined) dd.stock[ns]--;
+        o.size = ns;
+        if (!o.history) o.history = [];
+        o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: 'Swapped ' + oldSize + ' → ' + ns });
+        logActivity(`Swapped order #${+b.dataset.orderSwap + 1} (${o.buyer}) ${oldSize} → ${ns}`);
+        saveOwner(dd); renderOwner();
+        if (sbSyncOn) { sbPatch('clutch_stock', oldSize, { stock_left: dd.stock[oldSize] }); sbPatch('clutch_stock', ns, { stock_left: dd.stock[ns] }); }
+        if (m) m.textContent = 'Swapped ' + o.buyer + ' to ' + ns + ' — stock updated.';
+      }));
     }
   }
   const staffEl = $('staff-list');
@@ -1574,6 +1635,16 @@ async function countVisit() {
     await sbPost('clutch_stats', { id: 1, visits: n });
   }
 }
+// Per-size stock bars on the homepage — live from stock.
+function renderStockBars(d) {
+  const el = $('stock-bars'); if (!el) return;
+  const totals = { S: 10, M: 10, L: 5, XL: 5 };
+  el.innerHTML = ['S', 'M', 'L', 'XL'].map(s => {
+    const left = d.stock[s] || 0, total = totals[s], pct = Math.round(left / total * 100);
+    const col = left === 0 ? '#ff8a7a' : left <= 2 ? '#ffb86b' : 'var(--tan)';
+    return '<div class="sb-row"><b style="width:1.6rem">' + s + '</b><div class="sb-track"><div class="sb-fill" style="width:' + pct + '%;background:' + col + '"></div></div><span>' + (left === 0 ? 'SOLD OUT' : left + ' left') + '</span></div>';
+  }).join('');
+}
 function syncSizePicker(d) {
   d = d || loadOwner();
   document.querySelectorAll('#size-picker button').forEach(b => {
@@ -1601,6 +1672,7 @@ function syncSizePicker(d) {
       const em = $('waitlist-email'); if (em) em.focus();
     }));
   }
+  renderStockBars(d);
 }
 // First 10 buyers wall — real OGs from Supabase orders
 async function loadOGs() {
@@ -1617,8 +1689,30 @@ document.querySelectorAll('.owner-tabs button').forEach(b => b.addEventListener(
   document.querySelectorAll('.owner-tabs button').forEach(x => x.classList.remove('on'));
   b.classList.add('on');
   document.querySelectorAll('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== b.dataset.tab; });
+  if (b.dataset.tab === 'edit') startVisualFrame();
   renderOwner();
 }));
+// Visual editor (admin side): the live homepage in an iframe, click-to-edit via postMessage.
+var visualStarted = false;
+function startVisualFrame() {
+  var fr = $('owner-visual-frame'); if (!fr || visualStarted) return;
+  visualStarted = true;
+  var vm = $('owner-visual-msg'); if (vm) vm.textContent = 'Loading the live homepage…';
+  fr.addEventListener('load', function () {
+    try { fr.contentWindow.postMessage({ type: 'clutch-edit-on', edits: loadEdits() }, 'https://clutchbuiltdifferent.com'); } catch (_) {}
+  });
+  fr.src = 'https://clutchbuiltdifferent.com/';
+}
+window.addEventListener('message', function (ev) {
+  if (ev.origin !== 'https://clutchbuiltdifferent.com') return;
+  var d = ev.data || {};
+  if (d.type === 'clutch-edit-ready') { var vm = $('owner-visual-msg'); if (vm) vm.textContent = 'Ready — click any heading or paragraph in the frame and type.'; return; }
+  if (d.type === 'clutch-edit' && d.key) {
+    var e = loadEdits(); e['text:' + d.key] = (d.text || '').trim();
+    try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+    var vm2 = $('owner-visual-msg'); if (vm2) vm2.textContent = 'Saved on this device — hit "Publish my edits live" below to make it live for everyone.';
+  }
+});
 const signupAddForm = $('owner-signup-add-form');
 if (signupAddForm) signupAddForm.addEventListener('submit', e => {
   e.preventDefault();
@@ -1692,13 +1786,32 @@ function applyEdits() {
   const fPrice = $('edit-price'); if (fPrice && e.price) fPrice.value = e.price;
   const fWhen = $('edit-when'); if (fWhen && e.when) fWhen.value = e.when;
   const fNote = $('edit-buynote'); if (fNote && e.buynote) fNote.value = e.buynote;
+  // Squarespace-style text edits: any [data-edit] element can be reworded from admin.
+  try { document.querySelectorAll('[data-edit]').forEach(function (el) { var t = e['text:' + el.getAttribute('data-edit')]; if (t !== undefined && t !== null) el.textContent = t; }); } catch (_) {}
   fillPreview();
 }
 applyEdits();
+// Visual editor bridge — when this page sits inside the admin's edit frame, the parent
+// (clutchbuiltdifferent.com or admin.clutchbuiltdifferent.com) can turn every
+// [data-edit] element into a click-to-edit field. Changes post back to the parent.
+if (window.self !== window.top) {
+  window.addEventListener('message', function (ev) {
+    if (ev.origin !== 'https://clutchbuiltdifferent.com' && ev.origin !== 'https://admin.clutchbuiltdifferent.com') return;
+    var d = ev.data || {};
+    if (d.type !== 'clutch-edit-on') return;
+    document.querySelectorAll('[data-edit]').forEach(function (el) {
+      el.contentEditable = 'true';
+      el.style.outline = '1px dashed rgba(207,198,182,.6)';
+      el.addEventListener('input', function () { window.parent.postMessage({ type: 'clutch-edit', key: el.getAttribute('data-edit'), text: el.textContent }, ev.origin); });
+    });
+    if (d.edits) { Object.keys(d.edits).forEach(function (k) { if (k.indexOf('text:') === 0) { var el2 = document.querySelector('[data-edit="' + k.slice(5) + '"]'); if (el2) el2.textContent = d.edits[k]; } }); }
+    window.parent.postMessage({ type: 'clutch-edit-ready' }, ev.origin);
+  });
+}
 const editForm = $('owner-edit-form');
 if (editForm) editForm.addEventListener('submit', e => {
   e.preventDefault();
-  const edits = { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), announce: ($('edit-announce') ? $('edit-announce').value.trim() : ''), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') };
+  const edits = Object.assign({}, loadEdits(), { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), announce: ($('edit-announce') ? $('edit-announce').value.trim() : ''), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') });
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(edits)); } catch (_) {}
   applyEdits();
   const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Publish my edits live" below to make them live for everyone (needs your GitHub key, one-time setup).';
@@ -1706,7 +1819,8 @@ if (editForm) editForm.addEventListener('submit', e => {
 const editCopy = $('owner-edit-copy');
 if (editCopy) editCopy.addEventListener('click', async () => {
   const e = loadEdits();
-  const text = `Site edits to push live:\nHero line: ${e.lede || '(unchanged)'}\nPrice: ${e.price || '(unchanged)'}\nDrop date/time: ${e.when || '(unchanged)'}\nBuy note: ${e.buynote || '(unchanged)'}\nAnnouncement banner: ${e.announce || '(none)'}\nDiscount: ${e.discountCode || '(unchanged)'} ${e.discountPct || ''}%`;
+  const textKeys = Object.keys(e).filter(k => k.indexOf('text:') === 0);
+  const text = `Site edits to push live:\nHero line: ${e.lede || '(unchanged)'}\nPrice: ${e.price || '(unchanged)'}\nDrop date/time: ${e.when || '(unchanged)'}\nBuy note: ${e.buynote || '(unchanged)'}\nAnnouncement banner: ${e.announce || '(none)'}\nDiscount: ${e.discountCode || '(unchanged)'} ${e.discountPct || ''}%` + (textKeys.length ? `\nText edits:\n` + textKeys.map(k => k.slice(5) + ': ' + e[k]).join('\n') : '');
   try { await navigator.clipboard.writeText(text); const m = $('owner-edit-msg'); if (m) m.textContent = 'Copied — paste it to Jerry in chat and I\u2019ll push it live.'; } catch (_) {}
 });
 const editReset = $('owner-edit-reset');
@@ -1739,6 +1853,7 @@ async function publishEditsLive(m) {
     if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'GitHub said the key is wrong or expired. Make a new token and save it again.' : 'GitHub fetch failed (' + r.status + ').');
     const data = await r.json();
     let html = b64d(data.content);
+    const htmlBeforeText = html;
     const missing = [];
     function swap(needle, repl, name) { if (html.indexOf(needle) === -1) { missing.push(name); return; } html = html.replace(needle, repl); }
     if (e.lede && e.lede !== old.lede) swap('<p class="lede">' + old.lede + '</p>', '<p class="lede">' + e.lede + '</p>', 'hero line');
@@ -1758,7 +1873,17 @@ async function publishEditsLive(m) {
         else missing.push('announcement banner');
       }
     }
+    // Squarespace-style text edits: swap the inner text of each [data-edit] element.
+    Object.keys(e).forEach(function (k) {
+      if (k.indexOf('text:') !== 0) return;
+      var key = k.slice(5);
+      var esc = function (x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+      var re = new RegExp('(<[^>]*data-edit="' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"[^>]*>)([^<]*)(</)', 'g');
+      var n = 0; html = html.replace(re, function (m0, a, b, c) { n++; return a + esc(e[k]) + c; });
+      if (!n) missing.push('text: ' + key);
+    });
     if (missing.length) { if (m) m.textContent = 'Stopped — could not find in the live file: ' + missing.join(', ') + '. The site may have changed since your last publish — tell Jerry.'; return; }
+    if (html === htmlBeforeText) { if (m) m.textContent = 'Nothing new to publish — the live site already has these edits.'; return; }
     if (m) m.textContent = 'Uploading the new version…';
     const put = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/index.html', { method: 'PUT', headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Update site from admin: hero/price/date/note/banner', content: b64e(html), sha: data.sha, branch: 'main' }) });
     if (!put.ok) { const err = await put.json().catch(() => ({})); throw new Error('GitHub would not save it (' + put.status + (err.message ? ' — ' + err.message : '') + ').'); }
@@ -1952,7 +2077,7 @@ if (seedForm) seedForm.addEventListener('submit', e => {
 function updateCountdown() {
   const el = $('owner-countdown'); if (!el) return;
   const ms = new Date('2026-11-27T18:00:00-05:00').getTime() - Date.now();
-  if (ms <= 0) { el.innerHTML = '<b>🔴 DROP DAY — live now</b>'; return; }
+  if (ms <= 0) { el.innerHTML = '<b>🔴 PREORDERS — live now</b>'; return; }
   const dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5), mm = Math.floor(ms % 36e5 / 6e4);
   el.innerHTML = '<b>⏳ Drop day in ' + dd + 'd ' + hh + 'h ' + mm + 'm</b> — Fri Nov 27, 6PM ET.';
 }
@@ -1993,7 +2118,7 @@ const goLiveSwitchBtn = $('owner-go-live-switch');
 if (goLiveSwitchBtn) goLiveSwitchBtn.addEventListener('click', async () => {
   const msg = $('owner-go-live-switch-msg');
   const d = loadOwner(); d.liveMode = true; saveOwner(d);
-  const e = loadEdits(); e.announce = '🔴 WE\u2019RE LIVE — Drop 01 is on. 30 pieces, first paid, first served.';
+  const e = loadEdits(); e.announce = '🔴 PREORDERS ARE LIVE — Drop 01 preorders are open. 30 pieces, first paid, first served.';
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
   applyEdits(); renderOwner();
   const hasToken = (() => { try { return !!localStorage.getItem(GH_KEY); } catch (_) { return false; } })();
@@ -2003,12 +2128,12 @@ if (goLiveSwitchBtn) goLiveSwitchBtn.addEventListener('click', async () => {
   try { const rows = await sbGet('clutch_signups', '?select=email'); (rows || []).forEach(r => { if (r.email && emails.indexOf(r.email) === -1) emails.push(r.email); }); } catch (_) {}
   (d.signupEmails || []).forEach(x => { if (emails.indexOf(x) === -1) emails.push(x); });
   if (!emails.length) { if (msg) msg.textContent = (hasToken ? 'Banner is live for everyone. ' : 'Banner is set on this device only. ') + 'No signup emails found to mail — send the drop email from Gmail once you have signups.'; return; }
-  const subject = 'CLUTCH Drop 01 is live — 30 pieces, no restocks';
-  const body = 'CLUTCH Drop 01 is live.\n\nUES Mesh Shorts — $25 + shipping ($35 total).\n30 pieces only. No restocks. All sales final.\n\nPreorder here: https://clutchbuiltdifferent.com/\n\nPick your size, DM @clutchny1, then pay $35 via Greenlight:\nhttps://gl.me/u/qqMvQlZ6mTpb\n\nSizes: S (10) · M (10) · L (5) · XL (5)\nFirst paid, first served.\n\n— CLUTCH, Built Different';
+  const subject = 'CLUTCH Drop 01 preorders are open — 30 pieces, no restocks';
+  const body = 'CLUTCH Drop 01 preorders are open.\n\nUES Mesh Shorts — $25 + shipping ($35 total).\n30 pieces only. No restocks. All sales final.\n\nPreorder here: https://clutchbuiltdifferent.com/\n\nPick your size, DM @clutchny1, then pay $35 via Greenlight:\nhttps://gl.me/u/qqMvQlZ6mTpb\n\nSizes: S (10) · M (10) · L (5) · XL (5)\nFirst paid, first served.\n\n— CLUTCH, Built Different';
   const mailto = 'mailto:?bcc=' + encodeURIComponent(emails.join(',')) + '&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
   if (mailto.length > 1800) {
     try { await navigator.clipboard.writeText(emails.join(', ')); } catch (_) {}
-    if (msg) msg.textContent = (hasToken ? 'Banner is live for everyone. ' : 'Banner is set on this device only. ') + 'Too many signups for one email link — the BCC list is copied, paste it into Gmail with the drop-day email.';
+    if (msg) msg.textContent = (hasToken ? 'Banner is live for everyone. ' : 'Banner is set on this device only. ') + 'Too many signups for one email link — the BCC list is copied, paste it into Gmail with the preorder-day email.';
   } else {
     window.open(mailto, '_blank');
     if (msg) msg.textContent = (hasToken ? 'Banner is live for everyone. ' : 'Banner is set on this device only. ') + 'Your mail app opened with all ' + emails.length + ' signups in BCC — hit send.';

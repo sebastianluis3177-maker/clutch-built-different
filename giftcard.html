@@ -11,6 +11,17 @@
 <p id="gc-msg" class="msg" role="status"></p>
 <div id="gc-result" class="fine"></div>
 <p class="fine">A good card takes $25 off at <a href="/checkout.html">checkout</a> — paste the code in the discount box there. Something wrong? DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> with your code and we'll check it.</p>
+<hr style="border-color:var(--line);margin:2rem 0">
+<p class="eyebrow">Give one</p><h2>Send a gift card.</h2>
+<p class="lede">A $25 CLUTCH gift card, emailed straight to whoever you pick. You pay $25 after — we'll send you to Greenlight.</p>
+<form id="gc-send-form" novalidate>
+<input id="gc-to-name" type="text" placeholder="Their name" required style="padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
+<input id="gc-to-email" type="email" placeholder="Their email" required style="padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
+<input id="gc-from-name" type="text" placeholder="Your name" required style="padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
+<button class="btn buy live" type="submit">Send it — $25</button>
+</form>
+<p id="gc-send-msg" class="msg" role="status"></p>
+<div id="gc-send-out" class="fine"></div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -34,6 +45,31 @@ async function checkCode(code) {
   } catch (_) { msg.className = 'msg'; msg.textContent = '⚠️ Couldn\'t reach the checker right now — DM @clutchny1 with the code and we\'ll check it for you.'; }
 }
 document.getElementById('gc-form').addEventListener('submit', e => { e.preventDefault(); checkCode(document.getElementById('gc-code').value); });
+// Send a gift card by email — the code goes to the recipient via FormSubmit's
+// autoresponse (it replies to the _replyto address), and CLUTCH gets a copy too.
+function gcCode() { const c = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 4; i++) s += c[Math.floor(Math.random() * c.length)]; return 'GIFT-' + s; }
+document.getElementById('gc-send-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const toName = document.getElementById('gc-to-name').value.trim();
+  const toEmail = document.getElementById('gc-to-email').value.trim().toLowerCase();
+  const fromName = document.getElementById('gc-from-name').value.trim();
+  const msg = document.getElementById('gc-send-msg'), out = document.getElementById('gc-send-out');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toEmail)) { msg.className = 'msg err'; msg.textContent = "That email doesn't look right."; return; }
+  const code = gcCode();
+  msg.className = 'msg'; msg.textContent = 'Sending…';
+  try { await sb.from('clutch_giftcards').insert({ code, value: 25 }); } catch (_) {}
+  try {
+    await fetch('https://formsubmit.co/ajax/clutchbuiltdifferent@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      _subject: 'CLUTCH gift card for ' + toName,
+      _replyto: toEmail,
+      _autoresponse: 'You got a $25 CLUTCH gift card from ' + fromName + '! Your code is ' + code + ' — paste it in the discount box at checkout: https://clutchbuiltdifferent.com/checkout.html?code=' + code + ' — good for Drop 01 or Drop 002. Built Different.',
+      _template: 'table',
+      to_name: toName, to_email: toEmail, from_name: fromName, gift_code: code, value: 25
+    })});
+  } catch (_) {}
+  msg.className = 'msg ok'; msg.textContent = '✅ Sent to ' + toEmail + ' — code ' + code + '.';
+  out.innerHTML = 'Now pay $25 for it: <a class="btn buy live" href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Pay $25 via Greenlight →</a><br><br>Code (in case the email lands in spam): <b>' + code + '</b> — <a href="/giftcard.html?code=' + code + '">check it here</a>.';
+});
 // shareable link: /giftcard.html?code=GIFT-XXXX checks it straight away
 (function () { const c = new URLSearchParams(location.search).get('code'); if (c) { document.getElementById('gc-code').value = c.trim().toUpperCase(); checkCode(c); } })();
 </script>

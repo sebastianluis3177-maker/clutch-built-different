@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preorders live — CLUTCH</title><link rel="stylesheet" href="assets/style.css"></head>
+<body style="background:#0b0b0b"><header class="nav"><a class="logo" href="/">CLUTCH</a><nav><a href="/">Home</a><a href="/checkout.html">Checkout</a><a href="/track.html">Track order</a></nav></header>
+<main style="max-width:700px;margin:2rem auto;padding:0 1rem">
+<p class="eyebrow">Drop 01 — Nov 27, 6PM ET</p><h2 id="live-title">Preorders live.</h2>
+<p class="lede" id="live-status">Checking what's left…</p>
+<div id="live-bars" class="stock-bars"></div>
+<p class="fine" id="live-count"></p>
+<p><a class="btn buy live" href="/checkout.html">Buy now →</a></p>
+<p class="fine">Stock refreshes every 30 seconds. All sales final. DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> if you need a hand.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb = window.supabase.createClient('https://fgnuaxhujvxkfzzcvdqf.supabase.co', 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz');
+const TOTALS = { S: 10, M: 10, L: 5, XL: 5 };
+async function loadLive() {
+  const st = document.getElementById('live-status'), bars = document.getElementById('live-bars'), count = document.getElementById('live-count');
+  try {
+    const r = await sb.from('clutch_stock').select('size,stock_left');
+    if (r.error || !r.data) throw 0;
+    const stock = { S: 10, M: 10, L: 5, XL: 5 };
+    r.data.forEach(row => { if (stock[row.size] !== undefined) stock[row.size] = row.stock_left; });
+    const left = Object.values(stock).reduce((a, b) => a + b, 0);
+    const dropAt = new Date('2026-11-27T18:00:00-05:00');
+    const live = Date.now() >= dropAt.getTime();
+    st.textContent = left === 0 ? 'SOLD OUT — all 30 gone. Thank you.' : live ? "🔴 PREORDERS ARE LIVE — " + left + ' of 30 left.' : 'Preorders open Fri Nov 27, 6PM ET — ' + left + ' of 30 left right now.';
+    document.getElementById('live-title').textContent = left === 0 ? 'Sold out.' : live ? 'Preorders are open.' : 'Preorders live.';
+    bars.innerHTML = ['S', 'M', 'L', 'XL'].map(s => {
+      const n = stock[s], pct = Math.round(n / TOTALS[s] * 100);
+      const col = n === 0 ? '#ff8a7a' : n <= 2 ? '#ffb86b' : 'var(--tan)';
+      return '<div class="sb-row"><b style="width:1.6rem">' + s + '</b><div class="sb-track"><div class="sb-fill" style="width:' + pct + '%;background:' + col + '"></div></div><span>' + (n === 0 ? 'SOLD OUT' : n + ' left') + '</span></div>';
+    }).join('');
+    count.textContent = (30 - left) + ' of 30 gone — updated just now.';
+  } catch (_) {
+    st.textContent = "Couldn't load live stock right now — check back in a bit, or DM @clutchny1.";
+  }
+}
+loadLive(); setInterval(loadLive, 30000);
+</script></body></html>
