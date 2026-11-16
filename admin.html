@@ -192,6 +192,7 @@ section,.nav{background-color:transparent}
 <button type="button" data-tab="payments">Payments</button>
 <button type="button" data-tab="email">Email</button>
 <button type="button" data-tab="staff">Staff</button>
+<button type="button" data-tab="profit">Profit</button>
 </nav>
 <div data-panel="dash"><div class="owner-stats" id="owner-stats"></div>
       <p class="fine" id="owner-sync-status">Supabase sync: checking…</p>
@@ -255,6 +256,11 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
 <form id="staff-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="staff-email" type="email" placeholder="staff email" required style="flex:2;min-width:180px"><select id="staff-role"><option value="staff">Staff — view orders + stock</option><option value="owner">Owner — full access</option></select><button class="btn buy live" type="submit">Add</button></form>
 <p class="fine" id="staff-list"></p>
 <p class="fine">Tip: send Jerry Emeri + Ajan's emails and he'll add them here for you.</p></div>
+<div data-panel="profit" hidden><h3>Profit — the money.</h3>
+<p class="fine">Revenue minus what each pair actually cost you (Kevin + shipping + anything else). Update the costs below when you know the real numbers and the profit updates instantly.</p>
+<div id="owner-profit"></div>
+<p class="fine">Cost per pair $ <input id="cost-perPair" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Shipping per order $ <input id="cost-shipping" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Other costs $ <input id="cost-other" type="number" min="0" step="0.01" style="width:5rem"> <button class="btn ghost" type="button" id="owner-cost-save">Save costs</button></p>
+<p class="fine">Defaults: $8.68 per pair (Kevin's $260.40 ÷ 30) and ~$9 shipping per order (USPS Ground Advantage estimate — change it once you print real labels).</p></div>
 <p class="fine" id="owner-msg"></p>
 <p><button class="btn ghost" type="button" id="owner-logout">Log out</button></p>
 </div></section></main>
@@ -283,7 +289,7 @@ const OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com']
 const $ = id => document.getElementById(id);
 const OWNER_KEY = 'clutch-admin-v1';
 const ACCT_KEY = 'clutch-owner-acct-v1';
-const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }] };
+const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 8.68, shipping: 9, other: 0 } };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
@@ -293,6 +299,24 @@ function renderOwner() {
   const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
   const rev = d.orders.reduce((a, o) => a + (o.total || 35), 0);
   var shipped = d.orders.filter(function (o) { return o.status === 'Shipped' || o.status === 'Delivered'; }).length;
+  var sold = d.orders.filter(function (o) { return (o.status || 'Paid') !== 'Cancelled'; });
+  var costs = d.costs || { perPair: 8.68, shipping: 9, other: 0 };
+  var revTotal = sold.reduce(function (a, o) { return a + (o.total || 35); }, 0);
+  var costTotal = sold.length * ((+costs.perPair || 0) + (+costs.shipping || 0)) + (+costs.other || 0);
+  var profitTotal = revTotal - costTotal;
+  var profitEl = $('owner-profit');
+  if (profitEl) {
+    var perPairProfit = (35 - (+costs.perPair || 0) - (+costs.shipping || 0));
+    var full = 30 * 35 - 30 * ((+costs.perPair || 0) + (+costs.shipping || 0)) - (+costs.other || 0);
+    profitEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.6rem;margin:.6rem 0">'
+      + '<div><small>Revenue</small><b style="display:block;font-size:1.3rem">$' + revTotal.toFixed(2) + '</b></div>'
+      + '<div><small>Costs</small><b style="display:block;font-size:1.3rem">−$' + costTotal.toFixed(2) + '</b></div>'
+      + '<div><small>Profit</small><b style="display:block;font-size:1.3rem;color:' + (profitTotal >= 0 ? '#9fd89a' : '#ff8a7a') + '">$' + profitTotal.toFixed(2) + '</b></div>'
+      + '<div><small>Profit / pair</small><b style="display:block;font-size:1.3rem">$' + perPairProfit.toFixed(2) + '</b></div>'
+      + '<div><small>Sold</small><b style="display:block;font-size:1.3rem">' + sold.length + ' / 30</b></div></div>'
+      + '<p class="fine">Costs right now: $' + (+costs.perPair || 0).toFixed(2) + ' per pair (Kevin, $260.40 / 30) + $' + (+costs.shipping || 0).toFixed(2) + ' shipping per order + $' + (+costs.other || 0).toFixed(2) + ' other. Cancelled orders don\'t count. If all 30 sell at $35: profit ≈ $' + full.toFixed(2) + '.</p>';
+  }
+  ['perPair', 'shipping', 'other'].forEach(function (k) { var inp = $('cost-' + k); if (inp && document.activeElement !== inp) inp.value = costs[k]; });
   $('owner-stats').innerHTML = [['Revenue', '$' + rev], ['Orders', d.orders.length], ['Shipped', shipped], ['Stock left', left + ' / 30'], ['Signups', d.signups || d.signupEmails.length]].map(function (kv) { return '<div><small>' + kv[0] + '</small><b>' + kv[1] + '</b></div>'; }).join('');
   $('owner-payments').textContent = 'Taken so far: $' + rev + ' from ' + d.orders.length + ' orders — $' + (1000 - rev) + ' left before the $1,000 / 30-day cap.';
   $('owner-stock').textContent = Object.entries(d.stock).map(function (kv) { return kv[0] + ': ' + kv[1] + ' left'; }).join(' · ') + ' — ' + left + ' total left';
@@ -389,6 +413,11 @@ $('owner-stock-save').addEventListener('click', function () {
   const d = loadOwner();
   ['S', 'M', 'L', 'XL'].forEach(function (s) { const v = parseInt(($('stock-edit-' + s).value || '0'), 10); if (!isNaN(v) && v >= 0) d.stock[s] = v; });
   saveOwner(d); renderOwner(); $('owner-msg').textContent = 'Stock updated.';
+});
+$('owner-cost-save').addEventListener('click', function () {
+  const d = loadOwner(); if (!d.costs) d.costs = { perPair: 8.68, shipping: 9, other: 0 };
+  ['perPair', 'shipping', 'other'].forEach(function (k) { const v = parseFloat(($('cost-' + k).value || '0')); if (!isNaN(v) && v >= 0) d.costs[k] = v; });
+  saveOwner(d); renderOwner(); $('owner-msg').textContent = 'Costs updated — profit recalculated.';
 });
 $('owner-login-form').addEventListener('submit', async function (e) {
   e.preventDefault();
