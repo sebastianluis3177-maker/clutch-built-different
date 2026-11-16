@@ -40,6 +40,13 @@ section{padding:4.5rem 1.25rem;max-width:1180px;margin:0 auto}
 .owner-grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:1rem 0}
 .owner input,.owner select{background:#0b0b0b;color:#f5efe4;border:1px solid var(--line);border-radius:8px;padding:.55rem .7rem;font:inherit}
 .owner form{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.owner-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
+.owner-tabs button{background:#0b0b0b;color:#cfc6b6;border:1px solid var(--line);border-radius:999px;padding:.5rem .9rem;font:inherit;cursor:pointer}
+.owner-tabs button.on{background:var(--tan);color:#0b0b0b;border-color:var(--tan)}
+.owner-stats{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin:1rem 0}
+.owner-stats div{background:#0b0b0b;border:1px solid var(--line);border-radius:10px;padding:.9rem}
+.owner-stats b{font-size:1.6rem;display:block}
+.owner pre{background:#0b0b0b;border:1px solid var(--line);border-radius:10px;padding:1rem;white-space:pre-wrap;font:inherit}
 .hero h1{font-size:clamp(4.2rem,22vw,12rem)}
 .hero h1 span{display:block;font-size:.28em;letter-spacing:.32em;color:var(--tan);margin-top:.6rem;font-weight:800;margin-right:-.32em}
 .lede{max-width:34ch;margin:1.4rem auto 2rem;color:#cfc6b6}
@@ -228,40 +235,89 @@ section,.nav{background-color:transparent}
     <button class="btn ghost" type="button" id="owner-reset-account">Reset account</button></p>
   </div>
   <div id="owner-admin" hidden>
-  <div class="owner-grid">
-    <div>
-      <h3>Stock left</h3>
-      <p class="fine" id="owner-stock"></p>
-      <p>
-        <button class="btn ghost" type="button" data-sell="S">Sell S</button>
-        <button class="btn ghost" type="button" data-sell="M">Sell M</button>
-        <button class="btn ghost" type="button" data-sell="L">Sell L</button>
-        <button class="btn ghost" type="button" data-sell="XL">Sell XL</button>
-        <button class="btn ghost" type="button" id="owner-reset-stock">Reset stock</button>
-      </p>
-    </div>
-    <div>
-      <h3>Email signups</h3>
-      <p class="fine">Signups land in your Gmail via FormSubmit. <a href="https://mail.google.com/mail/u/0/#search/from%3Aformsubmit+CLUTCH+Drop+01" target="_blank" rel="noopener">Open signup emails in Gmail</a></p>
-      <p class="fine">Signup count: <input id="owner-signups" type="number" min="0" value="0" style="width:4rem"> <span class="fine">update this when the hourly watcher pings you</span></p>
-    </div>
-    <div>
-      <h3>Links</h3>
-      <p class="fine"><a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Greenlight pay link — $35</a><br><a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">IG DMs — @clutchny1</a><br><a href="https://clutchbuiltdifferent.com/" target="_blank" rel="noopener">Live site</a></p>
-    </div>
+  <nav class="owner-tabs" aria-label="Admin pages">
+    <button type="button" data-tab="dash" class="on">Dashboard</button>
+    <button type="button" data-tab="orders">Orders</button>
+    <button type="button" data-tab="signups">Signups</button>
+    <button type="button" data-tab="stock">Stock</button>
+    <button type="button" data-tab="payments">Payments</button>
+    <button type="button" data-tab="email">Email</button>
+  </nav>
+
+  <div data-panel="dash">
+    <div class="owner-stats" id="owner-stats"></div>
+    <p class="fine">Drop 01 — Nov 27, 6PM ET · $25 + shipping ($35 total) · 30 pieces · No restocks · All sales final</p>
+    <p class="fine">Quick links: <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">IG DMs — @clutchny1</a> · <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Greenlight pay link</a> · <a href="https://clutchbuiltdifferent.com/" target="_blank" rel="noopener">Live site</a></p>
   </div>
-  <h3>Orders — full record</h3>
-  <form id="owner-order-form">
-    <input id="owner-buyer" type="text" placeholder="Buyer @ / name" required>
-    <select id="owner-size"><option>S</option><option>M</option><option>L</option><option>XL</option></select>
-    <select id="owner-pay"><option>Greenlight</option><option>Cash App</option><option>Cash / pickup</option></select>
-    <button class="btn buy live" type="submit">Add order</button>
-  </form>
-  <p class="fine" id="owner-orders"></p>
-  <p>
-    <button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
-    <button class="btn ghost" type="button" id="owner-clear">Clear orders</button>
-  </p>
+
+  <div data-panel="orders" hidden>
+    <h3>Orders — full record</h3>
+    <form id="owner-order-form">
+      <input id="owner-buyer" type="text" placeholder="Buyer @ / name" required>
+      <select id="owner-size"><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+      <select id="owner-pay"><option>Greenlight</option><option>Cash App</option><option>Cash / pickup</option></select>
+      <button class="btn buy live" type="submit">Add order</button>
+    </form>
+    <p class="fine" id="owner-orders"></p>
+    <p>
+      <button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
+      <button class="btn ghost" type="button" id="owner-clear">Clear orders</button>
+    </p>
+  </div>
+
+  <div data-panel="signups" hidden>
+    <h3>Email signups</h3>
+    <p class="fine">Signups land in your Gmail via FormSubmit. <a href="https://mail.google.com/mail/u/0/#search/from%3Aformsubmit+CLUTCH+Drop+01" target="_blank" rel="noopener">Open signup emails in Gmail</a> — the hourly watcher pings you here when a new one lands.</p>
+    <p class="fine">Signup count: <input id="owner-signups" type="number" min="0" value="0" style="width:4rem"></p>
+    <form id="owner-signup-add-form">
+      <input id="owner-signup-email" type="email" placeholder="Add a signup email manually" required>
+      <button class="btn buy live" type="submit">Add signup</button>
+    </form>
+    <p class="fine" id="owner-signup-list"></p>
+    <p><button class="btn ghost" type="button" id="owner-signup-export">Copy signup emails</button></p>
+  </div>
+
+  <div data-panel="stock" hidden>
+    <h3>Stock left</h3>
+    <p class="fine" id="owner-stock"></p>
+    <p>
+      <button class="btn ghost" type="button" data-sell="S">Sell S</button>
+      <button class="btn ghost" type="button" data-sell="M">Sell M</button>
+      <button class="btn ghost" type="button" data-sell="L">Sell L</button>
+      <button class="btn ghost" type="button" data-sell="XL">Sell XL</button>
+      <button class="btn ghost" type="button" id="owner-reset-stock">Reset stock</button>
+    </p>
+    <p class="fine">Start: S 10 · M 10 · L 5 · XL 5 = 30 total. Adding an order ticks stock down automatically.</p>
+  </div>
+
+  <div data-panel="payments" hidden>
+    <h3>Payments</h3>
+    <p class="fine" id="owner-payments"></p>
+    <p class="fine">Greenlight pay link: <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">gl.me/u/qqMvQlZ6mTpb</a> — $35 per pair. Your parent approves every Greenlight payment.<br>Cash App: in the DM, $cashtag sent there — backup only.<br>Heads up: Greenlight + Cash App both cap at $1,000 received in 30 days. 30 pairs at $35 = $1,050, so the last pair or two may need cash / pickup.</p>
+  </div>
+
+  <div data-panel="email" hidden>
+    <h3>Drop-day email</h3>
+    <p class="fine">Send to signups on Nov 27, 6PM ET — BCC everyone, never To, so nobody sees anyone else's email.</p>
+    <pre id="owner-email-draft">Subject: CLUTCH Drop 01 is live — 30 pieces, no restocks
+
+CLUTCH Drop 01 is live.
+
+UES Mesh Shorts — $25 + shipping ($35 total).
+30 pieces only. No restocks. All sales final.
+
+Preorder here: https://clutchbuiltdifferent.com/
+
+Pick your size, DM @clutchny1, then pay $35 via Greenlight:
+https://gl.me/u/qqMvQlZ6mTpb
+
+Sizes: S (10) · M (10) · L (5) · XL (5)
+First paid, first served.
+
+— CLUTCH, Built Different</pre>
+    <p><button class="btn ghost" type="button" id="owner-email-copy">Copy email draft</button></p>
+  </div>
+
   <p class="fine" id="owner-msg"></p>
   </div>
 </section>
@@ -557,7 +613,7 @@ if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
 });
 
 const OWNER_KEY = 'clutch-admin-v1';
-const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0 };
+const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [] };
 function loadOwner() {
   try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
   catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
@@ -565,15 +621,53 @@ function loadOwner() {
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (_) {} }
 function renderOwner() {
   const d = loadOwner();
+  if (!d.signupEmails) d.signupEmails = [];
+  const stockLeft = Object.values(d.stock).reduce((a, b) => a + b, 0);
+  const revenue = d.orders.reduce((a, o) => a + (o.total || 35), 0);
+  const statsEl = $('owner-stats');
+  if (statsEl) statsEl.innerHTML = [
+    ['Revenue', '$' + revenue], ['Orders', d.orders.length], ['Stock left', stockLeft + ' / 30'], ['Signups', d.signups || d.signupEmails.length]
+  ].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
+  const payEl = $('owner-payments');
+  if (payEl) payEl.textContent = `Taken so far: $${revenue} from ${d.orders.length} order${d.orders.length === 1 ? '' : 's'} — $${1000 - revenue} left before the $1,000 / 30-day Greenlight + Cash App cap.`;
   const stockEl = $('owner-stock');
-  if (stockEl) stockEl.textContent = Object.entries(d.stock).map(([s, n]) => `${s}: ${n} left`).join(' · ') + ` — ${Object.values(d.stock).reduce((a, b) => a + b, 0)} total left`;
+  if (stockEl) stockEl.textContent = Object.entries(d.stock).map(([s, n]) => `${s}: ${n} left`).join(' · ') + ` — ${stockLeft} total left`;
   const signEl = $('owner-signups');
   if (signEl && document.activeElement !== signEl) signEl.value = d.signups || 0;
+  const listEl = $('owner-signup-list');
+  if (listEl) listEl.textContent = d.signupEmails.length ? d.signupEmails.join(', ') : 'No signup emails saved here yet — check Gmail for the real list.';
   const ordersEl = $('owner-orders');
   if (ordersEl) ordersEl.textContent = d.orders.length
     ? d.orders.map((o, i) => `${i + 1}. ${o.buyer} — ${o.size} — ${o.pay} — $${o.total || 35}`).join('\n')
     : 'No orders logged yet.';
 }
+// Admin tabs — a whole dashboard inside the same site, no new website
+document.querySelectorAll('.owner-tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.owner-tabs button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  document.querySelectorAll('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== b.dataset.tab; });
+  renderOwner();
+}));
+const signupAddForm = $('owner-signup-add-form');
+if (signupAddForm) signupAddForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const d = loadOwner(); if (!d.signupEmails) d.signupEmails = [];
+  const em = $('owner-signup-email').value.trim();
+  if (em && !d.signupEmails.includes(em)) d.signupEmails.push(em);
+  d.signups = d.signupEmails.length;
+  saveOwner(d); renderOwner(); signupAddForm.reset();
+});
+const signupExport = $('owner-signup-export');
+if (signupExport) signupExport.addEventListener('click', async () => {
+  const d = loadOwner();
+  try { await navigator.clipboard.writeText((d.signupEmails || []).join(', ')); const m = $('owner-msg'); if (m) m.textContent = 'Signup emails copied.'; }
+  catch (_) {}
+});
+const emailCopy = $('owner-email-copy');
+if (emailCopy) emailCopy.addEventListener('click', async () => {
+  const t = $('owner-email-draft'); if (!t) return;
+  try { await navigator.clipboard.writeText(t.textContent); const m = $('owner-msg'); if (m) m.textContent = 'Email draft copied.'; } catch (_) {}
+});
 document.querySelectorAll('[data-sell]').forEach(b => b.addEventListener('click', () => {
   const d = loadOwner();
   if (d.stock[b.dataset.sell] > 0) d.stock[b.dataset.sell]--;
