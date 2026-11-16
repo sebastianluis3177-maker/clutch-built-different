@@ -33,7 +33,7 @@ document.getElementById('track-form').addEventListener('submit', async e => {
     const steps = ['Paid', 'Shipped', 'Delivered'];
     const idx = steps.indexOf(o.status || 'Paid');
     msg.className = 'msg ok'; msg.textContent = 'Found it.';
-    out.innerHTML = '<b>Order #' + num + '</b> — ' + o.size + ' — ' + (o.pay || '') + ' — $' + (o.total || 35) + '<br>Status: <b>' + (o.status || 'Paid') + '</b>' + (o.tracking ? '<br>Tracking: ' + o.tracking : '') + '<br><br>' + steps.map((s, i) => (i <= idx ? '✅ ' : '⬜ ') + s).join('<br>');
+    out.innerHTML = '<b>Order #' + num + '</b> — ' + o.size + ' — ' + (o.pay || '') + ' — $' + (o.total === undefined ? 35 : o.total) + '<br>Status: <b>' + (o.status || 'Paid') + '</b>' + (o.tracking ? '<br>Tracking: ' + o.tracking : '') + '<br><br>' + steps.map((s, i) => (i <= idx ? '✅ ' : '⬜ ') + s).join('<br>');
   } catch (_) {
     msg.className = 'msg'; msg.textContent = "Order tracking isn't synced yet — DM @clutchny1 with your name + size and we'll look it up.";
   }

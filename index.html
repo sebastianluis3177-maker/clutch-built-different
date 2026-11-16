@@ -194,6 +194,10 @@ section,.nav{background-color:transparent}
 .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:99}
 .confetti span{position:absolute;top:-10px;font-size:1.4rem;animation:confetti-fall 3s linear infinite}
 @keyframes confetti-fall{to{transform:translateY(110vh) rotate(360deg)}}
+
+/* Wix-style edit preview: empty banner hint */
+#pv-announce:empty::before{content:"Tap to add an announcement banner\2026";opacity:.55}
+#edit-preview [contenteditable]:focus{outline:2px dashed var(--tan);outline-offset:2px;border-radius:4px}
 </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Product","name":"CLUTCH UES Mesh Basketball Shorts — Drop 01",
@@ -274,6 +278,16 @@ section,.nav{background-color:transparent}
   <div data-panel="dash">
     <div class="owner-stats" id="owner-stats"></div>
     <div id="owner-alerts"></div>
+    <div id="owner-pin-change" style="border:1px solid var(--line);border-radius:10px;padding:1rem;margin:.8rem 0">
+      <h3>Change your PIN</h3>
+      <p class="fine">Forgot it or want a new one? Set a new PIN here — it works on this device only.</p>
+      <form id="owner-pin-form">
+        <input id="owner-pin-new" type="password" inputmode="numeric" placeholder="New PIN (4+ digits)" minlength="4" required>
+        <input id="owner-pin-new2" type="password" inputmode="numeric" placeholder="Repeat new PIN" minlength="4" required>
+        <button class="btn ghost" type="submit">Save new PIN</button>
+      </form>
+      <p class="fine" id="owner-pin-msg"></p>
+    </div>
     <div id="owner-countdown" class="fine" style="font-size:1.05rem;margin:.5rem 0"></div>
     <p><button class="btn ghost" type="button" id="owner-live-toggle">Turn on drop-day live mode</button></p>
     <div id="owner-live-feed"></div>
@@ -415,6 +429,17 @@ First paid, first served.
 
   <div data-panel="edit" hidden>
     <h3>Edit the website — from here</h3>
+    <div id="edit-preview" style="border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:1rem 0;background:#0b0b0b">
+      <div id="pv-announce" contenteditable="true" style="background:var(--tan);color:#111;text-align:center;padding:.5rem 1rem;font-weight:700;font-size:.9rem;min-height:1.4em"></div>
+      <div style="text-align:center;padding:1.5rem 1rem">
+        <div style="font-weight:900;font-size:2.2rem;letter-spacing:-.02em;line-height:.9">CLUTCH</div>
+        <p id="pv-lede" contenteditable="true" style="max-width:34ch;margin:1.2rem auto;color:#cfc6b6"></p>
+        <p style="font-size:2rem;font-weight:900;margin-bottom:1rem"><span id="pv-price" contenteditable="true">$25</span> <small style="font-size:.8rem;color:var(--mute)">USD + shipping</small></p>
+        <p id="pv-when" contenteditable="true" style="font-weight:700;letter-spacing:.06em;font-size:.9rem;margin:1rem 0"></p>
+        <p id="pv-buynote" contenteditable="true" class="fine" style="margin-top:.9rem"></p>
+        <p class="fine" style="margin-top:1.2rem">👆 Tap any of the words above and type — it saves as you go. Hit "Publish my edits live" below to put it on the real site. Only you can see this tab.</p>
+      </div>
+    </div>
     <p class="fine">Change the words below and hit Save — you'll see them change on this device right away. To make them live for everyone, hit "Publish my edits live" below (needs your GitHub key, one-time setup). Or hit "Copy edits for Jerry" and paste them to me in chat, and I'll push them.</p>
     <form id="owner-edit-form">
       <label class="fine">Hero line<br><input id="edit-lede" type="text" style="width:100%" value="The UES, mapped across a pair of mesh basketball shorts. 30 pieces. One run. No restocks."></label>
@@ -650,6 +675,7 @@ Name: [your name]</pre>
     <input id="account-password" name="password" type="password" placeholder="Password (6+ characters)" minlength="6" autocomplete="current-password" required>
     <button class="btn buy live" type="submit" id="account-signup">Sign up</button>
     <button class="btn ghost" type="button" id="account-login">Log in</button>
+    <button class="btn ghost" type="button" id="account-forgot">Forgot password?</button>
   </form>
   <p id="account-msg" class="msg" role="status"></p>
   <p id="account-who" class="fine"></p>
@@ -797,9 +823,6 @@ const $ = id => document.getElementById(id);
 const SUPABASE_URL = 'https://fgnuaxhujvxkfzzcvdqf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz';
 const OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com'];
-// One-time open window: ANY signed-in account gets owner access while it's open (Sebastian asked for it 2026-11-16 00:24 — 1 minute only, then it closes by itself; access is checked fresh on every load, nothing is saved).
-const OPEN_FROM = 1794807110 * 1000, OPEN_UNTIL = 1794807170 * 1000;
-function openWindowOn() { const n = Date.now(); return n >= OPEN_FROM && n < OPEN_UNTIL; }
 const OWNER_EMAIL = OWNER_EMAILS[0];
 let supabaseClient = null;
 try { if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (_) {}
@@ -855,7 +878,6 @@ async function refreshAccountUI() {
     if (out) out.hidden = false;
     if (msg) { msg.className = 'msg ok'; msg.textContent = OWNER_EMAILS.includes(user.email) ? 'You are the owner.' : 'Logged in.'; }
     if (OWNER_EMAILS.includes(user.email)) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (_) {} if (typeof showOwnerAdmin === 'function') showOwnerAdmin(); }
-    else if (openWindowOn()) { if (typeof showOwnerAdmin === 'function') showOwnerAdmin(); }
     else if (sbSyncOn) {
       const rows = await sbGet('clutch_staff', '?select=email,role&email=eq.' + encodeURIComponent(user.email));
       if (rows && rows.length) { const role = rows[0].role || 'staff'; if (msg) { msg.className = 'msg ok'; msg.textContent = role === 'view' ? 'Logged in as staff — view only.' : 'Logged in as staff — limited dashboard (orders + stock only).'; } if (typeof showOwnerAdmin === 'function') showOwnerAdmin(role); }
@@ -892,6 +914,16 @@ if (acctLogin) acctLogin.addEventListener('click', async () => {
   if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
   msg.className = 'msg ok'; msg.textContent = 'Logged in.';
   refreshAccountUI();
+});
+const acctForgot = $('account-forgot');
+if (acctForgot) acctForgot.addEventListener('click', async () => {
+  const msg = $('account-msg');
+  const email = $('account-email').value.trim();
+  if (!email) { msg.className = 'msg err'; msg.textContent = 'Type your email above first, then tap Forgot password.'; return; }
+  if (!supabaseClient) { msg.className = 'msg err'; msg.textContent = 'Accounts are offline right now.'; return; }
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: 'https://clutchbuiltdifferent.com/#account' });
+  msg.className = error ? 'msg err' : 'msg ok';
+  msg.textContent = error ? error.message : 'Reset link sent to ' + email + ' — open it, pick a new password, then log in.';
 });
 const acctLogout = $('account-logout');
 if (acctLogout) acctLogout.addEventListener('click', async () => {
@@ -1097,6 +1129,20 @@ if (loginForm) loginForm.addEventListener('submit', async e => {
 });
 const logoutBtn = $('owner-logout');
 if (logoutBtn) logoutBtn.addEventListener('click', () => { showOwnerAuth(); });
+const pinForm = $('owner-pin-form');
+if (pinForm) pinForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const pin = $('owner-pin-new').value, pin2 = $('owner-pin-new2').value;
+  const msg = $('owner-pin-msg');
+  if (pin !== pin2) { if (msg) msg.textContent = 'PINs don\u2019t match — try again.'; return; }
+  if (pin.length < 4) { if (msg) msg.textContent = 'Pick a PIN with at least 4 digits.'; return; }
+  const acct = loadAcct();
+  if (!acct) { if (msg) msg.textContent = 'No owner account on this device yet — make one first.'; return; }
+  acct.pinHash = await hashPin(pin);
+  saveAcct(acct);
+  if (msg) msg.textContent = 'PIN changed — use the new one next time you log in (this device only).';
+  e.target.reset();
+});
 const resetAcctBtn = $('owner-reset-account');
 if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
   if (!confirm('Reset the owner account on this device? Your order log + stock stay, but you\u2019ll have to make a new account + PIN.')) return;
@@ -1605,6 +1651,21 @@ document.querySelectorAll('[data-tpl]').forEach(b => b.addEventListener('click',
   try { await navigator.clipboard.writeText(TPLS[b.dataset.tpl] || ''); const m = $('owner-tpl-msg'); if (m) m.textContent = 'Copied — paste it into the DM.'; } catch (_) {}
 }));
 // Edit the website from admin — edits save on this device, and copy out to Jerry to push live for everyone
+// Wix-style preview: tap the words, type, it saves. Two-way sync with the form fields.
+const PV_IDS = { lede: 'pv-lede', price: 'pv-price', when: 'pv-when', buynote: 'pv-buynote', announce: 'pv-announce' };
+function fillPreview() {
+  const e = loadEdits();
+  const map = { lede: 'edit-lede', price: 'edit-price', when: 'edit-when', buynote: 'edit-buynote', announce: 'edit-announce' };
+  Object.keys(PV_IDS).forEach(k => { const el = $(PV_IDS[k]); if (el) { const f = $(map[k]); el.textContent = e[k] || (f ? f.value : '') || ''; } });
+}
+function savePreviewEdits() {
+  const e = loadEdits();
+  Object.keys(PV_IDS).forEach(k => { const el = $(PV_IDS[k]); if (el) e[k] = el.textContent.trim(); });
+  try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+  const map = { lede: 'edit-lede', price: 'edit-price', when: 'edit-when', buynote: 'edit-buynote', announce: 'edit-announce' };
+  Object.keys(map).forEach(k => { const f = $(map[k]); if (f) f.value = e[k] || ''; });
+}
+Object.keys(PV_IDS).forEach(k => { const el = $(PV_IDS[k]); if (el) el.addEventListener('input', savePreviewEdits); });
 const EDIT_KEY = 'clutch-site-edits-v1';
 function loadEdits() { try { return JSON.parse(localStorage.getItem(EDIT_KEY) || '{}'); } catch (_) { return {}; } }
 function applyEdits() {
@@ -1624,6 +1685,7 @@ function applyEdits() {
   const fPrice = $('edit-price'); if (fPrice && e.price) fPrice.value = e.price;
   const fWhen = $('edit-when'); if (fWhen && e.when) fWhen.value = e.when;
   const fNote = $('edit-buynote'); if (fNote && e.buynote) fNote.value = e.buynote;
+  fillPreview();
 }
 applyEdits();
 const editForm = $('owner-edit-form');
