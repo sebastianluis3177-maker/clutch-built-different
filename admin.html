@@ -414,6 +414,7 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
     </div>
     <h3>🎨 Visual editor — click any text on the real site</h3>
     <p class="fine">This is the live homepage, right here in the admin. Click any heading or paragraph, type, and it saves on this device. Then hit "Publish my edits live" below to make it live for everyone. (Photos and new sections still go through Jerry for now.)</p>
+    <p class="fine">Frame showing: <button class="btn ghost" type="button" id="owner-visual-page-home">Homepage</button> <button class="btn ghost" type="button" id="owner-visual-page-d2">Drop 002</button> <span id="owner-visual-page-msg"></span></p>
     <iframe id="owner-visual-frame" title="Visual editor — the live homepage" style="width:100%;height:560px;border:1px solid var(--line);border-radius:10px;background:#fff"></iframe>
     <p class="fine" id="owner-visual-msg"></p>
     <p class="fine">Change the words below and hit Save — you'll see them change on this device right away. To make them live for everyone, hit "Publish my edits live" below (needs your GitHub key, one-time setup). Or hit "Copy edits for Jerry" and paste them to me in chat, and I'll push them.</p>
@@ -440,6 +441,40 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
     </div>
     <p><button class="btn buy live" type="button" id="owner-edit-publish">🚀 Publish my edits live</button></p>
     <p class="fine" id="owner-edit-msg"></p>
+    <hr>
+    <h3>🚂 Drop 002 editor — edit the FORM 001 page</h3>
+    <p class="fine">Switch the frame above to Drop 002 to click-to-edit its words. Colors, sections and the mockup photo live here. Everything saves as a draft first — hit "Publish Drop 002 live" to put it on the real page (needs your GitHub key, one-time setup).</p>
+    <p class="fine" id="owner-d2-preview-note"></p>
+    <h3 style="font-size:1rem">🎨 Colors</h3>
+    <div id="owner-d2-colors">
+      <label class="fine">Background <input id="d2-color-bg" type="color" value="#0b0b0b"></label>
+      <label class="fine">Text <input id="d2-color-ink" type="color" value="#f3ead8"></label>
+      <label class="fine">Cream <input id="d2-color-cream" type="color" value="#f5efe0"></label>
+      <label class="fine">Tan <input id="d2-color-tan" type="color" value="#c9b08a"></label>
+      <label class="fine">Green <input id="d2-color-green" type="color" value="#14532d"></label>
+      <label class="fine">Bright green <input id="d2-color-greenBright" type="color" value="#00985f"></label>
+      <label class="fine">Brick <input id="d2-color-brick" type="color" value="#b4552d"></label>
+      <label class="fine">Lines <input id="d2-color-line" type="color" value="#262320"></label>
+    </div>
+    <p><button class="btn ghost" type="button" id="owner-d2-reset-colors">Reset colors</button></p>
+    <h3 style="font-size:1rem">📄 Sections — show / hide</h3>
+    <div id="owner-d2-sections">
+      <label class="fine"><input id="d2-section-hero" type="checkbox" checked> Hero (big 6 + headline)</label>
+      <label class="fine"><input id="d2-section-mockup" type="checkbox" checked> Mockup photo</label>
+      <label class="fine"><input id="d2-section-price" type="checkbox" checked> Price + preorder box</label>
+      <label class="fine"><input id="d2-section-details" type="checkbox" checked> Details (train / cup / locals)</label>
+      <label class="fine"><input id="d2-section-votes" type="checkbox" checked> Votes</label>
+      <label class="fine"><input id="d2-section-footer" type="checkbox" checked> Footer (6 stops)</label>
+    </div>
+    <p class="fine" id="owner-d2-price-warn" hidden>⚠️ The price section is hidden — buyers won't be able to buy.</p>
+    <h3 style="font-size:1rem">🖼️ Mockup photo</h3>
+    <p class="fine">Pick a new photo for the shorts. It gets shrunk in your browser (max 1600px wide, JPG) so the page stays fast, and only goes live when you publish.</p>
+    <p><input id="d2-photo-input" type="file" accept="image/*"></p>
+    <p><img id="d2-photo-preview" alt="New Drop 002 mockup preview" style="max-width:240px;display:none;border:1px solid var(--line);border-radius:10px"></p>
+    <p class="fine" id="d2-photo-msg"></p>
+    <p><button class="btn ghost" type="button" id="d2-photo-clear">Remove pending photo</button></p>
+    <p><button class="btn buy live" type="button" id="owner-d2-publish">🚀 Publish Drop 002 live</button></p>
+    <p class="fine" id="owner-d2-msg"></p>
   </div>
 
 <div data-panel="staff" hidden><h3>Staff access</h3>
@@ -542,7 +577,7 @@ function roleLabel(r) { return r === 'owner' ? 'Owner' : r === 'gated' ? 'Owner 
 const $ = id => document.getElementById(id);
 const OWNER_KEY = 'clutch-admin-v1';
 const ACCT_KEY = 'clutch-owner-acct-v1';
-const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, stock002: { S: 14, M: 14, L: 6, XL: 6 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {} };
+const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, stock002: { S: 14, M: 14, L: 6, XL: 6 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {}, d2Theme: { bg: '#0b0b0b', ink: '#f3ead8', cream: '#f5efe0', tan: '#c9b08a', green: '#14532d', greenBright: '#00985f', brick: '#b4552d', line: '#262320' }, d2Sections: { hero: true, mockup: true, price: true, details: true, votes: true, footer: true } };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { ensureSyncCids(d); try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} scheduleAdminFlush(); }
 // ---- Full admin sync (Supabase) -------------------------------------
@@ -555,7 +590,7 @@ function saveOwner(d) { ensureSyncCids(d); try { localStorage.setItem(OWNER_KEY,
 // and the UI keeps working off localStorage until the new parts run.
 function clientId() { try { if (window.crypto && crypto.randomUUID) return 'c' + crypto.randomUUID().replace(/-/g, '').slice(0, 12); } catch (e) {} return 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
 var SYNC_ROW_TABLES = { discounts: 'clutch_discounts', expenses: 'clutch_expenses', moneyEntries: 'clutch_money_entries', activity: 'clutch_activity', templates: 'clutch_templates' };
-var SYNC_SETTINGS_KEYS = { costs: 'admin_costs', liveMode: 'admin_live_mode', taxPct: 'admin_tax_pct', fundGoal: 'admin_fund_goal', startBalance: 'admin_start_balance', signups: 'admin_signups', signupEmails: 'admin_signup_emails', seeding: 'admin_seeding', postCal: 'admin_post_cal', dropChecklist: 'admin_drop_checklist', calendarChecks: 'admin_calendar_checks', taxChecks: 'admin_tax_checks', dailyTasks: 'admin_daily_tasks', flagged: 'admin_flagged', notes: 'admin_notes', assignments: 'admin_assignments' };
+var SYNC_SETTINGS_KEYS = { costs: 'admin_costs', liveMode: 'admin_live_mode', taxPct: 'admin_tax_pct', fundGoal: 'admin_fund_goal', startBalance: 'admin_start_balance', signups: 'admin_signups', signupEmails: 'admin_signup_emails', seeding: 'admin_seeding', postCal: 'admin_post_cal', dropChecklist: 'admin_drop_checklist', calendarChecks: 'admin_calendar_checks', taxChecks: 'admin_tax_checks', dailyTasks: 'admin_daily_tasks', flagged: 'admin_flagged', notes: 'admin_notes', assignments: 'admin_assignments', d2Theme: 'admin_d2_theme', d2Sections: 'admin_d2_sections' };
 var sbTablesKnown = {};
 var lastSyncedState = null;
 var adminStateSynced = false;
@@ -958,6 +993,12 @@ function approvalDetail(r) {
     case 'orders-clear': return 'Clears ALL orders from the log.';
     case 'site-edits': return 'Edits save on this device only until approved — publish still needs a separate approval.';
     case 'publish-edits': return 'Publishes the current site edits to the live site.';
+    case 'publish-d2': return 'Publishes the current Drop 002 edits to the live Drop 002 page.';
+    case 'd2-settings': {
+      const hidden = Object.keys(p.sections || {}).filter(function (s) { return p.sections[s] === false; });
+      return 'Drop 002 colors/sections' + (hidden.length ? ' — hides: ' + hidden.join(', ') : '');
+    }
+    case 'd2-image': return 'New Drop 002 mockup photo (pending publish).';
     case 'go-live': return 'Turns on preorder-day live mode + banner + email to signups.';
     case 'live-toggle': return 'Live mode → ' + (p.liveMode ? 'ON' : 'OFF');
     case 'discount-add': return 'New code ' + (p.code || '') + ' at ' + (p.pct === undefined ? '?' : p.pct) + '% off';
@@ -1039,6 +1080,21 @@ function applyApproval(action, p, actor) {
       saveEdits(p.edits || {});
       mirrorBannerSchedule();
       applyEdits(); renderOwner(); return true;
+    }
+    case 'publish-d2': {
+      saveEdits(p.edits || {});
+      if (p.theme) saveD2Theme(p.theme);
+      if (p.sections) saveD2Sections(p.sections);
+      applyEdits(); renderOwner(); renderD2Controls(); publishD2Live(); return true;
+    }
+    case 'd2-settings': {
+      if (p.theme) saveD2Theme(p.theme);
+      if (p.sections) saveD2Sections(p.sections);
+      renderOwner(); renderD2Controls(); applyD2PreviewToFrame(); return true;
+    }
+    case 'd2-image': {
+      saveEdits(p.edits || {});
+      renderD2Controls(); applyD2PreviewToFrame(); return true;
     }
     case 'stock-edit': {
       if (!p.stock) return false;
@@ -1938,7 +1994,7 @@ function renderOwner() {
 }
 document.querySelectorAll('.owner-tabs button').forEach(function (b) { b.addEventListener('click', function () {
   document.querySelectorAll('.owner-tabs button').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
-  document.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.dataset.panel !== b.dataset.tab; }); if (b.dataset.tab === 'edit') startVisualFrame(); renderOwner();
+  document.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.dataset.panel !== b.dataset.tab; }); if (b.dataset.tab === 'edit') { startVisualFrame(); renderD2Controls(); } renderOwner();
 }); });
 $('owner-order-form').addEventListener('submit', function (e) {
   e.preventDefault(); const d = loadOwner(); const size = $('owner-size').value;
@@ -2353,18 +2409,40 @@ async function publishEditsLive(m) {
     if (html === htmlBeforeText) { if (m) m.textContent = 'Nothing new to publish — the live site already has these edits.'; return; }
     if (m) m.textContent = 'Uploading the new version…';
     const put = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/index.html', { method: 'PUT', headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Update site from admin: hero/price/date/note/banner', content: b64e(html), sha: data.sha, branch: 'main' }) });
-    if (!put.ok) { const err = await put.json().catch(() => ({}));
+    if (!put.ok) { const err = await put.json().catch(() => ({})); throw new Error('GitHub would not save it (' + put.status + (err.message ? ' — ' + err.message : '') + ').'); }
+
+    try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' })); } catch (_) {}
+    try { sb.from('clutch_settings').upsert({ key: 'admin_published', value: JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' }) }, { onConflict: 'key' }).then(function () {}, function () {}); } catch (e2) {}
+    if (m) m.textContent = schedFuture ? '✅ Published — the banner is scheduled and will appear ' + new Date(e.bannerAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '.' : '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
+  } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
+}
 // Visual editor (admin side): the live homepage in an iframe, click-to-edit via postMessage.
+// The frame can switch to Drop 002 (loaded with ?preview=1 so the owner sees the full page).
 var visualStarted = false;
+var visualPage = 'home';
+function visualFrameUrl() { return visualPage === 'd2' ? 'https://clutchbuiltdifferent.com/drop002.html?preview=1' : 'https://clutchbuiltdifferent.com/'; }
 function startVisualFrame() {
   var fr = $('owner-visual-frame'); if (!fr || visualStarted) return;
   visualStarted = true;
-  var vm = $('owner-visual-msg'); if (vm) vm.textContent = 'Loading the live homepage…';
+  var vm = $('owner-visual-msg'); if (vm) vm.textContent = visualPage === 'd2' ? 'Loading Drop 002…' : 'Loading the live homepage…';
   fr.addEventListener('load', function () {
     try { fr.contentWindow.postMessage({ type: 'clutch-edit-on', edits: loadEdits() }, 'https://clutchbuiltdifferent.com'); } catch (e) {}
+    if (visualPage === 'd2') applyD2PreviewToFrame();
   });
-  fr.src = 'https://clutchbuiltdifferent.com/';
+  fr.src = visualFrameUrl();
 }
+function setVisualPage(p) {
+  visualPage = p;
+  var pm = $('owner-visual-page-msg'); if (pm) pm.textContent = p === 'd2' ? 'Drop 002 — if the frame only shows Coming soon, log in on the main site once first.' : '';
+  if (!visualStarted) { startVisualFrame(); return; }
+  var fr = $('owner-visual-frame'); if (!fr) return;
+  var vm = $('owner-visual-msg'); if (vm) vm.textContent = p === 'd2' ? 'Loading Drop 002…' : 'Loading the live homepage…';
+  fr.src = visualFrameUrl();
+}
+const visualPageHome = $('owner-visual-page-home');
+if (visualPageHome) visualPageHome.addEventListener('click', function () { setVisualPage('home'); });
+const visualPageD2 = $('owner-visual-page-d2');
+if (visualPageD2) visualPageD2.addEventListener('click', function () { setVisualPage('d2'); });
 window.addEventListener('message', function (ev) {
   if (ev.origin !== 'https://clutchbuiltdifferent.com') return;
   var d = ev.data || {};
@@ -2374,17 +2452,249 @@ window.addEventListener('message', function (ev) {
     saveEdits(e);
     var vm2 = $('owner-visual-msg'); if (vm2) vm2.textContent = 'Saved on this device — hit "Publish my edits live" below to make it live for everyone.';
   }
-}); throw new Error('GitHub would not save it (' + put.status + (err.message ? ' — ' + err.message : '') + ').'); }
-    try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' })); } catch (_) {}
-    try { sb.from('clutch_settings').upsert({ key: 'admin_published', value: JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' }) }, { onConflict: 'key' }).then(function () {}, function () {}); } catch (e2) {}
-    if (m) m.textContent = schedFuture ? '✅ Published — the banner is scheduled and will appear ' + new Date(e.bannerAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '.' : '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
-  } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
-}
+});
 const ghPublish = $('owner-edit-publish');
 if (ghPublish) ghPublish.addEventListener('click', function () {
   if (isGated()) { requestApproval('publish-edits', 'Publish site edits live', { edits: loadEdits() }); const m = $('owner-edit-msg'); if (m) m.textContent = 'Sent for approval — Sebastian will review it.'; return; }
   publishEditsLive();
 });
+// ---- Drop 002 editor (admin side) ------------------------------------
+// The Drop 002 page is built for editing: 52 data-edit keys (d2- prefix),
+// :root CSS variables for every color, stable ids d2-mockup / d2-mockup-img,
+// data-section on hero/mockup/price/details/votes/footer. Text edits flow
+// through the same visual frame + loadEdits() as the homepage; colors and
+// sections live on the owner object (d.d2Theme / d.d2Sections) and sync via
+// clutch_settings (admin_d2_theme / admin_d2_sections); the mockup photo
+// draft lives in loadEdits() as 'd2:image' and syncs via clutch_site_edits.
+// Publishing goes to GitHub via the saved token — never without it.
+const D2_THEME_DEFAULTS = { bg: '#0b0b0b', ink: '#f3ead8', cream: '#f5efe0', tan: '#c9b08a', green: '#14532d', greenBright: '#00985f', brick: '#b4552d', line: '#262320' };
+const D2_THEME_VARS = { bg: '--d2-bg', ink: '--d2-ink', cream: '--d2-cream', tan: '--d2-tan', green: '--d2-green', greenBright: '--d2-green-bright', brick: '--d2-brick', line: '--d2-line' };
+const D2_SECTIONS = ['hero', 'mockup', 'price', 'details', 'votes', 'footer'];
+function loadD2Theme() { try { const d = loadOwner(); return Object.assign({}, D2_THEME_DEFAULTS, d.d2Theme || {}); } catch (e) { return Object.assign({}, D2_THEME_DEFAULTS); } }
+function saveD2Theme(t) { const d = loadOwner(); d.d2Theme = Object.assign({}, D2_THEME_DEFAULTS, t || {}); saveOwner(d); }
+function loadD2Sections() { try { const d = loadOwner(); const s = {}; D2_SECTIONS.forEach(function (n) { s[n] = !(d.d2Sections && d.d2Sections[n] === false); }); return s; } catch (e) { const s = {}; D2_SECTIONS.forEach(function (n) { s[n] = true; }); return s; } }
+function saveD2Sections(s) { const d = loadOwner(); d.d2Sections = Object.assign({}, s); saveOwner(d); }
+function renderD2Controls() {
+  const theme = loadD2Theme();
+  Object.keys(D2_THEME_VARS).forEach(function (k) { const el = $('d2-color-' + k); if (el) el.value = theme[k] || D2_THEME_DEFAULTS[k]; });
+  const sections = loadD2Sections();
+  D2_SECTIONS.forEach(function (n) { const el = $('d2-section-' + n); if (el) el.checked = !!sections[n]; });
+  const warn = $('owner-d2-price-warn'); if (warn) warn.hidden = !!sections.price;
+  const note = $('owner-d2-preview-note');
+  if (note) note.textContent = (window.location.hostname || '').indexOf('admin.') === 0 ? 'Note: on this standalone admin the frame preview is limited — colors, sections and the photo apply when you publish.' : '';
+  renderD2PhotoDraft();
+}
+function renderD2PhotoDraft() {
+  const e = loadEdits();
+  const prev = $('d2-photo-preview'), msg = $('d2-photo-msg');
+  if (!prev) return;
+  if (e['d2:image']) {
+    prev.src = e['d2:image'];
+    prev.style.display = '';
+    const kb = Math.max(1, Math.round(e['d2:image'].length * 3 / 4 / 1024));
+    if (msg) msg.textContent = 'Pending photo — about ' + kb + ' KB. It goes live when you hit "Publish Drop 002 live".';
+  } else {
+    prev.removeAttribute('src'); prev.style.display = 'none';
+    if (msg) msg.textContent = '';
+  }
+}
+// Best-effort live preview inside the Drop 002 frame. Works when the frame
+// is same-origin (main-site admin); on the standalone admin the frame is
+// cross-origin and this silently does nothing — publish still works.
+function applyD2PreviewToFrame(themeOverride, sectionsOverride) {
+  const fr = $('owner-visual-frame'); if (!fr || visualPage !== 'd2') return;
+  const theme = themeOverride || loadD2Theme();
+  const sections = sectionsOverride || loadD2Sections();
+  const e = loadEdits();
+  try {
+    const doc = fr.contentDocument; if (!doc) return;
+    const root = doc.documentElement;
+    Object.keys(D2_THEME_VARS).forEach(function (k) { try { root.style.setProperty(D2_THEME_VARS[k], theme[k]); } catch (e2) {} });
+    D2_SECTIONS.forEach(function (n) { const el = doc.querySelector('[data-section="' + n + '"]'); if (el) el.style.display = sections[n] ? '' : 'none'; });
+    if (e['d2:image']) { const img = doc.getElementById('d2-mockup-img'); if (img) img.src = e['d2:image']; }
+  } catch (e3) {}
+}
+var d2ThemePending = null;
+Object.keys(D2_THEME_VARS).forEach(function (k) {
+  const el = $('d2-color-' + k); if (!el) return;
+  el.addEventListener('input', function () {
+    d2ThemePending = Object.assign({}, loadD2Theme(), d2ThemePending || {}, { [k]: el.value });
+    applyD2PreviewToFrame(d2ThemePending, null);
+  });
+  el.addEventListener('change', function () { commitD2Theme(); });
+});
+function commitD2Theme() {
+  const fromInputs = {};
+  Object.keys(D2_THEME_VARS).forEach(function (k) { const el = $('d2-color-' + k); if (el) fromInputs[k] = el.value; });
+  const theme = Object.assign({}, loadD2Theme(), d2ThemePending || {}, fromInputs);
+  d2ThemePending = null;
+  if (isGated()) {
+    requestApproval('d2-settings', 'Drop 002 colors', { theme: theme, sections: loadD2Sections() });
+    const m = $('owner-d2-msg'); if (m) m.textContent = 'Sent for approval — Sebastian will review it. Nothing is saved yet.';
+    renderD2Controls(); return;
+  }
+  saveD2Theme(theme);
+  applyD2PreviewToFrame();
+}
+const d2ResetColors = $('owner-d2-reset-colors');
+if (d2ResetColors) d2ResetColors.addEventListener('click', function () {
+  if (isGated()) {
+    requestApproval('d2-settings', 'Drop 002 colors — reset to defaults', { theme: Object.assign({}, D2_THEME_DEFAULTS), sections: loadD2Sections() });
+    const m = $('owner-d2-msg'); if (m) m.textContent = 'Sent for approval — Sebastian will review it. Nothing is saved yet.';
+    return;
+  }
+  saveD2Theme(Object.assign({}, D2_THEME_DEFAULTS));
+  renderD2Controls(); applyD2PreviewToFrame();
+  const m2 = $('owner-d2-msg'); if (m2) m2.textContent = 'Colors reset — publish to make it live.';
+});
+D2_SECTIONS.forEach(function (n) {
+  const el = $('d2-section-' + n); if (!el) return;
+  el.addEventListener('change', function () {
+    const sections = loadD2Sections(); sections[n] = !!el.checked;
+    if (isGated()) {
+      requestApproval('d2-settings', 'Drop 002 sections' + (n === 'price' && !el.checked ? ' — hides the price box' : ''), { theme: loadD2Theme(), sections: sections });
+      const m = $('owner-d2-msg'); if (m) m.textContent = 'Sent for approval — Sebastian will review it. Nothing is saved yet.';
+      renderD2Controls(); return;
+    }
+    saveD2Sections(sections);
+    const warn = $('owner-d2-price-warn'); if (warn) warn.hidden = !!sections.price;
+    applyD2PreviewToFrame();
+  });
+});
+function d2DownscaleImage(file, cb) {
+  const reader = new FileReader();
+  reader.onload = function () {
+    const img = new Image();
+    img.onload = function () {
+      let w = img.width || 0, h = img.height || 0;
+      if (!w || !h) { cb(new Error('Could not read that image — try a JPG or PNG.')); return; }
+      const maxW = 1600;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      const ctx = cv.getContext('2d'); if (!ctx) { cb(new Error('This browser could not shrink the photo — try a smaller file.')); return; }
+      ctx.fillStyle = '#0b0b0b'; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      let uri;
+      try { uri = cv.toDataURL('image/jpeg', 0.85); } catch (e) { cb(new Error('Could not shrink that photo — try a JPG.')); return; }
+      cb(null, uri, w, h);
+    };
+    img.onerror = function () { cb(new Error('Could not read that image — try a JPG or PNG.')); };
+    img.src = reader.result;
+  };
+  reader.onerror = function () { cb(new Error('Could not read that file.')); };
+  reader.readAsDataURL(file);
+}
+const d2PhotoInput = $('d2-photo-input');
+if (d2PhotoInput) d2PhotoInput.addEventListener('change', function () {
+  const file = d2PhotoInput.files && d2PhotoInput.files[0];
+  if (!file) return;
+  const msg = $('owner-d2-msg'); if (msg) msg.textContent = 'Shrinking the photo…';
+  d2DownscaleImage(file, function (err, uri, w, h) {
+    d2PhotoInput.value = '';
+    if (err) { if (msg) msg.textContent = err.message; return; }
+    const kb = Math.max(1, Math.round(uri.length * 3 / 4 / 1024));
+    if (isGated()) {
+      const e2 = loadEdits(); e2['d2:image'] = uri;
+      requestApproval('d2-image', 'Drop 002 mockup photo (' + w + '×' + h + ', ' + kb + ' KB)', { edits: e2 });
+      if (msg) msg.textContent = 'Sent for approval — Sebastian will review it. Nothing is saved yet.';
+      return;
+    }
+    const e = loadEdits(); e['d2:image'] = uri; saveEdits(e);
+    renderD2PhotoDraft(); applyD2PreviewToFrame();
+    if (msg) msg.textContent = 'Photo saved as a draft (' + w + '×' + h + ', ' + kb + ' KB)' + (kb > 900 ? ' — that is heavy for the page, a smaller photo would load faster' : '') + ' — hit "Publish Drop 002 live" to put it on the page.';
+  });
+});
+const d2PhotoClear = $('d2-photo-clear');
+if (d2PhotoClear) d2PhotoClear.addEventListener('click', function () {
+  const e = loadEdits(); if (!e['d2:image']) return; delete e['d2:image']; saveEdits(e);
+  renderD2PhotoDraft(); applyD2PreviewToFrame();
+  const m = $('owner-d2-msg'); if (m) m.textContent = 'Pending photo removed — the live photo stays as-is.';
+});
+function d2SetSectionTag(html, name, hide) {
+  const re = new RegExp('<[^>]*data-section="' + name + '"[^>]*>', '');
+  const m = html.match(re);
+  if (!m) return null;
+  const tag = m[0];
+  let out = tag;
+  if (hide) {
+    if (/display\s*:\s*none/.test(tag)) return html;
+    const sm = tag.match(/style="([^"]*)"/);
+    if (sm) out = tag.replace(/style="([^"]*)"/, 'style="display:none;$1"');
+    else out = tag.replace(/>$/, ' style="display:none">');
+  } else {
+    if (!/display\s*:\s*none/.test(tag)) return html;
+    out = tag.replace(/style="([^"]*)"/, function (mm, inner) {
+      const cleaned = inner.replace(/display\s*:\s*none;?/g, '').trim();
+      return cleaned ? 'style="' + cleaned + '"' : '';
+    });
+    out = out.replace(/\s+>/, '>');
+  }
+  return html.replace(tag, function () { return out; });
+}
+async function publishD2Live(m) {
+  m = m || $('owner-d2-msg');
+  const token = (() => { try { return localStorage.getItem(GH_KEY) || ''; } catch (e) { return ''; } })();
+  if (!token) { if (m) m.textContent = 'No GitHub key saved yet — paste your token above and hit Save key first.'; return; }
+  const e = loadEdits();
+  const theme = loadD2Theme();
+  const sections = loadD2Sections();
+  if (m) m.textContent = 'Publishing Drop 002… fetching the live page file.';
+  try {
+    const r = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/drop002.html', { headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' } });
+    if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'GitHub said the key is wrong or expired. Make a new token and save it again.' : 'GitHub fetch failed (' + r.status + ').');
+    const data = await r.json();
+    let html = b64d(data.content);
+    const before = html;
+    const missing = [];
+    const esc = function (x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+    const escRe = function (s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
+    // 1. Text edits (Drop 002 keys only — homepage keys never touch this file).
+    Object.keys(e).forEach(function (k) {
+      if (k.indexOf('text:d2-') !== 0) return;
+      const key = k.slice(5);
+      const re = new RegExp('(<[^>]*data-edit="' + escRe(key) + '"[^>]*>)([^<]*)(</)', 'g');
+      let n = 0; html = html.replace(re, function (m0, a, b, c) { n++; return a + esc(e[k]) + c; });
+      if (!n) missing.push('text: ' + key);
+    });
+    // 2. Theme — swap each :root variable value in place.
+    Object.keys(D2_THEME_VARS).forEach(function (k) {
+      const v = theme[k];
+      if (!v) return;
+      const re = new RegExp('(' + escRe(D2_THEME_VARS[k]) + ':)[^;]*;', 'g');
+      let n = 0; html = html.replace(re, function (m0, a) { n++; return a + v + ';'; });
+      if (!n) missing.push('color: ' + k);
+    });
+    // The tan color also drives the Greek-key SVG stroke.
+    if (theme.tan && /^#[0-9a-fA-F]{6}$/.test(theme.tan)) {
+      const km = html.match(/(--d2-key:[^;]+;)/);
+      if (km) { const fixed = km[1].replace(/stroke='%23[0-9a-fA-F]{6}'/, "stroke='%23" + theme.tan.slice(1) + "'"); if (fixed !== km[1]) html = html.replace(km[1], function () { return fixed; }); }
+    }
+    // 3. Sections — hide with display:none, re-show by removing it.
+    D2_SECTIONS.forEach(function (name) {
+      const next = d2SetSectionTag(html, name, !sections[name]);
+      if (next === null) missing.push('section: ' + name);
+      else html = next;
+    });
+    // 4. Mockup photo — swap the d2-mockup-img data URI (the train-door photo is untouched).
+    if (e['d2:image']) {
+      const imgRe = /(<img\b[^>]*\bid="d2-mockup-img"[^>]*\bsrc=")[^"]*(")/;
+      if (imgRe.test(html)) html = html.replace(imgRe, function (m0, a, c) { return a + e['d2:image'] + c; });
+      else missing.push('mockup photo');
+    }
+    if (missing.length) { if (m) m.textContent = 'Stopped — could not find in the live file: ' + missing.join(', ') + '. The page may have changed since your last publish — tell Jerry.'; return; }
+    if (html === before) { if (m) m.textContent = 'Nothing new to publish — Drop 002 already has these edits.'; return; }
+    if (m) m.textContent = 'Uploading the new version…';
+    const put = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/drop002.html', { method: 'PUT', headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Update Drop 002 from admin: text/theme/sections/photo', content: b64e(html), sha: data.sha, branch: 'main' }) });
+    if (!put.ok) { const err = await put.json().catch(() => ({})); throw new Error('GitHub would not save it (' + put.status + (err.message ? ' — ' + err.message : '') + ').'); }
+    if (m) m.textContent = '✅ Published — Drop 002 updates in about a minute. Hard-refresh the preview to see it.';
+  } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
+}
+const d2Publish = $('owner-d2-publish');
+if (d2Publish) d2Publish.addEventListener('click', function () {
+  if (isGated()) { requestApproval('publish-d2', 'Publish Drop 002 live', { edits: loadEdits(), theme: loadD2Theme(), sections: loadD2Sections() }); const m = $('owner-d2-msg'); if (m) m.textContent = 'Sent for approval — Sebastian will review it.'; return; }
+  publishD2Live();
+});
+renderD2Controls();
 $('owner-assign-form').addEventListener('submit', function (e) {
   e.preventDefault();
   const d = loadOwner(); if (!d.assignments) d.assignments = [];
