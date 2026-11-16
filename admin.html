@@ -227,10 +227,12 @@ section,.nav{background-color:transparent}
 <button type="button" data-tab="taxes">Taxes</button>
 <button type="button" data-tab="accounts">Accounts</button>
 <button type="button" data-tab="today">📋 Today</button>
+<button type="button" data-tab="notes">📝 Team notes</button>
 </nav>
 <div data-panel="dash"><div class="owner-stats" id="owner-stats"></div>
 <div id="owner-alerts"></div>
 <div id="owner-referrers"></div>
+<div id="owner-pace"></div>
 <div id="owner-pin-change" style="border:1px solid var(--line);border-radius:10px;padding:1rem;margin:.8rem 0">
 <h3>Change your PIN</h3>
 <p class="fine">Forgot it or want a new one? Set a new PIN here — it works on this device only.</p>
@@ -294,7 +296,8 @@ section,.nav{background-color:transparent}
 <p class="fine" id="owner-signup-list"></p>
 <p><button class="btn ghost" type="button" id="owner-signup-export">Copy signup emails</button> <button class="btn ghost" type="button" id="owner-waitlist-notify">Notify waitlist (copy email)</button> <button class="btn ghost" type="button" id="owner-giveaway-pick">🎲 Pick a giveaway winner</button></p>
 <p class="fine" id="owner-giveaway-winner"></p>
-<p class="fine" id="owner-waitlist-msg"></p></div>
+<p class="fine" id="owner-waitlist-msg"></p>
+<div id="owner-waitlist-sizes"></div></div>
 <div data-panel="stock" hidden><h3>Stock left</h3><p class="fine" id="owner-stock"></p>
 <p><button class="btn ghost" type="button" data-sell="S">Sell S</button>
 <button class="btn ghost" type="button" data-sell="M">Sell M</button>
@@ -423,6 +426,17 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
     <div id="owner-today"></div>
   </div>
 
+<div data-panel="notes" hidden>
+<h3>📝 Team notes — Sebastian, Emeri + Ajan</h3>
+<p class="fine">Shared notes for the whole team. They sync through Supabase once the new SQL part is run — until then they save on this device only.</p>
+<form id="team-note-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
+<select id="team-note-author"><option>Sebastian</option><option>Emeri</option><option>Ajan</option></select>
+<input id="team-note-text" type="text" placeholder="Leave a note for the team…" style="flex:2;min-width:180px" required>
+<button class="btn buy live" type="submit">Add note</button>
+</form>
+<div id="owner-team-notes" style="margin-top:.8rem"></div>
+</div>
+
   <div data-panel="accounts" hidden>
 <h3>Accounts — everyone who signed up.</h3>
 <p class="fine">Owner only. <b>Passwords are never shown here — and never stored where anyone can read them.</b> When someone makes an account, Supabase scrambles their password into a one-way hash. Nobody can reverse it — not you, not me, not anyone with the database. That's what keeps people's accounts safe if the database ever leaks. If someone's locked out, send them a reset link and they'll pick a new password themselves.</p>
@@ -464,6 +478,42 @@ const ACCT_KEY = 'clutch-owner-acct-v1';
 const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {} };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
+// Packing checklist per order (localStorage, keyed by order id when known, else list index)
+var PACK_STEPS = ['packed', 'label', 'photo', 'dropped'];
+var PACK_LABELS = { packed: 'Packed', label: 'Label printed', photo: 'Photo taken', dropped: 'Dropped at post office' };
+function loadPacking() { try { return JSON.parse(localStorage.getItem('clutch-packing-v1') || '{}'); } catch (e) { return {}; } }
+function savePacking(p) { try { localStorage.setItem('clutch-packing-v1', JSON.stringify(p)); } catch (e) {} }
+// Per-customer notes (localStorage, keyed by buyer email when known, else buyer name)
+var CUST_NOTES_KEY = 'clutch-customer-notes-v1';
+function loadCustNotes() { try { return JSON.parse(localStorage.getItem(CUST_NOTES_KEY) || '{}'); } catch (e) { return {}; } }
+function saveCustNotes(n) { try { localStorage.setItem(CUST_NOTES_KEY, JSON.stringify(n)); } catch (e) {} }
+function custKey(buyer) { var m = String(buyer || '').match(/[\w.+-]+@[\w-]+\.[\w.]+/); return m ? m[0].toLowerCase() : String(buyer || '').trim(); }
+var openProfiles = {};
+// Team notes board — Supabase clutch_notes when the table exists, else localStorage fallback
+var notesUseSb = false;
+function loadLocalNotes() { try { return JSON.parse(localStorage.getItem('clutch-team-notes-v1') || '[]'); } catch (e) { return []; } }
+function saveLocalNotes(n) { try { localStorage.setItem('clutch-team-notes-v1', JSON.stringify(n)); } catch (e) {} }
+async function loadTeamNotes() {
+  try {
+    var r = await sb.from('clutch_notes').select('id,text,author,created_at').order('created_at', { ascending: false });
+    if (!r.error && r.data) { notesUseSb = true; return r.data; }
+  } catch (e) {}
+  notesUseSb = false;
+  return loadLocalNotes();
+}
+async function renderTeamNotes() {
+  var el = $('owner-team-notes'); if (!el) return;
+  var notes = await loadTeamNotes();
+  var esc = function (s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  if (!notes.length) { el.innerHTML = '<p class="fine">No team notes yet — leave one for Sebastian, Emeri, or Ajan.</p>'; return; }
+  el.innerHTML = notes.map(function (n, i) { return '<div style="margin:.4rem 0;padding:.5rem;border:1px solid var(--line);border-radius:8px"><b>' + esc(n.author || 'Team') + '</b> <span class="fine">' + esc((n.created_at || n.at || '').slice(0, 16).replace('T', ' ')) + '</span><br>' + esc(n.text) + ' <button class="btn ghost" type="button" data-note-del="' + (n.id !== undefined && n.id !== null ? n.id : 'local-' + i) + '">Delete</button></div>'; }).join('');
+  el.querySelectorAll('[data-note-del]').forEach(function (b) { b.addEventListener('click', async function () {
+    var v = b.dataset.noteDel;
+    if (v.indexOf('local-') === 0) { var ns = loadLocalNotes(); ns.splice(+v.slice(6), 1); saveLocalNotes(ns); renderTeamNotes(); return; }
+    try { await sb.from('clutch_notes').delete().eq('id', +v); } catch (e) {}
+    renderTeamNotes();
+  }); });
+}
 async function sha(s) { try { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); } catch (e) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return 'fallback-' + h; } }
 function updateCountdown() {
   var el = $('owner-countdown'); if (!el) return;
@@ -473,7 +523,7 @@ function updateCountdown() {
   el.innerHTML = '<b>⏳ Drop day in ' + dd + 'd ' + hh + 'h ' + mm + 'm</b> — Fri Nov 27, 6PM ET.';
 }
 setInterval(updateCountdown, 30000);
-function showAdmin(staffMode) { $('admin-gate').hidden = true; $('owner-admin').hidden = false; if (staffMode) { var hide = staffMode === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit'] : ['payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit']; document.querySelectorAll('.owner-tabs button').forEach(function (b) { if (hide.indexOf(b.dataset.tab) !== -1) b.style.display = 'none'; }); } renderOwner(); }
+function showAdmin(staffMode) { $('admin-gate').hidden = true; $('owner-admin').hidden = false; if (staffMode) { var hide = staffMode === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit', 'notes'] : ['payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit']; document.querySelectorAll('.owner-tabs button').forEach(function (b) { if (hide.indexOf(b.dataset.tab) !== -1) b.style.display = 'none'; }); } renderOwner(); }
 function renderOwner() {
   const d = loadOwner(); if (!d.signupEmails) d.signupEmails = [];
   const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
@@ -689,6 +739,23 @@ function renderOwner() {
     r.data.forEach(function (x) { bySize[x.size || '?'] = (bySize[x.size || '?'] || 0) + 1; });
     el.textContent = r.data.length ? 'Drop 002 waitlist: ' + r.data.length + ' total — ' + Object.entries(bySize).map(function (kv) { return kv[0] + ': ' + kv[1]; }).join(', ') : 'Drop 002 waitlist is empty so far.';
   });
+  // Waitlist auto-notify — per size, copy a restock message + BCC list
+  sb.from('clutch_waitlist').select('email,size').then(function (r) {
+    var el = $('owner-waitlist-sizes');
+    if (!el) return;
+    if (r.error || !r.data) { el.innerHTML = '<p class="fine">Waitlist notify shows once the new SQL part is run.</p>'; return; }
+    var bySize = {};
+    r.data.forEach(function (x) { var s = x.size || '?'; if (!bySize[s]) bySize[s] = []; if (x.email) bySize[s].push(x.email); });
+    var sizes = Object.keys(bySize).sort();
+    if (!sizes.length) { el.innerHTML = '<p class="fine">No one on the Drop 01 waitlist yet.</p>'; return; }
+    el.innerHTML = '<h3>📣 Waitlist — notify a size</h3>' + sizes.map(function (s) { return '<div style="margin:.4rem 0">Size <b>' + s + '</b> — ' + bySize[s].length + ' waiting <button class="btn ghost" type="button" data-waitlist-notify="' + s + '">Copy notify message</button></div><div class="fine" style="margin:-.2rem 0 .4rem">BCC: ' + bySize[s].join(', ') + '</div>'; }).join('');
+    el.querySelectorAll('[data-waitlist-notify]').forEach(function (b) { b.addEventListener('click', async function () {
+      var s = b.dataset.waitlistNotify;
+      var text = 'hey — CLUTCH Drop 01 size ' + s + ' is back, grab it before it is gone: https://clutchbuiltdifferent.com/checkout.html\n\nBCC: ' + bySize[s].join(', ');
+      try { await navigator.clipboard.writeText(text); $('owner-msg').textContent = 'Notify message copied — ' + bySize[s].length + ' email' + (bySize[s].length === 1 ? '' : 's') + ' in the BCC line.'; } catch (e) {}
+    }); });
+  });
+  renderTeamNotes();
   sb.from('clutch_stats').select('visits').eq('id', 1).then(function (r) {
     var el = $('owner-visits');
     if (!el) return;
@@ -717,6 +784,20 @@ function renderOwner() {
     if (sb2) sb2.addEventListener('click', function () { const dd = loadOwner(); dd.startBalance = parseFloat(($('money-start').value || '0')) || 0; saveOwner(dd); renderOwner(); });
   }
   $('owner-stats').innerHTML = [['Revenue', '$' + rev], ['Orders', d.orders.length], ['Shipped', shipped], ['Stock left', left + ' / 30'], ['Signups', d.signups || d.signupEmails.length]].map(function (kv) { return '<div><small>' + kv[0] + '</small><b>' + kv[1] + '</b></div>'; }).join('');
+  // Sales pace — X of 30 sold, how many a day to sell out by Nov 27
+  var paceEl = $('owner-pace');
+  if (paceEl) {
+    var soldN = soldP.filter(function (o) { return ['Paid', 'Shipped', 'Delivered'].indexOf(o.status || 'Paid') !== -1; }).length;
+    var leftN2 = Math.max(0, 30 - soldN);
+    var nowP = new Date();
+    var todayOnly = new Date(nowP.getFullYear(), nowP.getMonth(), nowP.getDate());
+    var daysLeft2 = Math.max(0, Math.round((new Date(2026, 10, 27) - todayOnly) / 864e5));
+    var pctP = Math.round(soldN / 30 * 100);
+    var barP = '<div style="background:#222;border-radius:8px;height:14px;overflow:hidden"><div style="width:' + pctP + '%;height:100%;background:#c9a86a"></div></div>';
+    if (soldN >= 30) paceEl.innerHTML = '<h3>🚀 Sales pace</h3><p><b>SOLD OUT — all 30 pairs gone.</b></p>' + barP;
+    else if (daysLeft2 === 0) paceEl.innerHTML = '<h3>🚀 Sales pace</h3><p><b>' + soldN + ' of 30 sold</b> — preorders are open, ' + leftN2 + ' left.</p>' + barP;
+    else paceEl.innerHTML = '<h3>🚀 Sales pace</h3><p><b>' + soldN + ' of 30 sold</b> · need <b>' + Math.ceil(leftN2 / daysLeft2) + '/day</b> to sell out by Nov 27 (' + leftN2 + ' left, ' + daysLeft2 + ' day' + (daysLeft2 === 1 ? '' : 's') + ' to go).</p>' + barP;
+  }
   $('owner-payments').textContent = 'Taken so far: $' + rev + ' from ' + d.orders.length + ' orders — $' + (1000 - rev) + ' left before the $1,000 / 30-day cap.';
   var refEl = $('owner-referrers');
   if (refEl) {
@@ -775,6 +856,7 @@ function renderOwner() {
   if (!d.orders.length) { el.textContent = 'No orders logged yet.'; }
   else if (!shown.length) { el.textContent = 'No orders match that search.'; }
   else {
+    var pack = loadPacking();
     el.innerHTML = shown.map(function (x) { var o = x.o, i = x.i;
       var canCancel = (o.status || 'Paid') !== 'Cancelled';
       var op = (o.total === undefined ? 35 : o.total) - (+costsP.perPair || 0) - (+costsP.shipping || 0);
@@ -782,10 +864,34 @@ function renderOwner() {
       var flagged = (d.flagged || []).indexOf(o.buyer) !== -1;
       var hist = (o.history || []).slice(-2).map(function (h) { return '<span class="fine">' + h.at + ' — ' + h.text + '</span>'; }).join('<br>');
       var dm = (o.buyer || '').match(/@([\w.]+)/);
-      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">' + (i + 1) + '. ' + (dm ? '<a href="https://www.instagram.com/' + dm[1] + '/" target="_blank" rel="noopener"><b>' + o.buyer + '</b></a>' : '<b>' + o.buyer + '</b>') + (flagged ? ' 🚩' : '') + (dup ? ' ⚠️ ordered twice' : '') + ((o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : '') + (((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : '') + ' — ' + o.size + ' — ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + ' — <b>' + (o.status || 'Paid') + '</b> <span class="fine">profit ' + (op >= 0 ? '+' : '−') + '$' + Math.abs(op).toFixed(2) + '</span>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + (o.note ? '<br>📝 ' + o.note : '') + (hist ? '<br>' + hist : '') + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button> <button class="btn ghost" type="button" data-order-note="' + i + '">Note</button> <button class="btn ghost" type="button" data-order-slip="' + i + '">Print slip</button> <button class="btn ghost" type="button" data-order-ship="' + i + '">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="' + i + '">' + (flagged ? 'Unflag' : 'Flag') + '</button>' + ((['S', 'M', 'L', 'XL'].indexOf(o.size) !== -1 && ['Pending', 'Paid', 'Shipped'].indexOf(o.status || 'Paid') !== -1) ? ' <select data-order-swap-size="' + i + '" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">' + ['S', 'M', 'L', 'XL'].map(function (s2) { return '<option' + (s2 === o.size ? ' selected' : '') + '>' + s2 + '</option>'; }).join('') + '</select> <button class="btn ghost" type="button" data-order-swap="' + i + '">Swap size</button>' : '') + (canCancel ? ' <button class="btn ghost" type="button" data-order-cancel="' + i + '">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="' + i + '">Refund</button>' : '') + '</div>';
+      var pkey = o.id ? 'id-' + o.id : 'idx-' + i;
+      var pk = pack[pkey] || {};
+      var packDone = PACK_STEPS.filter(function (s) { return pk[s]; }).length;
+      var packHtml = '<br><span class="fine">📦 Packing ' + packDone + '/4:</span> ' + PACK_STEPS.map(function (s) { return '<label style="white-space:nowrap;margin-right:.4rem"><input type="checkbox" data-pack-key="' + pkey + '" data-pack-step="' + s + '"' + (pk[s] ? ' checked' : '') + '> ' + PACK_LABELS[s] + '</label>'; }).join('');
+      var mine = d.orders.filter(function (x) { return x.buyer === o.buyer; });
+      var spent = mine.filter(function (x) { return (x.status || 'Paid') !== 'Cancelled' && (x.status || 'Paid') !== 'Refunded'; }).reduce(function (a, x) { return a + (x.total === undefined ? 35 : x.total); }, 0);
+      var custNotes = loadCustNotes();
+      var ckey = custKey(o.buyer);
+      var escAttr = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+      var profHtml = openProfiles[o.buyer] ? '<div style="margin-top:.5rem;padding:.5rem;border:1px dashed var(--line);border-radius:8px"><b>Customer profile — ' + o.buyer + '</b><br><span class="fine">' + mine.length + ' order' + (mine.length === 1 ? '' : 's') + ' · $' + spent.toFixed(2) + ' spent · sizes: ' + mine.map(function (x) { return x.size; }).join(', ') + '</span>' + mine.map(function (x) { return '<br><span class="fine">#' + (d.orders.indexOf(x) + 1) + ' — ' + x.size + ' — $' + (x.total === undefined ? 35 : x.total) + ' — ' + (x.status || 'Paid') + '</span>'; }).join('') + '<br><label class="fine">Notes on this customer<br><textarea data-cust-note="' + escAttr(ckey) + '" rows="2" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#111;color:var(--ink)">' + escAttr(custNotes[ckey] || '') + '</textarea></label></div>' : '';
+      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">' + (i + 1) + '. ' + (dm ? '<a href="https://www.instagram.com/' + dm[1] + '/" target="_blank" rel="noopener"><b>' + o.buyer + '</b></a>' : '<b>' + o.buyer + '</b>') + (flagged ? ' 🚩' : '') + (dup ? ' ⚠️ ordered twice' : '') + ((o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : '') + (((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : '') + ' — ' + o.size + ' — ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + ' — <b>' + (o.status || 'Paid') + '</b> <span class="fine">profit ' + (op >= 0 ? '+' : '−') + '$' + Math.abs(op).toFixed(2) + '</span>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + (o.note ? '<br>📝 ' + o.note : '') + (hist ? '<br>' + hist : '') + packHtml + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button> <button class="btn ghost" type="button" data-order-note="' + i + '">Note</button> <button class="btn ghost" type="button" data-order-slip="' + i + '">Print slip</button> <button class="btn ghost" type="button" data-order-ship="' + i + '">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="' + i + '">' + (flagged ? 'Unflag' : 'Flag') + '</button>' + ((o.status || 'Paid') === 'Paid' ? ' <button class="btn ghost" type="button" data-order-shipit="' + i + '">✅ Mark shipped</button>' : '') + ' <button class="btn ghost" type="button" data-order-profile="' + i + '">' + (openProfiles[o.buyer] ? 'Hide profile' : 'Profile') + '</button>' + ((['S', 'M', 'L', 'XL'].indexOf(o.size) !== -1 && ['Pending', 'Paid', 'Shipped'].indexOf(o.status || 'Paid') !== -1) ? ' <select data-order-swap-size="' + i + '" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">' + ['S', 'M', 'L', 'XL'].map(function (s2) { return '<option' + (s2 === o.size ? ' selected' : '') + '>' + s2 + '</option>'; }).join('') + '</select> <button class="btn ghost" type="button" data-order-swap="' + i + '">Swap size</button>' : '') + (canCancel ? ' <button class="btn ghost" type="button" data-order-cancel="' + i + '">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="' + i + '">Refund</button>' : '') + profHtml + '</div>';
     }).join('');
     el.querySelectorAll('[data-order-status]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus]; o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Underpaid' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ ' + o.status }); saveOwner(dd); renderOwner(); if (o.status === 'Delivered') { try { navigator.clipboard.writeText('Your CLUTCH Drop 01 shorts were delivered 🙏 thank you for supporting — you are officially one of the first 30. Wear them well. If you loved them, drop a review on the site: https://clutchbuiltdifferent.com/#reviews — @clutchny1').then(function () { $('owner-msg').textContent = 'Delivered! Thank-you DM copied — paste it to ' + o.buyer + '.'; }).catch(function () {}); } catch (e) {} } }); });
     el.querySelectorAll('[data-order-ship]').forEach(function (b) { b.addEventListener('click', async function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderShip]; try { await navigator.clipboard.writeText(o.address || ''); } catch (e) {} window.open('https://www.pirateship.com', '_blank'); $('owner-msg').textContent = 'Address copied — paste it into Pirate Ship to buy the label.'; }); });
+    el.querySelectorAll('[data-pack-key]').forEach(function (c) { c.addEventListener('change', function () { var p = loadPacking(); var k = c.dataset.packKey; if (!p[k]) p[k] = {}; p[k][c.dataset.packStep] = c.checked; savePacking(p); renderOwner(); }); });
+    el.querySelectorAll('[data-order-shipit]').forEach(function (b) { b.addEventListener('click', async function () {
+      const dd = loadOwner(); const o = dd.orders[+b.dataset.orderShipit];
+      var tr = (o.tracking || '').trim();
+      if (!tr) { tr = prompt('Tracking number for this order:'); if (tr == null) return; tr = String(tr).trim(); if (!tr) return; }
+      o.tracking = tr; o.status = 'Shipped';
+      if (!o.history) o.history = [];
+      o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Shipped — tracking ' + tr });
+      logAct('Shipped order #' + (+b.dataset.orderShipit + 1) + ' (' + o.buyer + ', ' + o.size + ')');
+      saveOwner(dd); renderOwner();
+      try { await navigator.clipboard.writeText('your CLUTCH order shipped 🚚 tracking: ' + tr + ' — lmk when it lands 🙏'); $('owner-msg').textContent = 'Shipped + DM copied — paste it to ' + o.buyer + '.'; } catch (e) {}
+    }); });
+    el.querySelectorAll('[data-order-profile]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderProfile]; openProfiles[o.buyer] = !openProfiles[o.buyer]; renderOwner(); }); });
+    el.querySelectorAll('[data-cust-note]').forEach(function (t) { t.addEventListener('change', function () { var n = loadCustNotes(); n[t.dataset.custNote] = t.value.trim(); saveCustNotes(n); $('owner-msg').textContent = 'Customer note saved.'; }); });
     el.querySelectorAll('[data-order-flag]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); if (!dd.flagged) dd.flagged = []; const o = dd.orders[+b.dataset.orderFlag]; dd.flagged = dd.flagged.indexOf(o.buyer) !== -1 ? dd.flagged.filter(function (x) { return x !== o.buyer; }) : dd.flagged.concat([o.buyer]); saveOwner(dd); renderOwner(); }); });
     el.querySelectorAll('[data-order-tracking]').forEach(function (b) { b.addEventListener('click', function () { const t = prompt('Tracking number:'); if (t === null) return; const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner(); }); });
     el.querySelectorAll('[data-order-note]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderNote]; const t = prompt('Note for this order (customer notes, gift message, etc.):', o.note || ''); if (t === null) return; o.note = t.trim(); saveOwner(dd); renderOwner(); }); });
@@ -1163,6 +1269,21 @@ $('owner-note-form').addEventListener('submit', function (e) {
   if (!text) return;
   d.notes.push({ text: text, at: new Date().toISOString().slice(0, 16).replace('T', ' ') });
   saveOwner(d); renderOwner(); e.target.reset();
+});
+$('team-note-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  var text = ($('team-note-text').value || '').trim();
+  var author = $('team-note-author') ? $('team-note-author').value : 'Sebastian';
+  if (!text) return;
+  await loadTeamNotes(); // probe first so we know where to save
+  if (notesUseSb) {
+    try { var r = await sb.from('clutch_notes').insert({ text: text, author: author }); if (!r.error) { e.target.reset(); renderTeamNotes(); return; } } catch (err) {}
+    notesUseSb = false;
+  }
+  var notes = loadLocalNotes();
+  notes.unshift({ text: text, author: author, at: new Date().toISOString().slice(0, 16).replace('T', ' ') });
+  saveLocalNotes(notes);
+  e.target.reset(); renderTeamNotes();
 });
 $('owner-tpl-form').addEventListener('submit', function (e) {
   e.preventDefault();
