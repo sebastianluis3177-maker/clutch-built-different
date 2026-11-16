@@ -207,12 +207,71 @@ section,.nav{background-color:transparent}
 .sb-track{flex:1;height:10px;background:#121110;border:1px solid var(--line);border-radius:99px;overflow:hidden}
 .sb-fill{height:100%;background:var(--tan)}
 @media(max-width:799px){
+  .admin-toolbar input[type=search]{flex-basis:100%}
   section{padding:2rem 1rem}
   .owner-tabs button{padding:.4rem .7rem;font-size:.85rem}
   .owner-stats{gap:.5rem}
   .owner-stats b{font-size:1.3rem}
   #owner-orders .btn{padding:.45rem .65rem;font-size:.72rem}
 }
+
+/* ---- Admin wave: grouped tabs + cleaner stats ---- */
+.owner-tabs{align-items:flex-start}
+.tab-group{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;border:1px solid var(--line);border-radius:12px;padding:.4rem .5rem}
+.tab-group-label{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:800;padding:0 .3rem}
+.owner-stats small{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:block;margin-bottom:.2rem}
+.owner-stats b{font-size:1.9rem}
+.owner h3{margin:1.2rem 0 .5rem}
+
+/* ---- Global search toolbar ---- */
+.admin-toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin:.8rem 0}
+.admin-toolbar input[type=search]{flex:1;min-width:200px}
+#admin-global-results{position:relative}
+.gs-row{padding:.55rem .7rem;border:1px solid var(--line);border-radius:8px;margin:.3rem 0;cursor:pointer;background:#0b0b0b}
+.gs-row:hover{border-color:var(--tan)}
+
+/* ---- Data Center ---- */
+.dc-grid{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin:.8rem 0}
+.dc-card{background:#0b0b0b;border:1px solid var(--line);border-radius:12px;padding:.9rem}
+.dc-card small{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:block;margin-bottom:.2rem}
+.dc-card b{font-size:1.5rem;display:block}
+
+/* ---- My Day (ported from myday.html) ---- */
+.progress{height:10px;background:#222;border-radius:99px;overflow:hidden;margin:1rem 0 .4rem}
+.progress i{display:block;height:100%;background:var(--tan);border-radius:99px;transition:width .4s}
+.sect{font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--tan);margin:1.6rem 0 .2rem}
+.task{display:flex;gap:.9rem;align-items:flex-start;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:14px;margin:.6rem 0;background:#111;cursor:pointer;transition:border-color .2s,transform .15s}
+.task:hover{border-color:var(--tan);transform:translateY(-1px)}
+.task.done{opacity:.5}
+.task.done b{text-decoration:line-through}
+.task input{width:1.4rem;height:1.4rem;margin-top:.1rem;accent-color:#c9a86a;flex:none;cursor:pointer}
+.task b{font-size:1rem;line-height:1.3}
+.task small{display:block;color:var(--mute);margin-top:.2rem;line-height:1.4}
+.task .del{margin-left:auto;flex:none;background:none;border:none;color:var(--mute);font-size:1.1rem;cursor:pointer;padding:.2rem .4rem}
+.task .del:hover{color:#ff8a7a}
+.add-row{display:flex;gap:.5rem;margin-top:1.2rem;flex-wrap:wrap}
+.add-row input[type=text]{flex:1;min-width:12rem;padding:.8rem;border:1px solid var(--line);border-radius:10px;background:#111;color:var(--ink)}
+.add-row select{padding:.8rem;border:1px solid var(--line);border-radius:10px;background:#111;color:var(--ink)}
+
+/* ---- Light theme (admin toggle; the admin is dark by default) ---- */
+body.admin-light{--bg:#f7f2e8;--ink:#1d1a15;--tan:#8a6d3b;--mute:#6d675e;--line:#ddd3c0;background:#f7f2e8;color:#1d1a15}
+body.admin-light .owner{background:#fff;border-color:#ddd3c0}
+body.admin-light .owner-stats div{background:#fff;border-color:#ddd3c0}
+body.admin-light .owner-tabs button{background:#fff;color:#1d1a15;border-color:#ddd3c0}
+body.admin-light .owner-tabs button.on{background:#8a6d3b;color:#fff;border-color:#8a6d3b}
+body.admin-light .nav{background:rgba(247,242,232,.9)}
+body.admin-light input,body.admin-light select,body.admin-light textarea{background:#fff !important;color:#1d1a15 !important;border-color:#ddd3c0 !important}
+body.admin-light .dc-card{background:#fff;border-color:#ddd3c0}
+body.admin-light .task{background:#fff;border-color:#ddd3c0}
+body.admin-light .progress{background:#e5ddcc}
+body.admin-light .gs-row{background:#fff;border-color:#ddd3c0}
+body.admin-light [style*="color:#9fd89a"]{color:#2e7d32 !important}
+body.admin-light [style*="color:#ff8a7a"]{color:#c62828 !important}
+body.admin-light [style*="background:#111"]{background:#fff !important}
+body.admin-light [style*="background:#0b0b0b"]{background:#fff !important}
+body.admin-light [style*="background:#222"]{background:#e5ddcc !important}
+body.admin-light #edit-preview{background:#0b0b0b !important}
+body.admin-light #edit-preview [style*="background:#0b0b0b"]{background:#0b0b0b !important}
 </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Product","name":"CLUTCH UES Mesh Basketball Shorts — Drop 01",
@@ -274,22 +333,16 @@ section,.nav{background-color:transparent}
     <button class="btn ghost" type="button" id="owner-reset-account">Reset account</button></p>
   </div>
   <div id="owner-admin" hidden>
+  <div class="admin-toolbar"><input id="admin-global-search" type="search" placeholder="Search orders, buyers, signups…"><button class="btn ghost" type="button" id="admin-dark-toggle">☀️ Light</button></div><div id="admin-global-results"></div>
   <nav class="owner-tabs" aria-label="Admin pages">
-    <button type="button" data-tab="dash" class="on">Dashboard</button>
-    <button type="button" data-tab="orders">Orders</button>
-    <button type="button" data-tab="signups">Signups</button>
-    <button type="button" data-tab="stock">Stock</button>
-    <button type="button" data-tab="payments">Payments</button>
-    <button type="button" data-tab="email">Email</button>
-    <button type="button" data-tab="edit">Edit site</button>
-    <button type="button" data-tab="staff">Staff</button>
-    <button type="button" data-tab="profit">Profit</button>
-    <button type="button" data-tab="money">Money</button>
-    <button type="button" data-tab="taxes">Taxes</button>
-    <button type="button" data-tab="accounts">Accounts</button>
-    <button type="button" data-tab="today">📋 Today</button>
-    <button type="button" data-tab="notes">📝 Team notes</button>
+    <span class="tab-group"><span class="tab-group-label">Overview</span><button type="button" data-tab="data">📊 Data Center</button><button type="button" data-tab="dash" class="on">Dashboard</button><button type="button" data-tab="today">📋 Today</button><button type="button" data-tab="myday">☀️ My Day</button></span>
+    <span class="tab-group"><span class="tab-group-label">Sales</span><button type="button" data-tab="orders">Orders</button><button type="button" data-tab="signups">Signups</button><button type="button" data-tab="stock">Stock</button></span>
+    <span class="tab-group"><span class="tab-group-label">Money</span><button type="button" data-tab="payments">Payments</button><button type="button" data-tab="profit">Profit</button><button type="button" data-tab="money">Money</button><button type="button" data-tab="taxes">Taxes</button></span>
+    <span class="tab-group"><span class="tab-group-label">People</span><button type="button" data-tab="staff">Staff</button><button type="button" data-tab="accounts">Accounts</button><button type="button" data-tab="notes">📝 Team notes</button></span>
+    <span class="tab-group"><span class="tab-group-label">Site</span><button type="button" data-tab="edit">Edit site</button><button type="button" data-tab="email">Email</button></span>
   </nav>
+
+  <div data-panel="data" hidden><h3>📊 Data Center</h3><p class="fine">Everything that matters, in one place.</p><div id="owner-datacenter"></div></div>
 
   <div data-panel="dash">
     <div class="owner-stats" id="owner-stats"></div>
@@ -328,6 +381,7 @@ section,.nav{background-color:transparent}
     <p class="fine" id="owner-visits"></p>
     <div id="owner-dropcheck"></div>
     <p><button class="btn ghost" type="button" id="owner-go-live">📣 Copy "we're live" post</button> <button class="btn ghost" type="button" id="owner-soldout-post">Copy sold-out post</button></p>
+    <p class="fine" id="owner-sync-status">Supabase sync: checking…</p>
     <p class="fine">Drop 01 preorders — Nov 27, 6PM ET · $25 + shipping ($35 total) · 30 pieces · No restocks · All sales final</p>
     <p class="fine">Quick links: <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">IG DMs — @clutchny1</a> · <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Greenlight pay link</a> · <a href="https://clutchbuiltdifferent.com/" target="_blank" rel="noopener">Live site</a></p>
   </div>
@@ -342,6 +396,7 @@ section,.nav{background-color:transparent}
       <button class="btn buy live" type="submit">Add order</button>
     </form>
     <p style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="order-search" type="search" placeholder="Search orders — buyer, size, pay…" style="flex:1;min-width:160px"><select id="order-filter"><option value="">All statuses</option><option>Pending</option><option>Underpaid</option><option>Paid</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option></select></p>
+    <p id="owner-bulk-bar" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center"><label><input type="checkbox" id="bulk-select-all"> Select all</label><button class="btn ghost" type="button" id="bulk-mark-shipped">✅ Mark selected shipped</button><button class="btn ghost" type="button" id="bulk-export">Export selected CSV</button><span class="fine" id="bulk-count"></span></p>
     <p><button class="btn ghost" type="button" id="owner-print-all">🖨 Print all packing slips</button> <button class="btn ghost" type="button" id="owner-runsheet">📦 Copy post office run sheet</button></p>
     <pre id="owner-runsheet-out" class="fine" style="white-space:pre-wrap"></pre>
     <div class="fine" id="owner-orders"></div>
@@ -389,6 +444,7 @@ section,.nav{background-color:transparent}
     </p>
     <p class="fine">Start: S 10 · M 10 · L 5 · XL 5 = 30 total. Adding an order ticks stock down automatically.</p>
     <p class="fine">Edit stock counts: S <input id="stock-edit-S" type="number" min="0" style="width:3.5rem"> M <input id="stock-edit-M" type="number" min="0" style="width:3.5rem"> L <input id="stock-edit-L" type="number" min="0" style="width:3.5rem"> XL <input id="stock-edit-XL" type="number" min="0" style="width:3.5rem"> <button class="btn ghost" type="button" id="owner-stock-save">Save stock</button></p>
+    <h3>Drop 002 stock — FORM 001</h3><p class="fine" id="owner-stock002"></p><p><button class="btn ghost" type="button" data-sell002="S">Sell S</button><button class="btn ghost" type="button" data-sell002="M">Sell M</button><button class="btn ghost" type="button" data-sell002="L">Sell L</button><button class="btn ghost" type="button" data-sell002="XL">Sell XL</button><button class="btn ghost" type="button" id="owner-reset-stock002">Reset stock</button></p><p class="fine">Start: S 14 · M 14 · L 6 · XL 6 = 40 total.</p><p class="fine">Edit stock: S <input id="stock002-edit-S" type="number" min="0" style="width:3.5rem"> M <input id="stock002-edit-M" type="number" min="0" style="width:3.5rem"> L <input id="stock002-edit-L" type="number" min="0" style="width:3.5rem"> XL <input id="stock002-edit-XL" type="number" min="0" style="width:3.5rem"> <button class="btn ghost" type="button" id="owner-stock002-save">Save stock</button></p>
   </div>
 
   <div data-panel="payments" hidden>
@@ -475,6 +531,7 @@ First paid, first served.
       <label class="fine">Buy note<br><input id="edit-buynote" type="text" style="width:100%" value="PREORDERS open Fri, Nov 27, 6PM ET · $25 + shipping ($35 total) · Pay via Greenlight — or Cash App in the DM. Pick your size first, then DM @clutchny1 — first paid, first served."></label>
       <label class="fine">Discount code<br><input id="edit-discount-code" type="text" value="CLUTCH10" style="width:9rem"> <input id="edit-discount-pct" type="number" min="0" max="50" value="10" style="width:4rem"> % off</label>
       <label class="fine">Announcement banner (shows at the top of the homepage — blank = hidden)<br><input id="edit-announce" type="text" style="width:100%" placeholder="e.g. Drop 01 is LIVE — 30 pieces, no restocks"></label>
+      <label class="fine">Banner goes live at (optional — leave blank to show right away)<br><input id="edit-banner-when" type="datetime-local" style="width:100%"> <button class="btn ghost" type="button" id="edit-banner-clear">Clear schedule</button></label><p class="fine" id="owner-banner-sched-msg"></p>
       <button class="btn buy live" type="submit">Save edits (this device)</button>
       <button class="btn ghost" type="button" id="owner-edit-copy">Copy edits for Jerry</button>
       <button class="btn ghost" type="button" id="owner-edit-reset">Reset edits</button>
@@ -559,6 +616,8 @@ First paid, first served.
     <p class="fine">Your list for today, rebuilt every morning. Checks save on this device — staff never see this tab.</p>
     <div id="owner-today"></div>
   </div>
+
+  <div data-panel="myday" hidden><h3>☀️ My Day — <span id="admin-myday-date"></span></h3><div class="progress"><i id="admin-myday-bar" style="width:0%"></i></div><p class="fine" id="admin-myday-count"></p><p class="fine" id="admin-myday-sync"></p><div id="admin-myday-list"></div><form id="admin-myday-add-form" class="add-row"><input id="admin-myday-add-text" type="text" placeholder="Add your own task…" required><select id="admin-myday-add-section"><option value="Personal">Personal</option><option value="CLUTCH">CLUTCH</option><option value="Gym &amp; Health">Gym &amp; Health</option><option value="School">School</option></select><button class="btn buy live" type="submit">Add</button></form><p style="margin-top:1rem"><button class="btn ghost" type="button" id="admin-myday-reset">Reset today</button></p></div>
 
   <div data-panel="notes" hidden>
     <h3>📝 Team notes — Sebastian, Emeri + Ajan</h3>
@@ -898,8 +957,23 @@ async function sbPost(table, row) {
 }
 async function sbPatch(table, id, row) {
   if (!supabaseClient) return false;
+  // The stock tables are keyed by `size`, not `id` — a ?id=eq. filter on them
+  // silently matches 0 rows. Everything else (approvals, personal tasks,
+  // notes, stats) is keyed by `id`.
+  const col = (table === 'clutch_stock' || table === 'clutch_stock_002') ? 'size' : 'id';
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'PATCH', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${col}=eq.${encodeURIComponent(id)}`, { method: 'PATCH', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) });
+    return r.ok;
+  } catch (_) { return false; }
+}
+// Best-effort Supabase PATCH for bulk-shipped orders (clutch_orders has no
+// single id in the local log — match by buyer + size + still-Paid status).
+// Local storage stays the source of truth; a failed PATCH changes nothing.
+async function sbPatchOrdersShipped(buyer, size) {
+  if (!supabaseClient || !sbSyncOn) return false;
+  try {
+    const q = 'clutch_orders?buyer=eq.' + encodeURIComponent(buyer) + '&size=eq.' + encodeURIComponent(size) + '&status=eq.Paid';
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${q}`, { method: 'PATCH', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ status: 'Shipped' }) });
     return r.ok;
   } catch (_) { return false; }
 }
@@ -922,6 +996,14 @@ async function sbSyncCheck() {
       stockRows.forEach(r => { if (d.stock[r.size] !== undefined) d.stock[r.size] = r.stock_left; });
       saveOwner(d); renderOwner();
     }
+    const stock002Rows = await sbGet('clutch_stock_002', '?select=size,stock_left');
+    if (stock002Rows && stock002Rows.length) {
+      const d = loadOwner();
+      if (!d.stock002) d.stock002 = { S: 14, M: 14, L: 6, XL: 6 };
+      stock002Rows.forEach(r => { if (d.stock002[r.size] !== undefined) d.stock002[r.size] = r.stock_left; });
+      saveOwner(d); renderOwner();
+    }
+    loadBannerSchedule();
   }
 }
 
@@ -957,7 +1039,7 @@ if (acctForm) acctForm.addEventListener('submit', async e => {
     msg.className = 'msg ok'; msg.textContent = 'Account made — check your email to confirm it, then log in.';
     sbPost('clutch_accounts', { email });
     refreshAccountUI();
-sbSyncCheck();
+    sbSyncCheck();
 countVisit();
 loadOGs();
   } catch (err) { msg.className = 'msg err'; msg.textContent = 'Signup failed: ' + (err && err.message ? err.message : 'network error — try again.'); }
@@ -1164,12 +1246,28 @@ function showOwnerAdmin(staffMode) {
   if (logout) logout.hidden = false;
   // Gated owners see every owner tab except 📋 Today. Staff-table owners (role
   // 'owner' but not one of the two hardcoded owner emails) also don't get Today.
-  const hide = currentRole === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'edit', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'notes'] : currentRole === 'staff' ? ['payments', 'email', 'edit', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today'] : currentRole === 'gated' ? ['today'] : !isHardOwner() ? ['today'] : [];
+  // My Day is hard-owner only too — it is Sebastian's personal list.
+  const hide = currentRole === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'edit', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'myday', 'notes'] : currentRole === 'staff' ? ['payments', 'email', 'edit', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'myday'] : currentRole === 'gated' ? ['today', 'myday'] : !isHardOwner() ? ['today', 'myday'] : [];
   document.querySelectorAll('.owner-tabs button').forEach(b => { b.style.display = hide.includes(b.dataset.tab) ? 'none' : ''; });
+  updateTabGroups();
   const pinBox = $('owner-pin-change'); if (pinBox) pinBox.style.display = isHardOwner() ? '' : 'none';
   const ghBox = $('owner-gh-token-box'); if (ghBox) ghBox.style.display = isHardOwner() ? '' : 'none';
   ownerAuthed = true;
   renderOwner();
+  loadBannerSchedule();
+  if (isHardOwner()) mydaySyncLoad();
+}
+function updateTabGroups() {
+  document.querySelectorAll('.tab-group').forEach(g => {
+    const btns = g.querySelectorAll('button');
+    let anyVisible = false;
+    btns.forEach(b => { if (b.style.display !== 'none') anyVisible = true; });
+    g.style.display = anyVisible ? '' : 'none';
+  });
+}
+function switchAdminTab(name) {
+  const b = document.querySelector('.owner-tabs button[data-tab="' + name + '"]');
+  if (b) b.click();
 }
 // ---- Gated Owner + pending approvals --------------------------------
 // Emeri (role 'gated') sees everything an owner sees, but consequential
@@ -1188,6 +1286,8 @@ function approvalDetail(r) {
   const p = r.payload || {};
   switch (r.action) {
     case 'stock-edit': return p.stock ? ['S', 'M', 'L', 'XL'].map(s => s + ' → ' + (p.stock[s] === undefined ? '—' : p.stock[s])).join(', ') : '';
+    case 'stock002-edit': return p.stock002 ? ['S', 'M', 'L', 'XL'].map(s => s + ' → ' + (p.stock002[s] === undefined ? '—' : p.stock002[s])).join(', ') : '';
+    case 'order-bulk-ship': return (p.orders || []).length + ' order(s): ' + (p.orders || []).map(o => o.buyer + ' (' + o.size + ')').join(', ');
     case 'order-cancel': return 'Order — ' + (p.buyer || '') + ' (' + (p.size || '') + ')';
     case 'order-refund': return 'Order — ' + (p.buyer || '') + ' (' + (p.size || '') + ')';
     case 'order-swap': return 'Order — ' + (p.buyer || '') + ': ' + (p.fromSize || '') + ' → ' + (p.newSize || '');
@@ -1277,6 +1377,29 @@ function applyApproval(action, p, actor) {
       ['S', 'M', 'L', 'XL'].forEach(s => { if (p.stock[s] !== undefined && p.stock[s] >= 0) { d.stock[s] = p.stock[s]; if (sbSyncOn) sbPatch('clutch_stock', s, { stock_left: d.stock[s] }); } });
       saveOwner(d); renderOwner(); return true;
     }
+    case 'stock002-edit': {
+      if (!p.stock002) return false;
+      if (!d.stock002) d.stock002 = { S: 14, M: 14, L: 6, XL: 6 };
+      ['S', 'M', 'L', 'XL'].forEach(s => { if (p.stock002[s] !== undefined && p.stock002[s] >= 0) { d.stock002[s] = p.stock002[s]; if (sbSyncOn) sbPatch('clutch_stock_002', s, { stock_left: d.stock002[s] }); } });
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'order-bulk-ship': {
+      if (!p.orders || !p.orders.length) return false;
+      let applied = 0;
+      p.orders.forEach(po => {
+        const ix = d.orders.findIndex(o => o.buyer === po.buyer && o.size === po.size && (po.total === undefined || (o.total === undefined ? 35 : o.total) === po.total) && (o.status || 'Paid') === 'Paid');
+        if (ix === -1) return;
+        const o = d.orders[ix];
+        o.status = 'Shipped';
+        if (!o.history) o.history = [];
+        o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Shipped (bulk)' });
+        if (sbSyncOn) sbPatchOrdersShipped(o.buyer, o.size);
+        applied++;
+      });
+      if (!applied) return false;
+      logActivity('Bulk shipped — ' + applied + ' orders — approved for ' + who);
+      saveOwner(d); renderOwner(); return true;
+    }
     case 'order-cancel': {
       const ix = findApprovalOrder(d, p); if (ix === -1) return false;
       const o = d.orders[ix];
@@ -1322,10 +1445,12 @@ function applyApproval(action, p, actor) {
     }
     case 'order-bulk-add': {
       if (!p.orders || !p.orders.length) return false;
+      const changed = new Set();
       p.orders.forEach(o => {
         d.orders.push({ buyer: o.buyer, size: o.size, pay: o.pay, total: o.total, status: 'Paid', address: o.address || '', at: o.at || new Date().toISOString().slice(0, 10) });
-        if (d.stock[o.size] > 0) d.stock[o.size]--;
+        if (d.stock[o.size] > 0) { d.stock[o.size]--; changed.add(o.size); }
       });
+      if (sbSyncOn) changed.forEach(s => sbPatch('clutch_stock', s, { stock_left: d.stock[s] }));
       logActivity('Bulk import — ' + p.orders.length + ' orders added — approved for ' + who);
       saveOwner(d); renderOwner(); return true;
     }
@@ -1463,7 +1588,7 @@ if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
 });
 
 const OWNER_KEY = 'clutch-admin-v1';
-const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {} };
+const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, stock002: { S: 14, M: 14, L: 6, XL: 6 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {} };
 function loadOwner() {
   try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
   catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
@@ -1506,6 +1631,327 @@ async function renderTeamNotes() {
     await sbDelete('clutch_notes', +v);
     renderTeamNotes();
   }));
+}
+// ---- My Day tab (admin copy of myday.html) ----
+// Same localStorage key + state shape as the standalone page, so both share
+// one list. Supabase mirror (clutch_personal_tasks) is best effort — if the
+// table is missing, everything still works on this device.
+const MYDAY_KEY = 'clutch-myday-v1';
+let mydaySbOn = false;
+function mydayTodayStr(d) {
+  d = d || new Date();
+  const m = d.getMonth() + 1, day = d.getDate();
+  return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+}
+function mydayDaysLeft() {
+  return Math.max(0, Math.ceil((new Date('2026-11-27T18:00:00-05:00').getTime() - Date.now()) / 86400000));
+}
+function mydayGymSession() {
+  const wd = new Date().getDay();
+  if (wd === 0) return { t: 'Upper light session', s: 'Sunday — upper body, light.' };
+  if (wd === 1) return { t: 'Session A', s: 'Goblet squat, bench, row, RDL, overhead press, plank.' };
+  if (wd === 2) return { t: 'Upper pull — 5:15 after student council', s: 'Tuesday gym after council ends 4:45.' };
+  if (wd === 3) return { t: 'Session B', s: 'Reverse lunge, incline press, row, hip thrust, lateral raise, dead bug.' };
+  if (wd === 4) return { t: 'Trainer / CrossFit — 85th & York', s: 'Thursday trainer session.' };
+  if (wd === 5) return { t: 'Rest day — stretch + recover', s: 'Friday is rest. No gym.' };
+  return { t: 'Basketball — run + handles', s: 'Saturday hoops.' };
+}
+function mydayDefaults() {
+  const n = mydayDaysLeft();
+  const g = mydayGymSession();
+  return [
+    { key: 'clutch:countdown', section: 'CLUTCH', t: n > 0 ? 'Post the day-' + n + ' countdown reel' : 'Preorders are open — post the launch reel', s: n > 0 ? n + ' days til preorders open Nov 27.' : 'Drop 01 preorders are live.' },
+    { key: 'clutch:replies', section: 'CLUTCH', t: 'Reply to comments + DMs', s: 'Every comment, every DM — fast.' },
+    { key: 'clutch:kevin', section: 'CLUTCH', t: 'Kevin check', s: '$260.40 breakdown + delivery date + digital proof before anything is cut.' },
+    { key: 'clutch:orders', section: 'CLUTCH', t: 'Orders + stock check', s: 'Any new orders? Any size at 2 or less?' },
+    { key: 'clutch:signups', section: 'CLUTCH', t: 'Signups check', s: 'Any new notify signups in the company Gmail?' },
+    { key: 'gym:session', section: 'Gym & Health', t: g.t, s: g.s },
+    { key: 'gym:shake', section: 'Gym & Health', t: 'Protein shake (Nurri)', s: 'After the session.' },
+    { key: 'gym:dinner', section: 'Gym & Health', t: 'Dinner menu with dad', s: 'You design it, dad cooks it.' },
+    { key: 'school:homework', section: 'School', t: 'Homework done', s: '' },
+    { key: 'school:bag', section: 'School', t: 'Bag packed', s: '' },
+    { key: 'school:shsat', section: 'School', t: 'SHSAT prep — 20 min', s: 'Test is Oct 18, 2027.' }
+  ];
+}
+function mydayLoadState() {
+  try {
+    const d = JSON.parse(localStorage.getItem(MYDAY_KEY) || 'null');
+    if (d && d.days && d.custom) return d;
+  } catch (_) {}
+  return { days: {}, custom: [] };
+}
+function mydaySaveState(st) { try { localStorage.setItem(MYDAY_KEY, JSON.stringify(st)); } catch (_) {} }
+function mydayVisibleCustoms(st) {
+  const today = mydayTodayStr();
+  return st.custom.filter(c => !c.done || c.doneDate === today);
+}
+function mydayAllTasks(st) {
+  const today = mydayTodayStr();
+  const checks = st.days[today] || {};
+  const list = mydayDefaults().map(d => ({ kind: 'def', key: d.key, section: d.section, t: d.t, s: d.s, done: !!checks[d.key] }));
+  mydayVisibleCustoms(st).forEach(c => { list.push({ kind: 'custom', key: c.id, section: c.section, t: c.text, s: '', done: !!c.done }); });
+  return list;
+}
+function mydayProgress() {
+  const tasks = mydayAllTasks(mydayLoadState());
+  return { done: tasks.filter(t => t.done).length, total: tasks.length };
+}
+function mydayOwnerEmail() { return currentActor || OWNER_EMAILS[0]; }
+async function mydaySbWrite(method, path, body) {
+  if (!supabaseClient) return null;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method, headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: body ? JSON.stringify(body) : undefined });
+    if (!r.ok) return null;
+    return await r.json().catch(() => []);
+  } catch (_) { return null; }
+}
+async function mydaySyncLoad() {
+  if (!supabaseClient) return;
+  const ownerEmail = mydayOwnerEmail();
+  try {
+    const today = mydayTodayStr();
+    const rows = await sbGet('clutch_personal_tasks', '?select=id,text,section,done,task_date&owner_email=eq.' + encodeURIComponent(ownerEmail) + '&or=(task_date.eq.' + today + ',and(task_date.lt.' + today + ',done.eq.false))&order=id');
+    if (!Array.isArray(rows)) { mydaySbOn = false; renderAdminMyDay(); return; }
+    mydaySbOn = true;
+    const st = mydayLoadState();
+    let changed = false;
+    const defTexts = {};
+    mydayDefaults().forEach(d => { defTexts[d.section + '|' + d.t] = d.key; });
+    rows.forEach(row => {
+      const k = defTexts[row.section + '|' + row.text];
+      if (k) {
+        if (row.done) {
+          st.days[today] = st.days[today] || {};
+          if (!st.days[today][k]) { st.days[today][k] = true; changed = true; }
+        }
+      } else {
+        const exists = st.custom.some(c => c.sbId === row.id || (c.text === row.text && c.section === row.section && !c.done));
+        if (!exists) {
+          st.custom.push({ id: 'sb' + row.id, sbId: row.id, text: row.text, section: row.section, added: row.task_date, done: !!row.done, doneDate: row.done ? today : null });
+          changed = true;
+        } else if (row.done) {
+          const c2 = st.custom.find(c => c.sbId === row.id);
+          if (c2 && !c2.done) { c2.done = true; c2.doneDate = today; changed = true; }
+        }
+      }
+    });
+    if (changed) mydaySaveState(st);
+    renderAdminMyDay();
+  } catch (_) { mydaySbOn = false; renderAdminMyDay(); }
+}
+async function mydaySbUpsertTask(task) {
+  if (!supabaseClient || !mydaySbOn) return;
+  const ownerEmail = mydayOwnerEmail();
+  try {
+    const today = mydayTodayStr();
+    const rows = await sbGet('clutch_personal_tasks', '?select=id&owner_email=eq.' + encodeURIComponent(ownerEmail) + '&text=eq.' + encodeURIComponent(task.t) + '&section=eq.' + encodeURIComponent(task.section) + '&task_date=eq.' + today);
+    if (!Array.isArray(rows)) return;
+    if (rows.length) {
+      const back = await mydaySbWrite('PATCH', 'clutch_personal_tasks?id=eq.' + rows[0].id, { done: task.done });
+      if (task.kind === 'custom' && back && back[0] && task.key && String(task.key).indexOf('sb') !== 0) {
+        const st = mydayLoadState();
+        const c = st.custom.find(x => String(x.id) === String(task.key));
+        if (c) { c.sbId = back[0].id; c.id = 'sb' + back[0].id; mydaySaveState(st); }
+      }
+    } else {
+      const back2 = await mydaySbWrite('POST', 'clutch_personal_tasks', { owner_email: ownerEmail, text: task.t, section: task.section, done: task.done, task_date: today });
+      if (task.kind === 'custom' && back2 && back2[0]) {
+        const st2 = mydayLoadState();
+        const c2 = st2.custom.find(x => String(x.id) === String(task.key));
+        if (c2) { c2.sbId = back2[0].id; c2.id = 'sb' + back2[0].id; mydaySaveState(st2); }
+      }
+    }
+  } catch (_) {}
+}
+async function mydaySbDeleteTask(task) {
+  if (!supabaseClient || !mydaySbOn) return;
+  const ownerEmail = mydayOwnerEmail();
+  try {
+    if (task.sbId) {
+      await sbDelete('clutch_personal_tasks', task.sbId);
+    } else {
+      const rows = await sbGet('clutch_personal_tasks', '?select=id&owner_email=eq.' + encodeURIComponent(ownerEmail) + '&text=eq.' + encodeURIComponent(task.t) + '&section=eq.' + encodeURIComponent(task.section));
+      if (Array.isArray(rows)) { for (let i = 0; i < rows.length; i++) { await sbDelete('clutch_personal_tasks', rows[i].id); } }
+    }
+  } catch (_) {}
+}
+function renderAdminMyDay() {
+  const listEl = $('admin-myday-list');
+  if (!listEl) return;
+  const st = mydayLoadState();
+  const tasks = mydayAllTasks(st);
+  const done = tasks.filter(t => t.done).length;
+  const total = tasks.length;
+  const bar = $('admin-myday-bar'); if (bar) bar.style.width = (total ? Math.round(done / total * 100) : 0) + '%';
+  const count = $('admin-myday-count'); if (count) count.textContent = done + ' of ' + total + ' done today — ' + (total - done) + ' to go.';
+  const sync = $('admin-myday-sync'); if (sync) sync.textContent = mydaySbOn ? 'Sync: ON — saves across your phone and laptop.' : 'Sync: OFF — saving on this device only. Run SQL Part 10 in Supabase to turn it on.';
+  const dateEl = $('admin-myday-date'); if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const sections = ['CLUTCH', 'Gym & Health', 'School', 'Personal'];
+  let html = '';
+  sections.forEach(sec => {
+    const items = tasks.filter(t => t.section === sec);
+    if (!items.length) {
+      if (sec !== 'Personal') return;
+      html += '<p class="sect">Personal</p><p class="fine">Nothing here yet — add your own below.</p>';
+      return;
+    }
+    html += '<p class="sect">' + esc(sec) + '</p>';
+    items.forEach(t => {
+      html += '<label class="task' + (t.done ? ' done' : '') + '"><input type="checkbox" data-myday-key="' + esc(t.key) + '" data-myday-kind="' + t.kind + '"' + (t.done ? ' checked' : '') + '><span><b>' + esc(t.t) + '</b>' + (t.s ? '<small>' + esc(t.s) + '</small>' : '') + '</span>' + (t.kind === 'custom' ? '<button type="button" class="del" data-myday-del="' + esc(t.key) + '" title="Delete">✕</button>' : '') + '</label>';
+    });
+  });
+  listEl.innerHTML = html;
+  listEl.querySelectorAll('[data-myday-key]').forEach(cb => {
+    cb.addEventListener('change', () => { mydayToggleTask(cb.dataset.mydayKey, cb.dataset.mydayKind, cb.checked); });
+  });
+  listEl.querySelectorAll('[data-myday-del]').forEach(btn => {
+    btn.addEventListener('click', e => { e.preventDefault(); mydayDeleteTask(btn.dataset.mydayDel); });
+  });
+}
+function mydayToggleTask(key, kind, done) {
+  const st = mydayLoadState();
+  const today = mydayTodayStr();
+  let task = null;
+  if (kind === 'def') {
+    st.days[today] = st.days[today] || {};
+    if (done) st.days[today][key] = true; else delete st.days[today][key];
+    const d = mydayDefaults().find(x => x.key === key);
+    if (d) task = { kind: 'def', key, t: d.t, section: d.section, done };
+  } else {
+    const c = st.custom.find(x => String(x.id) === String(key));
+    if (c) {
+      c.done = done;
+      c.doneDate = done ? today : null;
+      task = { kind: 'custom', key, t: c.text, section: c.section, done, sbId: c.sbId };
+    }
+  }
+  mydaySaveState(st);
+  renderAdminMyDay();
+  if (task) mydaySbUpsertTask(task);
+}
+function mydayDeleteTask(key) {
+  const st = mydayLoadState();
+  const idx = st.custom.findIndex(x => String(x.id) === String(key));
+  if (idx < 0) return;
+  const gone = st.custom[idx];
+  st.custom.splice(idx, 1);
+  mydaySaveState(st);
+  renderAdminMyDay();
+  mydaySbDeleteTask({ t: gone.text, section: gone.section, sbId: gone.sbId });
+}
+const adminMydayForm = $('admin-myday-add-form');
+if (adminMydayForm) adminMydayForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const text = ($('admin-myday-add-text').value || '').trim();
+  if (!text) return;
+  const section = $('admin-myday-add-section').value;
+  const st = mydayLoadState();
+  const item = { id: 'c' + Date.now() + Math.floor(Math.random() * 1000), text, section, added: mydayTodayStr(), done: false, doneDate: null };
+  st.custom.push(item);
+  mydaySaveState(st);
+  renderAdminMyDay();
+  e.target.reset();
+  mydaySbUpsertTask({ kind: 'custom', key: item.id, t: item.text, section: item.section, done: false });
+});
+const adminMydayReset = $('admin-myday-reset');
+if (adminMydayReset) adminMydayReset.addEventListener('click', () => {
+  const st = mydayLoadState();
+  const today = mydayTodayStr();
+  st.days[today] = {};
+  st.custom.forEach(c => { if (c.doneDate === today) { c.done = false; c.doneDate = null; } });
+  mydaySaveState(st);
+  renderAdminMyDay();
+});
+// Bulk order selection (orders panel) — module-level set, survives re-renders.
+let bulkSelected = new Set();
+function updateBulkCount() {
+  const el = $('bulk-count');
+  if (el) el.textContent = bulkSelected.size ? bulkSelected.size + ' selected' : '';
+  const all = $('bulk-select-all');
+  if (all) {
+    const boxes = document.querySelectorAll('[data-bulk-order]');
+    all.checked = boxes.length > 0 && [...boxes].every(b => bulkSelected.has(+b.dataset.bulkOrder));
+  }
+}
+// Discount code stats — matched from orders, read-only. An order counts if
+// (a) its note includes the code, (b) its total equals the discounted $35
+// (shipped) or $25 (pickup) total, or (c) it is a referral code (HANDLE10)
+// and the order's ref matches the handle.
+function discountStats(code, pct, orders) {
+  const c = (code || '').toUpperCase();
+  let used = 0, revenue = 0;
+  const shipTotal = Math.round(35 * (1 - pct / 100) * 100) / 100;
+  const pickTotal = Math.round(25 * (1 - pct / 100) * 100) / 100;
+  (orders || []).forEach(o => {
+    if ((o.status || 'Paid') === 'Cancelled' || (o.status || 'Paid') === 'Refunded') return;
+    const total = o.total === undefined ? 35 : o.total;
+    let hit = false;
+    if (c && (o.note || '').toUpperCase().includes(c)) hit = true;
+    if (!hit && pct > 0 && (total === shipTotal || total === pickTotal)) hit = true;
+    if (!hit && c.endsWith('10') && (o.ref || '').toUpperCase() === c.slice(0, -2)) hit = true;
+    if (hit) { used++; revenue += total; }
+  });
+  return { used, revenue };
+}
+// ---- Data Center tab ----
+function renderDataCenter() {
+  const el = $('owner-datacenter');
+  if (!el) return;
+  const d = loadOwner();
+  const costs = d.costs || { perPair: 10, shipping: 9, other: 0 };
+  const expTotal = (d.expenses || []).reduce((a, x) => a + (+x.amount || 0), 0);
+  const ms = DROP - Date.now();
+  const cd = ms <= 0 ? '🔴 PREORDERS — live now' : (() => { const dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5), mm = Math.floor(ms % 36e5 / 6e4); return dd + 'd ' + hh + 'h ' + mm + 'm to go'; })();
+  const soldOrders = d.orders.filter(o => ['Paid', 'Shipped', 'Delivered'].includes(o.status || 'Paid'));
+  const soldN = soldOrders.length;
+  const revSold = soldOrders.reduce((a, o) => a + (o.total === undefined ? 35 : o.total), 0);
+  const costSold = soldOrders.filter(o => (o.status || 'Paid') !== 'Underpaid').length * ((+costs.perPair || 0) + (+costs.shipping || 0)) + (+costs.other || 0) + expTotal;
+  const profit = revSold - costSold;
+  const todayOnly = new Date(); todayOnly.setHours(0, 0, 0, 0);
+  const daysLeft = Math.max(0, Math.round((new Date(2026, 10, 27) - todayOnly) / 864e5));
+  const need = soldN >= 30 ? 0 : daysLeft === 0 ? (30 - soldN) : Math.ceil((30 - soldN) / daysLeft);
+  const s002 = d.stock002 || { S: 14, M: 14, L: 6, XL: 6 };
+  const left001 = Object.values(d.stock).reduce((a, b) => a + b, 0);
+  const left002 = Object.values(s002).reduce((a, b) => a + b, 0);
+  const pendN = d.orders.filter(o => (o.status || 'Paid') === 'Pending').length;
+  const underN = d.orders.filter(o => (o.status || 'Paid') === 'Underpaid').length;
+  const paidUnshipped = d.orders.filter(o => (o.status || 'Paid') === 'Paid').length;
+  const lows = Object.entries(d.stock).filter(([s, n]) => n <= 2).map(([s, n]) => s + ' ' + n + ' left');
+  Object.entries(s002).filter(([s, n]) => n <= 2).forEach(([s, n]) => lows.push('002 ' + s + ' ' + n + ' left'));
+  const mp = mydayProgress();
+  const moneyOk = currentRole === 'owner' || currentRole === 'gated';
+  let moneyHtml = '';
+  if (moneyOk) {
+    const allRev = d.orders.reduce((a, o) => a + (o.total === undefined ? 35 : o.total), 0);
+    const nonCxl = d.orders.filter(o => (o.status || 'Paid') !== 'Cancelled' && (o.status || 'Paid') !== 'Refunded');
+    const balance = (+(d.startBalance || 0)) + nonCxl.reduce((a, o) => a + (o.total === undefined ? 35 : o.total), 0) - expTotal + (d.moneyEntries || []).reduce((a, x) => a + (+x.amount || 0), 0);
+    moneyHtml = '<div class="dc-card"><small>Money</small><b>$' + balance.toFixed(2) + '</b><span class="fine">Greenlight cap left: $' + (1000 - allRev).toFixed(2) + ' of $1,000</span></div>';
+  } else {
+    moneyHtml = '<div class="dc-card"><small>Money</small><b>—</b><span class="fine">Money + approvals are owners-only.</span></div>';
+  }
+  const approvalsHtml = currentRole === 'owner' ? '<div class="dc-card" id="dc-approvals-line"><small>Pending approvals</small><b><span id="dc-approvals">…</span></b></div>' : '';
+  el.innerHTML = '<div class="dc-grid">'
+    + '<div class="dc-card"><small>Preorders</small><b style="font-size:1.1rem">' + cd + '</b><span class="fine">Fri Nov 27, 6PM ET</span></div>'
+    + '<div class="dc-card"><small>Sales</small><b>' + soldN + ' of 30 sold</b><span class="fine">$' + revSold.toFixed(2) + ' revenue · $' + profit.toFixed(2) + ' profit · need ' + need + '/day by Nov 27</span></div>'
+    + '<div class="dc-card"><small>Drop 001 stock</small><b>' + left001 + ' left</b><span class="fine">' + ['S', 'M', 'L', 'XL'].map(s => s + ' ' + d.stock[s]).join(' · ') + '</span></div>'
+    + '<div class="dc-card"><small>Drop 002 stock</small><b>' + left002 + ' left</b><span class="fine">' + ['S', 'M', 'L', 'XL'].map(s => s + ' ' + s002[s]).join(' · ') + '</span></div>'
+    + '<div class="dc-card"><small>Needs attention</small><b>' + (pendN + underN + paidUnshipped) + '</b><span class="fine">' + pendN + ' pending · ' + underN + ' underpaid · ' + paidUnshipped + ' paid, unshipped' + (lows.length ? '<br>Low stock: ' + lows.join(', ') : '<br>No low stock') + '</span></div>'
+    + '<div class="dc-card"><small>Signups</small><b>' + (d.signupEmails || []).length + '</b><span class="fine">Waitlist: <span id="dc-waitlist">—</span></span></div>'
+    + '<div class="dc-card"><small>My Day</small><b>' + mp.done + ' of ' + mp.total + ' done</b><span class="fine">today</span></div>'
+    + moneyHtml + approvalsHtml
+    + '</div>';
+  if (sbSyncOn) {
+    sbGet('clutch_waitlist', '?select=size').then(rows => { const s = $('dc-waitlist'); if (s) s.textContent = Array.isArray(rows) ? String(rows.length) : '—'; });
+  }
+  if (currentRole === 'owner') {
+    loadApprovals().then(rows => {
+      const s = $('dc-approvals');
+      if (!s) return;
+      if (!approvalsUseSb) { const line = $('dc-approvals-line'); if (line) line.style.display = 'none'; return; }
+      s.textContent = String(rows.filter(r => r.status === 'pending').length);
+    });
+  }
 }
 function renderOwner() {
   const d = loadOwner();
@@ -1752,6 +2198,8 @@ function renderOwner() {
   });
   renderTeamNotes();
   renderApprovals();
+  renderAdminMyDay();
+  renderDataCenter();
   sbGet('clutch_stats', '?select=visits&id=eq.1').then(rows => {
     const el = $('owner-visits');
     if (!el) return;
@@ -1822,6 +2270,14 @@ function renderOwner() {
   if (payEl) payEl.textContent = `Taken so far: $${revenue} from ${d.orders.length} order${d.orders.length === 1 ? '' : 's'} — $${1000 - revenue} left before the $1,000 / 30-day Greenlight + Cash App cap.`;
   const stockEl = $('owner-stock');
   if (stockEl) stockEl.textContent = Object.entries(d.stock).map(([s, n]) => `${s}: ${n} left`).join(' · ') + ` — ${stockLeft} total left`;
+  // Drop 002 stock (FORM 001) — from d.stock002, fallback to the 40-pair start.
+  const s002 = d.stock002 || { S: 14, M: 14, L: 6, XL: 6 };
+  const s002El = $('owner-stock002');
+  if (s002El) {
+    const left002 = Object.values(s002).reduce((a, b) => a + b, 0);
+    s002El.textContent = ['S', 'M', 'L', 'XL'].map(s => s + ': ' + s002[s] + ' left' + (s002[s] === 0 ? ' — SOLD OUT' : s002[s] <= 2 ? ' ⚠️ LOW' : '')).join(' · ') + ' — ' + left002 + ' total left';
+  }
+  ['S', 'M', 'L', 'XL'].forEach(s => { const inp = $('stock002-edit-' + s); if (inp && document.activeElement !== inp) inp.value = s002[s]; });
   const signEl = $('owner-signups');
   if (signEl && document.activeElement !== signEl) signEl.value = d.signups || 0;
   const listEl = $('owner-signup-list');
@@ -1879,7 +2335,7 @@ function renderOwner() {
         const ckey = custKey(o.buyer);
         const escAttr = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         const profHtml = openProfiles[o.buyer] ? '<div style="margin-top:.5rem;padding:.5rem;border:1px dashed var(--line);border-radius:8px"><b>Customer profile — ' + o.buyer + '</b><br><span class="fine">' + mine.length + ' order' + (mine.length === 1 ? '' : 's') + ' · $' + spent.toFixed(2) + ' spent · sizes: ' + mine.map(x => x.size).join(', ') + '</span>' + mine.map(x => '<br><span class="fine">#' + (d.orders.indexOf(x) + 1) + ' — ' + x.size + ' — $' + (x.total === undefined ? 35 : x.total) + ' — ' + (x.status || 'Paid') + '</span>').join('') + '<br><label class="fine">Notes on this customer<br><textarea data-cust-note="' + escAttr(ckey) + '" rows="2" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#111;color:var(--ink)">' + escAttr(custNotes[ckey] || '') + '</textarea></label></div>' : '';
-        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. ${((o.buyer || '').match(/@([\w.]+)/) ? `<a href="https://www.instagram.com/${(o.buyer.match(/@([\w.]+)/))[1]}/" target="_blank" rel="noopener"><b>${o.buyer}</b></a>` : `<b>${o.buyer}</b>`)}${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''}${((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}${hist ? '<br>' + hist : ''}${packHtml}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${(o.status || 'Paid') === 'Paid' ? ` <button class="btn ghost" type="button" data-order-shipit="${i}">✅ Mark shipped</button>` : ''} <button class="btn ghost" type="button" data-order-profile="${i}">${openProfiles[o.buyer] ? 'Hide profile' : 'Profile'}</button>${(['S', 'M', 'L', 'XL'].includes(o.size) && ['Pending', 'Paid', 'Shipped'].includes(o.status || 'Paid')) ? ` <select data-order-swap-size="${i}" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">${['S', 'M', 'L', 'XL'].map(s2 => `<option${s2 === o.size ? ' selected' : ''}>${s2}</option>`).join('')}</select> <button class="btn ghost" type="button" data-order-swap="${i}">Swap size</button>` : ''}${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}${profHtml}</div>`;
+        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px"><input type="checkbox" data-bulk-order="${i}"${bulkSelected.has(i) ? ' checked' : ''}> ${i + 1}. ${((o.buyer || '').match(/@([\w.]+)/) ? `<a href="https://www.instagram.com/${(o.buyer.match(/@([\w.]+)/))[1]}/" target="_blank" rel="noopener"><b>${o.buyer}</b></a>` : `<b>${o.buyer}</b>`)}${flagged ? ' 🚩' : ''}${dup ? ' ⚠️ ordered twice' : ''}${(o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : ''}${((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : ''} — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b> <span class="fine">profit ${op >= 0 ? '+' : '−'}$${Math.abs(op).toFixed(2)}</span>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}${hist ? '<br>' + hist : ''}${packHtml}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button> <button class="btn ghost" type="button" data-order-ship="${i}">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="${i}">${flagged ? 'Unflag' : 'Flag'}</button>${(o.status || 'Paid') === 'Paid' ? ` <button class="btn ghost" type="button" data-order-shipit="${i}">✅ Mark shipped</button>` : ''} <button class="btn ghost" type="button" data-order-profile="${i}">${openProfiles[o.buyer] ? 'Hide profile' : 'Profile'}</button>${(['S', 'M', 'L', 'XL'].includes(o.size) && ['Pending', 'Paid', 'Shipped'].includes(o.status || 'Paid')) ? ` <select data-order-swap-size="${i}" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">${['S', 'M', 'L', 'XL'].map(s2 => `<option${s2 === o.size ? ' selected' : ''}>${s2}</option>`).join('')}</select> <button class="btn ghost" type="button" data-order-swap="${i}">Swap size</button>` : ''}${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}${profHtml}</div>`;
       }).join('');
       ordersEl.querySelectorAll('[data-order-status]').forEach(b => b.addEventListener('click', () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus];
@@ -1909,6 +2365,11 @@ function renderOwner() {
         if (!p[k]) p[k] = {};
         p[k][c.dataset.packStep] = c.checked;
         savePacking(p); renderOwner();
+      }));
+      ordersEl.querySelectorAll('[data-bulk-order]').forEach(c => c.addEventListener('change', () => {
+        const ix = +c.dataset.bulkOrder;
+        if (c.checked) bulkSelected.add(ix); else bulkSelected.delete(ix);
+        updateBulkCount();
       }));
       ordersEl.querySelectorAll('[data-order-shipit]').forEach(b => b.addEventListener('click', async () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderShipit];
@@ -2001,7 +2462,10 @@ function renderOwner() {
   const discEl = $('discount-list');
   if (discEl) {
     const list = getDiscounts();
-    discEl.innerHTML = list.map((x, i) => `<div style="margin:.4rem 0"><b>${x.code}</b> — ${x.pct}% off ${x.active ? '· <b>ACTIVE</b>' : ''} <button class="btn ghost" type="button" data-disc-active="${i}">Set active</button> <button class="btn ghost" type="button" data-disc-remove="${i}">Remove</button></div>`).join('') || 'No codes yet.';
+    discEl.innerHTML = list.length ? list.map((x, i) => {
+      const st = discountStats(x.code, x.pct, d.orders);
+      return `<div style="margin:.4rem 0"><b>${x.code}</b> — ${x.pct}% off ${x.active ? '· <b>ACTIVE</b>' : ''} · used ${st.used}× · $${st.revenue.toFixed(2)} <button class="btn ghost" type="button" data-disc-active="${i}">Set active</button> <button class="btn ghost" type="button" data-disc-remove="${i}">Remove</button></div>`;
+    }).join('') + '<p class="fine">Counts are matched from orders — gift code in the note, the discounted total, or the referral handle.</p>' : 'No codes yet.';
     discEl.querySelectorAll('[data-disc-active]').forEach(b => b.addEventListener('click', () => {
       const list = getDiscounts(); const code = (list[+b.dataset.discActive] || {}).code;
       if (isGated()) { requestApproval('discount-active', 'Set ' + code + ' as the active code', { code }); approvalQueuedMsg(); return; }
@@ -2015,6 +2479,7 @@ function renderOwner() {
   }
   ['S', 'M', 'L', 'XL'].forEach(s => { const inp = $('stock-edit-' + s); if (inp && document.activeElement !== inp) inp.value = d.stock[s]; });
   syncSizePicker(d);
+  updateBulkCount();
   const chartEl = $('owner-chart');
   if (chartEl) { const bySize = { S: 0, M: 0, L: 0, XL: 0 }; d.orders.forEach(o => { if (bySize[o.size] !== undefined) bySize[o.size]++; }); const max = Math.max(1, ...Object.values(bySize)); chartEl.innerHTML = Object.entries(bySize).map(([s, n]) => '<div style="margin:.3rem 0">' + s + ' — ' + n + ' sold <span style="display:inline-block;background:var(--tan);height:.7rem;width:' + Math.round(n / max * 100) + '%"></span></div>').join(''); }
   const leftEl = $('stock-left');
@@ -2166,6 +2631,70 @@ function savePreviewEdits() {
 Object.keys(PV_IDS).forEach(k => { const el = $(PV_IDS[k]); if (el) el.addEventListener('input', savePreviewEdits); });
 const EDIT_KEY = 'clutch-site-edits-v1';
 function loadEdits() { try { return JSON.parse(localStorage.getItem(EDIT_KEY) || '{}'); } catch (_) { return {}; } }
+// Banner schedule: the bar shows if there is text (local edit wins, else the
+// text baked in by a publish) AND its go-live time has passed. A future
+// schedule hides it — including a baked-in banner, which the old code hid
+// whenever the local announce was empty.
+let bannerBakedText = null;
+function checkBannerSchedule() {
+  const bar = $('announce-bar');
+  if (!bar) return;
+  if (bannerBakedText === null) bannerBakedText = bar.textContent.trim();
+  const e = loadEdits();
+  const localText = (e.announce || '').trim();
+  const text = localText || bannerBakedText;
+  const at = localText ? (e.bannerAt || '') : (bar.getAttribute('data-banner-at') || e.bannerAt || '');
+  const atMs = at ? Date.parse(at) : NaN;
+  const due = !at || isNaN(atMs) || Date.now() >= atMs;
+  if (text && due) { bar.textContent = text; bar.style.display = ''; }
+  else bar.style.display = 'none';
+  updateBannerSchedMsg();
+}
+function updateBannerSchedMsg() {
+  const m = $('owner-banner-sched-msg');
+  const when = $('edit-banner-when');
+  const e = loadEdits();
+  if (when && (e.bannerAt || '') !== when.value) when.value = e.bannerAt || '';
+  if (!m) return;
+  if (!e.announce) { m.textContent = ''; return; }
+  if (e.bannerAt) {
+    const atMs = Date.parse(e.bannerAt);
+    if (!isNaN(atMs) && atMs > Date.now()) m.textContent = 'Banner goes live ' + new Date(atMs).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    else m.textContent = 'Banner is live now';
+  } else m.textContent = 'Banner is live now';
+}
+// Mirror the banner schedule to clutch_settings (best effort, silent on
+// failure — the local edit is the source of truth).
+async function saveBannerSchedule() {
+  if (!supabaseClient) return;
+  const e = loadEdits();
+  const value = JSON.stringify({ text: e.announce || '', at: e.bannerAt || '' });
+  try {
+    const rows = await sbGet('clutch_settings', '?select=key&key=eq.banner_schedule');
+    if (Array.isArray(rows) && rows.length) {
+      await fetch(`${SUPABASE_URL}/rest/v1/clutch_settings?key=eq.banner_schedule`, { method: 'PATCH', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ value }) });
+    } else if (rows !== null) {
+      await sbPost('clutch_settings', { key: 'banner_schedule', value });
+    }
+  } catch (_) {}
+}
+async function loadBannerSchedule() {
+  if (!supabaseClient) return;
+  try {
+    const rows = await sbGet('clutch_settings', '?select=value&key=eq.banner_schedule');
+    if (!Array.isArray(rows) || !rows.length) return;
+    let v = {};
+    try { v = JSON.parse(rows[0].value || '{}'); } catch (_) { return; }
+    const e = loadEdits();
+    if (!e.bannerAt && v.at) {
+      e.bannerAt = v.at;
+      if (!e.announce && v.text) e.announce = v.text;
+      try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+      applyEdits();
+    }
+  } catch (_) {}
+}
+setInterval(checkBannerSchedule, 60000);
 function applyEdits() {
   const e = loadEdits();
   const lede = document.querySelector('.hero .lede');
@@ -2177,7 +2706,7 @@ function applyEdits() {
   const note = document.querySelector('.buy-note');
   if (note && e.buynote) note.textContent = e.buynote;
   const bar = $('announce-bar');
-  if (bar) { if (e.announce) { bar.textContent = e.announce; bar.style.display = ''; } else { bar.style.display = 'none'; } }
+  if (bar) checkBannerSchedule();
   const fAnn = $('edit-announce'); if (fAnn && e.announce) fAnn.value = e.announce;
   const fLede = $('edit-lede'); if (fLede && e.lede) fLede.value = e.lede;
   const fPrice = $('edit-price'); if (fPrice && e.price) fPrice.value = e.price;
@@ -2208,14 +2737,14 @@ if (window.self !== window.top) {
 const editForm = $('owner-edit-form');
 if (editForm) editForm.addEventListener('submit', e => {
   e.preventDefault();
-  const edits = Object.assign({}, loadEdits(), { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), announce: ($('edit-announce') ? $('edit-announce').value.trim() : ''), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') });
+  const edits = Object.assign({}, loadEdits(), { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), announce: ($('edit-announce') ? $('edit-announce').value.trim() : ''), bannerAt: ($('edit-banner-when') ? $('edit-banner-when').value || '' : ''), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') });
   if (isGated()) {
     const old = loadEdits();
-    const changedContent = ['lede', 'price', 'when', 'buynote', 'announce'].filter(k => (edits[k] || '') !== (old[k] || ''));
+    const changedContent = ['lede', 'price', 'when', 'buynote', 'announce', 'bannerAt'].filter(k => (edits[k] || '') !== (old[k] || ''));
     const changedDiscount = (edits.discountCode || '') !== (old.discountCode || '') || (edits.discountPct || '') !== (old.discountPct || '');
     const m = $('owner-edit-msg');
     if (changedContent.length) {
-      requestApproval('site-edits', 'Site edits — ' + changedContent.map(k => k === 'lede' ? 'hero line' : k === 'price' ? 'price → ' + edits.price : k === 'when' ? 'date/time' : k === 'buynote' ? 'buy note' : 'announcement').join(', '), { edits });
+      requestApproval('site-edits', 'Site edits — ' + changedContent.map(k => k === 'lede' ? 'hero line' : k === 'price' ? 'price → ' + edits.price : k === 'when' ? 'date/time' : k === 'buynote' ? 'buy note' : k === 'bannerAt' ? 'banner schedule' : 'announcement').join(', '), { edits });
       if (m) m.textContent = 'Sent for approval — Sebastian will review it. Nothing is saved yet.';
       return;
     }
@@ -2227,7 +2756,15 @@ if (editForm) editForm.addEventListener('submit', e => {
   }
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(edits)); } catch (_) {}
   applyEdits();
+  saveBannerSchedule();
   const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Publish my edits live" below to make them live for everyone (needs your GitHub key, one-time setup).';
+});
+const editBannerClear = $('edit-banner-clear');
+if (editBannerClear) editBannerClear.addEventListener('click', () => {
+  const w = $('edit-banner-when'); if (w) w.value = '';
+  const e = loadEdits(); e.bannerAt = '';
+  try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+  applyEdits(); saveBannerSchedule();
 });
 const editCopy = $('owner-edit-copy');
 if (editCopy) editCopy.addEventListener('click', async () => {
@@ -2275,10 +2812,13 @@ async function publishEditsLive(m) {
     if (e.buynote && e.buynote !== old.buynote) swap('<p class="fine buy-note">' + old.buynote + '</p>', '<p class="fine buy-note">' + e.buynote + '</p>', 'buy note');
     const barStyle = 'background:var(--tan);color:#111;text-align:center;padding:.5rem 1rem;font-weight:700;font-size:.9rem';
     const barOld = '<div id="announce-bar" style="display:none;' + barStyle + '"></div>';
+    const schedAt = (e.bannerAt || '');
+    const schedFuture = !!schedAt && !isNaN(Date.parse(schedAt)) && Date.parse(schedAt) > Date.now();
+    const barNew = '<div id="announce-bar"' + (schedFuture ? ' data-banner-at="' + schedAt + '"' : '') + ' style="' + barStyle + '">' + e.announce + '</div>';
     if ((e.announce || '') !== (old.announce || '')) {
       if (e.announce) {
-        if (html.indexOf(barOld) !== -1) html = html.replace(barOld, '<div id="announce-bar" style="' + barStyle + '">' + e.announce + '</div>');
-        else if (old.announce && html.indexOf('>' + old.announce + '</div>') !== -1) html = html.replace('>' + old.announce + '</div>', '>' + e.announce + '</div>');
+        if (html.indexOf(barOld) !== -1) html = html.replace(barOld, barNew);
+        else if (/<div id="announce-bar"[^>]*>[^<]*<\/div>/.test(html)) html = html.replace(/<div id="announce-bar"[^>]*>[^<]*<\/div>/, barNew);
         else missing.push('announcement banner');
       } else {
         const barWithOld = '<div id="announce-bar" style="' + barStyle + '">' + old.announce + '</div>';
@@ -2300,8 +2840,8 @@ async function publishEditsLive(m) {
     if (m) m.textContent = 'Uploading the new version…';
     const put = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/index.html', { method: 'PUT', headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Update site from admin: hero/price/date/note/banner', content: b64e(html), sha: data.sha, branch: 'main' }) });
     if (!put.ok) { const err = await put.json().catch(() => ({})); throw new Error('GitHub would not save it (' + put.status + (err.message ? ' — ' + err.message : '') + ').'); }
-    try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '' })); } catch (_) {}
-    if (m) m.textContent = '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
+    try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' })); } catch (_) {}
+    if (m) m.textContent = schedFuture ? '✅ Published — the banner is scheduled and will appear ' + new Date(Date.parse(schedAt)).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '. The rest of the site updates in about a minute.' : '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
   } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
 }
 const ghPublish = $('owner-edit-publish');
@@ -2332,10 +2872,11 @@ document.querySelectorAll('[data-sell]').forEach(b => b.addEventListener('click'
   if ((d.stock[s] || 0) <= 0) return;
   if (isGated()) { requestApproval('stock-edit', 'Sell 1 × size ' + s + ': ' + d.stock[s] + ' → ' + (d.stock[s] - 1), { stock: Object.assign({}, d.stock, { [s]: d.stock[s] - 1 }) }); approvalQueuedMsg(); return; }
   if (d.stock[s] > 0) d.stock[s]--;
+  if (sbSyncOn) sbPatch('clutch_stock', s, { stock_left: d.stock[s] });
   saveOwner(d); renderOwner();
 }));
 const resetStock = $('owner-reset-stock');
-if (resetStock) resetStock.addEventListener('click', () => { if (isGated()) { requestApproval('stock-edit', 'Reset stock to 10/10/5/5', { stock: { S: 10, M: 10, L: 5, XL: 5 } }); approvalQueuedMsg(); return; } const d = loadOwner(); d.stock = { S: 10, M: 10, L: 5, XL: 5 }; saveOwner(d); renderOwner(); });
+if (resetStock) resetStock.addEventListener('click', () => { if (isGated()) { requestApproval('stock-edit', 'Reset stock to 10/10/5/5', { stock: { S: 10, M: 10, L: 5, XL: 5 } }); approvalQueuedMsg(); return; } const d = loadOwner(); d.stock = { S: 10, M: 10, L: 5, XL: 5 }; if (sbSyncOn) ['S', 'M', 'L', 'XL'].forEach(s => sbPatch('clutch_stock', s, { stock_left: d.stock[s] })); saveOwner(d); renderOwner(); });
 const signupsInput = $('owner-signups');
 if (signupsInput) signupsInput.addEventListener('change', () => { const d = loadOwner(); d.signups = parseInt(signupsInput.value || '0', 10) || 0; saveOwner(d); });
 const orderForm = $('owner-order-form');
@@ -2352,8 +2893,9 @@ if (orderForm) orderForm.addEventListener('submit', e => {
   if (isGated()) { requestApproval('order-add', 'New Paid order — ' + order.buyer + ' (' + size + ', $' + total + ')', { order }); const m = $('owner-msg'); if (m) m.textContent = 'Sent for approval — Sebastian will review it.'; return; }
   d.orders.push(order);
   logActivity(`Added order — ${order.buyer}, size ${size}, $${total}`);
-  if (sbSyncOn) { sbPost('clutch_orders', { buyer: order.buyer, size, pay: order.pay, total, status: 'Paid', address: order.address }); sbPatch('clutch_stock', size, { stock_left: d.stock[size] }); }
   if (d.stock[size] > 0) d.stock[size]--;
+  // PATCH after the decrement so Supabase gets the new count, not the old one.
+  if (sbSyncOn) { sbPost('clutch_orders', { buyer: order.buyer, size, pay: order.pay, total, status: 'Paid', address: order.address }); sbPatch('clutch_stock', size, { stock_left: d.stock[size] }); }
   saveOwner(d); renderOwner(); orderForm.reset();
   const m = $('owner-msg'); if (m) m.textContent = 'Order logged.';
 });
@@ -2395,6 +2937,138 @@ if (stockSave) stockSave.addEventListener('click', () => {
   if (sbSyncOn) ['S', 'M', 'L', 'XL'].forEach(s => sbPatch('clutch_stock', s, { stock_left: d.stock[s] }));
   saveOwner(d); renderOwner();
   const m = $('owner-msg'); if (m) m.textContent = 'Stock updated.';
+});
+// ---- Drop 002 stock (FORM 001) ----
+document.querySelectorAll('[data-sell002]').forEach(b => b.addEventListener('click', () => {
+  const d = loadOwner();
+  if (!d.stock002) d.stock002 = { S: 14, M: 14, L: 6, XL: 6 };
+  const s = b.dataset.sell002;
+  if ((d.stock002[s] || 0) <= 0) return;
+  const next = Object.assign({}, d.stock002, { [s]: d.stock002[s] - 1 });
+  if (isGated()) { requestApproval('stock002-edit', 'Sell 1 × Drop 002 size ' + s + ': ' + d.stock002[s] + ' → ' + (d.stock002[s] - 1), { stock002: next }); approvalQueuedMsg(); return; }
+  d.stock002 = next;
+  saveOwner(d); renderOwner();
+  if (sbSyncOn) sbPatch('clutch_stock_002', s, { stock_left: d.stock002[s] });
+}));
+const resetStock002 = $('owner-reset-stock002');
+if (resetStock002) resetStock002.addEventListener('click', () => {
+  const reset = { S: 14, M: 14, L: 6, XL: 6 };
+  if (isGated()) { requestApproval('stock002-edit', 'Reset Drop 002 stock to 14/14/6/6', { stock002: reset }); approvalQueuedMsg(); return; }
+  const d = loadOwner(); d.stock002 = reset; saveOwner(d); renderOwner();
+  if (sbSyncOn) ['S', 'M', 'L', 'XL'].forEach(s => sbPatch('clutch_stock_002', s, { stock_left: reset[s] }));
+});
+const stock002Save = $('owner-stock002-save');
+if (stock002Save) stock002Save.addEventListener('click', () => {
+  const d = loadOwner();
+  if (!d.stock002) d.stock002 = { S: 14, M: 14, L: 6, XL: 6 };
+  const next = {};
+  ['S', 'M', 'L', 'XL'].forEach(s => { const v = parseInt(($('stock002-edit-' + s).value || '0'), 10); if (!isNaN(v) && v >= 0) next[s] = v; });
+  const merged = Object.assign({}, d.stock002, next);
+  if (isGated()) { requestApproval('stock002-edit', 'Stock002 edit: ' + ['S', 'M', 'L', 'XL'].map(s => s + ' ' + (d.stock002[s] || 0) + ' → ' + (merged[s] !== undefined ? merged[s] : d.stock002[s])).join(', '), { stock002: merged }); approvalQueuedMsg(); return; }
+  d.stock002 = merged;
+  saveOwner(d); renderOwner();
+  if (sbSyncOn) ['S', 'M', 'L', 'XL'].forEach(s => sbPatch('clutch_stock_002', s, { stock_left: d.stock002[s] }));
+  const m = $('owner-msg'); if (m) m.textContent = 'Drop 002 stock updated.';
+});
+// ---- Bulk actions on orders ----
+const bulkSelectAll = $('bulk-select-all');
+if (bulkSelectAll) bulkSelectAll.addEventListener('change', () => {
+  document.querySelectorAll('[data-bulk-order]').forEach(b => {
+    b.checked = bulkSelectAll.checked;
+    if (bulkSelectAll.checked) bulkSelected.add(+b.dataset.bulkOrder); else bulkSelected.delete(+b.dataset.bulkOrder);
+  });
+  updateBulkCount();
+});
+const bulkShipBtn = $('bulk-mark-shipped');
+if (bulkShipBtn) bulkShipBtn.addEventListener('click', () => {
+  const m = $('owner-msg');
+  if (!bulkSelected.size) { if (m) m.textContent = 'Select at least one order first.'; return; }
+  const d = loadOwner();
+  const shippable = [...bulkSelected].map(i => d.orders[i]).filter(o => o && (o.status || 'Paid') === 'Paid');
+  if (isGated()) {
+    requestApproval('order-bulk-ship', 'Mark ' + shippable.length + ' orders shipped', { orders: shippable.map(o => ({ buyer: o.buyer, size: o.size, total: o.total })) });
+    approvalQueuedMsg(); return;
+  }
+  let n = 0;
+  [...bulkSelected].forEach(i => {
+    const o = d.orders[i];
+    if (!o || (o.status || 'Paid') !== 'Paid') return;
+    o.status = 'Shipped';
+    if (!o.history) o.history = [];
+    o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Shipped (bulk)' });
+    if (sbSyncOn) sbPatchOrdersShipped(o.buyer, o.size);
+    n++;
+  });
+  if (n) logActivity('Bulk shipped — ' + n + ' orders');
+  bulkSelected.clear();
+  saveOwner(d); renderOwner();
+  if (m) m.textContent = n ? 'Marked ' + n + ' shipped.' : 'Nothing to ship — selected orders are not Paid.';
+});
+const bulkExportBtn = $('bulk-export');
+if (bulkExportBtn) bulkExportBtn.addEventListener('click', async () => {
+  const d = loadOwner();
+  const rows = [...bulkSelected].map(i => d.orders[i]).filter(Boolean);
+  const csv = 'buyer,size,pay,total,status,tracking,address,date\n' + rows.map(o => `"${(o.buyer || '').replace(/"/g, '""')}",${o.size},${o.pay},${o.total === undefined ? 35 : o.total},${o.status || 'Paid'},${o.tracking || ''},"${(o.address || '').replace(/"/g, '""')}",${o.at || ''}`).join('\n');
+  try { await navigator.clipboard.writeText(csv); const m = $('owner-msg'); if (m) m.textContent = 'Selected orders copied as CSV.'; } catch (_) {}
+});
+// ---- Global search (admin toolbar) ----
+const gsInput = $('admin-global-search');
+const gsBox = $('admin-global-results');
+if (gsBox) gsBox.addEventListener('click', ev => {
+  const row = ev.target.closest ? ev.target.closest('.gs-row') : null;
+  if (!row || !gsInput) return;
+  const tab = row.dataset.gsTab, qq = row.dataset.gsQ || '';
+  switchAdminTab(tab);
+  if (tab === 'orders') { const os = $('order-search'); if (os) os.value = qq; renderOwner(); }
+  gsInput.value = '';
+  gsBox.innerHTML = '';
+});
+if (gsInput) {
+  gsInput.addEventListener('input', () => {
+    const q = (gsInput.value || '').trim().toLowerCase();
+    if (!gsBox) return;
+    if (!q) { gsBox.innerHTML = ''; return; }
+    const d = loadOwner();
+    const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    let rows = [];
+    d.orders.forEach(o => {
+      const hay = ((o.buyer || '') + ' ' + (o.size || '') + ' ' + (o.status || '') + ' ' + (o.note || '') + ' ' + (o.tracking || '') + ' ' + (o.pay || '')).toLowerCase();
+      if (hay.includes(q)) rows.push({ tab: 'orders', q: o.buyer, html: '📦 order — ' + esc(o.buyer) + ' (' + esc(o.size) + ', $' + (o.total === undefined ? 35 : o.total) + ', ' + esc(o.status || 'Paid') + ')' });
+    });
+    (d.signupEmails || []).forEach(em => { if (em.toLowerCase().includes(q)) rows.push({ tab: 'signups', q: em, html: '✉️ signup — ' + esc(em) }); });
+    (d.staff || []).forEach(s => { if ((s.email || '').toLowerCase().includes(q)) rows.push({ tab: 'staff', q: s.email, html: '👤 staff — ' + esc(s.email) + ' (' + esc(roleLabel(s.role)) + ')' }); });
+    getDiscounts().forEach(x => { if ((x.code || '').toLowerCase().includes(q)) rows.push({ tab: 'payments', q: x.code, html: '🏷️ discount — ' + esc(x.code) + ' (' + x.pct + '% off)' }); });
+    gsBox.innerHTML = rows.length ? rows.map(r => '<div class="gs-row" data-gs-tab="' + r.tab + '" data-gs-q="' + esc(r.q) + '">' + r.html + '</div>').join('') : '<p class="fine">No matches.</p>';
+    if (sbSyncOn) {
+      sbGet('clutch_waitlist', '?select=email,size').then(wrows => {
+        if (!Array.isArray(wrows) || !gsBox || (gsInput.value || '').trim().toLowerCase() !== q) return;
+        const extra = wrows.filter(r => (r.email || '').toLowerCase().includes(q)).map(r => '<div class="gs-row" data-gs-tab="signups" data-gs-q="' + esc(r.email) + '">📋 waitlist — ' + esc(r.email) + ' (' + esc(r.size || '') + ')</div>').join('');
+        if (extra) gsBox.insertAdjacentHTML('beforeend', extra);
+      });
+    }
+  });
+  gsInput.addEventListener('keydown', ev => {
+    if (ev.key === 'Escape') { gsInput.value = ''; if (gsBox) gsBox.innerHTML = ''; }
+  });
+  document.addEventListener('click', ev => {
+    if (gsBox && !ev.target.closest('.admin-toolbar') && !ev.target.closest('#admin-global-results')) gsBox.innerHTML = '';
+  });
+}
+// ---- Dark mode toggle (admin is dark by default; this adds a light theme) ----
+const THEME_KEY = 'clutch-admin-theme';
+function applyAdminTheme() {
+  let light = false;
+  try { light = localStorage.getItem(THEME_KEY) === 'light'; } catch (_) {}
+  document.body.classList.toggle('admin-light', light);
+  const btn = $('admin-dark-toggle');
+  if (btn) btn.textContent = light ? '🌙 Dark' : '☀️ Light';
+}
+applyAdminTheme();
+const darkToggleBtn = $('admin-dark-toggle');
+if (darkToggleBtn) darkToggleBtn.addEventListener('click', () => {
+  const light = !document.body.classList.contains('admin-light');
+  try { localStorage.setItem(THEME_KEY, light ? 'light' : 'dark'); } catch (_) {}
+  applyAdminTheme();
 });
 const costSave = $('owner-cost-save');
 if (costSave) costSave.addEventListener('click', () => {
@@ -2463,11 +3137,13 @@ if (bulkBtn) bulkBtn.addEventListener('click', () => {
   });
   if (isGated()) { requestApproval('order-bulk-add', 'Bulk import — ' + parsed.length + ' order(s)', { orders: parsed }); const m = $('owner-msg'); if (m) m.textContent = 'Sent for approval — Sebastian will review it.'; return; }
   let added = 0;
+  const changedSizes = new Set();
   parsed.forEach(o => {
     d.orders.push(o);
-    if (d.stock[o.size] > 0) d.stock[o.size]--;
+    if (d.stock[o.size] > 0) { d.stock[o.size]--; changedSizes.add(o.size); }
     added++;
   });
+  if (sbSyncOn) changedSizes.forEach(s => sbPatch('clutch_stock', s, { stock_left: d.stock[s] }));
   logActivity(`Bulk import — ${added} orders added`);
   saveOwner(d); renderOwner();
   const m = $('owner-msg'); if (m) m.textContent = added ? `Added ${added} orders.` : 'Nothing added — check the format: buyer, size, pay, address';
@@ -2572,8 +3248,9 @@ async function doGoLive() {
   const msg = $('owner-go-live-switch-msg');
   const d = loadOwner(); d.liveMode = true; saveOwner(d);
   const e = loadEdits(); e.announce = '🔴 PREORDERS ARE LIVE — Drop 01 preorders are open. 30 pieces, first paid, first served.';
+  e.bannerAt = '';
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
-  applyEdits(); renderOwner();
+  applyEdits(); renderOwner(); saveBannerSchedule();
   const hasToken = (() => { try { return !!localStorage.getItem(GH_KEY); } catch (_) { return false; } })();
   if (msg) msg.textContent = hasToken ? 'Live mode on. Publishing the banner…' : 'Live mode on. No GitHub key saved — the banner is set on this device only until you publish.';
   if (hasToken) await publishEditsLive($('owner-edit-msg'));
@@ -2656,6 +3333,10 @@ if (location.hash.indexOf('access_token') !== -1) {
   if (acct) setTimeout(function () { acct.scrollIntoView({ behavior: 'smooth' }); }, 400);
 }
 refreshAccountUI();
+// Sync check on every load (not just after signup): otherwise sbSyncOn stays
+// false on returning sessions and every sbSyncOn-gated Supabase write —
+// including the now-fixed stock PATCHes — is dead code. Stock must sync.
+sbSyncCheck();
 </script>
 </body>
 </html>

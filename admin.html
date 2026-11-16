@@ -190,12 +190,71 @@ section,.nav{background-color:transparent}
 .sb-track{flex:1;height:10px;background:#121110;border:1px solid var(--line);border-radius:99px;overflow:hidden}
 .sb-fill{height:100%;background:var(--tan)}
 @media(max-width:799px){
+  .admin-toolbar input[type=search]{flex-basis:100%}
   section{padding:2rem 1rem}
   .owner-tabs button{padding:.4rem .7rem;font-size:.85rem}
   .owner-stats{gap:.5rem}
   .owner-stats b{font-size:1.3rem}
   #owner-orders .btn{padding:.45rem .65rem;font-size:.72rem}
 }
+
+/* ---- Admin wave: grouped tabs + cleaner stats ---- */
+.owner-tabs{align-items:flex-start}
+.tab-group{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;border:1px solid var(--line);border-radius:12px;padding:.4rem .5rem}
+.tab-group-label{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:800;padding:0 .3rem}
+.owner-stats small{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:block;margin-bottom:.2rem}
+.owner-stats b{font-size:1.9rem}
+.owner h3{margin:1.2rem 0 .5rem}
+
+/* ---- Global search toolbar ---- */
+.admin-toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin:.8rem 0}
+.admin-toolbar input[type=search]{flex:1;min-width:200px}
+#admin-global-results{position:relative}
+.gs-row{padding:.55rem .7rem;border:1px solid var(--line);border-radius:8px;margin:.3rem 0;cursor:pointer;background:#0b0b0b}
+.gs-row:hover{border-color:var(--tan)}
+
+/* ---- Data Center ---- */
+.dc-grid{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin:.8rem 0}
+.dc-card{background:#0b0b0b;border:1px solid var(--line);border-radius:12px;padding:.9rem}
+.dc-card small{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);display:block;margin-bottom:.2rem}
+.dc-card b{font-size:1.5rem;display:block}
+
+/* ---- My Day (ported from myday.html) ---- */
+.progress{height:10px;background:#222;border-radius:99px;overflow:hidden;margin:1rem 0 .4rem}
+.progress i{display:block;height:100%;background:var(--tan);border-radius:99px;transition:width .4s}
+.sect{font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--tan);margin:1.6rem 0 .2rem}
+.task{display:flex;gap:.9rem;align-items:flex-start;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:14px;margin:.6rem 0;background:#111;cursor:pointer;transition:border-color .2s,transform .15s}
+.task:hover{border-color:var(--tan);transform:translateY(-1px)}
+.task.done{opacity:.5}
+.task.done b{text-decoration:line-through}
+.task input{width:1.4rem;height:1.4rem;margin-top:.1rem;accent-color:#c9a86a;flex:none;cursor:pointer}
+.task b{font-size:1rem;line-height:1.3}
+.task small{display:block;color:var(--mute);margin-top:.2rem;line-height:1.4}
+.task .del{margin-left:auto;flex:none;background:none;border:none;color:var(--mute);font-size:1.1rem;cursor:pointer;padding:.2rem .4rem}
+.task .del:hover{color:#ff8a7a}
+.add-row{display:flex;gap:.5rem;margin-top:1.2rem;flex-wrap:wrap}
+.add-row input[type=text]{flex:1;min-width:12rem;padding:.8rem;border:1px solid var(--line);border-radius:10px;background:#111;color:var(--ink)}
+.add-row select{padding:.8rem;border:1px solid var(--line);border-radius:10px;background:#111;color:var(--ink)}
+
+/* ---- Light theme (admin toggle; the admin is dark by default) ---- */
+body.admin-light{--bg:#f7f2e8;--ink:#1d1a15;--tan:#8a6d3b;--mute:#6d675e;--line:#ddd3c0;background:#f7f2e8;color:#1d1a15}
+body.admin-light .owner{background:#fff;border-color:#ddd3c0}
+body.admin-light .owner-stats div{background:#fff;border-color:#ddd3c0}
+body.admin-light .owner-tabs button{background:#fff;color:#1d1a15;border-color:#ddd3c0}
+body.admin-light .owner-tabs button.on{background:#8a6d3b;color:#fff;border-color:#8a6d3b}
+body.admin-light .nav{background:rgba(247,242,232,.9)}
+body.admin-light input,body.admin-light select,body.admin-light textarea{background:#fff !important;color:#1d1a15 !important;border-color:#ddd3c0 !important}
+body.admin-light .dc-card{background:#fff;border-color:#ddd3c0}
+body.admin-light .task{background:#fff;border-color:#ddd3c0}
+body.admin-light .progress{background:#e5ddcc}
+body.admin-light .gs-row{background:#fff;border-color:#ddd3c0}
+body.admin-light [style*="color:#9fd89a"]{color:#2e7d32 !important}
+body.admin-light [style*="color:#ff8a7a"]{color:#c62828 !important}
+body.admin-light [style*="background:#111"]{background:#fff !important}
+body.admin-light [style*="background:#0b0b0b"]{background:#fff !important}
+body.admin-light [style*="background:#222"]{background:#e5ddcc !important}
+body.admin-light #edit-preview{background:#0b0b0b !important}
+body.admin-light #edit-preview [style*="background:#0b0b0b"]{background:#0b0b0b !important}
 </style></head>
 <body><header class="nav"><a class="logo" href="/"><img class="mono" src="data:image/png;base64,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kFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAA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" alt="">CLUTCH</a><nav><a href="/">Home</a><a href="/#account">Account</a></nav></header>
 <main><section class="owner" style="max-width:900px;margin:2rem auto">
@@ -213,22 +272,15 @@ section,.nav{background-color:transparent}
 <p class="fine" id="owner-auth-msg"></p>
 </div>
 <div id="owner-admin" hidden>
+<div class="admin-toolbar"><input id="admin-global-search" type="search" placeholder="Search orders, buyers, signups…"><button class="btn ghost" type="button" id="admin-dark-toggle">☀️ Light</button></div><div id="admin-global-results"></div>
 <nav class="owner-tabs" aria-label="Admin pages">
-<button type="button" data-tab="dash" class="on">Dashboard</button>
-<button type="button" data-tab="orders">Orders</button>
-<button type="button" data-tab="signups">Signups</button>
-<button type="button" data-tab="stock">Stock</button>
-<button type="button" data-tab="payments">Payments</button>
-<button type="button" data-tab="email">Email</button>
-<button type="button" data-tab="edit">Edit site</button>
-<button type="button" data-tab="staff">Staff</button>
-<button type="button" data-tab="profit">Profit</button>
-<button type="button" data-tab="money">Money</button>
-<button type="button" data-tab="taxes">Taxes</button>
-<button type="button" data-tab="accounts">Accounts</button>
-<button type="button" data-tab="today">📋 Today</button>
-<button type="button" data-tab="notes">📝 Team notes</button>
+<span class="tab-group"><span class="tab-group-label">Overview</span><button type="button" data-tab="data">📊 Data Center</button><button type="button" data-tab="dash" class="on">Dashboard</button><button type="button" data-tab="today">📋 Today</button><button type="button" data-tab="myday">☀️ My Day</button></span>
+<span class="tab-group"><span class="tab-group-label">Sales</span><button type="button" data-tab="orders">Orders</button><button type="button" data-tab="signups">Signups</button><button type="button" data-tab="stock">Stock</button></span>
+<span class="tab-group"><span class="tab-group-label">Money</span><button type="button" data-tab="payments">Payments</button><button type="button" data-tab="profit">Profit</button><button type="button" data-tab="money">Money</button><button type="button" data-tab="taxes">Taxes</button></span>
+<span class="tab-group"><span class="tab-group-label">People</span><button type="button" data-tab="staff">Staff</button><button type="button" data-tab="accounts">Accounts</button><button type="button" data-tab="notes">📝 Team notes</button></span>
+<span class="tab-group"><span class="tab-group-label">Site</span><button type="button" data-tab="edit">Edit site</button><button type="button" data-tab="email">Email</button></span>
 </nav>
+<div data-panel="data" hidden><h3>📊 Data Center</h3><p class="fine">Everything that matters, in one place.</p><div id="owner-datacenter"></div></div>
 <div data-panel="dash"><div class="owner-stats" id="owner-stats"></div>
 <div id="owner-alerts"></div>
 <div id="owner-referrers"></div>
@@ -276,6 +328,7 @@ section,.nav{background-color:transparent}
 <input id="owner-address" type="text" placeholder="Ship to — name + address (or 'pickup')">
 <button class="btn buy live" type="submit">Add order</button></form>
 <p style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="order-search" type="search" placeholder="Search orders — buyer, size, pay…" style="flex:1;min-width:160px"><select id="order-filter"><option value="">All statuses</option><option>Pending</option><option>Underpaid</option><option>Paid</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option></select></p>
+<p id="owner-bulk-bar" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center"><label><input type="checkbox" id="bulk-select-all"> Select all</label><button class="btn ghost" type="button" id="bulk-mark-shipped">✅ Mark selected shipped</button><button class="btn ghost" type="button" id="bulk-export">Export selected CSV</button><span class="fine" id="bulk-count"></span></p>
 <p><button class="btn ghost" type="button" id="owner-print-all">🖨 Print all packing slips</button> <button class="btn ghost" type="button" id="owner-runsheet">📦 Copy post office run sheet</button></p>
     <pre id="owner-runsheet-out" class="fine" style="white-space:pre-wrap"></pre>
     <div class="fine" id="owner-orders"></div>
@@ -306,7 +359,8 @@ section,.nav{background-color:transparent}
 <button class="btn ghost" type="button" data-sell="XL">Sell XL</button>
 <button class="btn ghost" type="button" id="owner-reset-stock">Reset stock</button></p>
 <p class="fine">Start: S 10 · M 10 · L 5 · XL 5 = 30 total.</p>
-<p class="fine">Edit stock: S <input id="stock-edit-S" type="number" min="0" style="width:3.5rem"> M <input id="stock-edit-M" type="number" min="0" style="width:3.5rem"> L <input id="stock-edit-L" type="number" min="0" style="width:3.5rem"> XL <input id="stock-edit-XL" type="number" min="0" style="width:3.5rem"> <button class="btn ghost" type="button" id="owner-stock-save">Save stock</button></p></div>
+<p class="fine">Edit stock: S <input id="stock-edit-S" type="number" min="0" style="width:3.5rem"> M <input id="stock-edit-M" type="number" min="0" style="width:3.5rem"> L <input id="stock-edit-L" type="number" min="0" style="width:3.5rem"> XL <input id="stock-edit-XL" type="number" min="0" style="width:3.5rem"> <button class="btn ghost" type="button" id="owner-stock-save">Save stock</button></p>
+<h3>Drop 002 stock — FORM 001</h3><p class="fine" id="owner-stock002"></p><p><button class="btn ghost" type="button" data-sell002="S">Sell S</button><button class="btn ghost" type="button" data-sell002="M">Sell M</button><button class="btn ghost" type="button" data-sell002="L">Sell L</button><button class="btn ghost" type="button" data-sell002="XL">Sell XL</button><button class="btn ghost" type="button" id="owner-reset-stock002">Reset stock</button></p><p class="fine">Start: S 14 · M 14 · L 6 · XL 6 = 40 total.</p><p class="fine">Edit stock: S <input id="stock002-edit-S" type="number" min="0" style="width:3.5rem"> M <input id="stock002-edit-M" type="number" min="0" style="width:3.5rem"> L <input id="stock002-edit-L" type="number" min="0" style="width:3.5rem"> XL <input id="stock002-edit-XL" type="number" min="0" style="width:3.5rem"> <button class="btn ghost" type="button" id="owner-stock002-save">Save stock</button></p></div>
 <div data-panel="payments" hidden><h3>Payments</h3><p class="fine" id="owner-payments"></p>
 <p class="fine">Greenlight: <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">gl.me/u/qqMvQlZ6mTpb</a> — $35 per pair. Cash App in the DM, backup only. Both cap at $1,000 received in 30 days — 30 × $35 = $1,050.</p>
 <h3>Discount code</h3>
@@ -370,6 +424,8 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
       <label class="fine">Buy note<br><input id="edit-buynote" type="text" style="width:100%" value="PREORDERS open Fri, Nov 27, 6PM ET · $25 + shipping ($35 total) · Pay via Greenlight — or Cash App in the DM. Pick your size first, then DM @clutchny1 — first paid, first served."></label>
       <label class="fine">Discount code<br><input id="edit-discount-code" type="text" value="CLUTCH10" style="width:9rem"> <input id="edit-discount-pct" type="number" min="0" max="50" value="10" style="width:4rem"> % off</label>
       <label class="fine">Announcement banner (shows at the top of the homepage — blank = hidden)<br><input id="edit-announce" type="text" style="width:100%" placeholder="e.g. Drop 01 is LIVE — 30 pieces, no restocks"></label>
+      <label class="fine">Banner goes live at (optional — leave blank to show right away)<br><input id="edit-banner-when" type="datetime-local" style="width:100%"> <button class="btn ghost" type="button" id="edit-banner-clear">Clear schedule</button></label>
+      <p class="fine" id="owner-banner-sched-msg"></p>
       <button class="btn buy live" type="submit">Save edits (this device)</button>
       <button class="btn ghost" type="button" id="owner-edit-copy">Copy edits for Jerry</button>
       <button class="btn ghost" type="button" id="owner-edit-reset">Reset edits</button>
@@ -428,6 +484,7 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
     <p class="fine">Your list for today, rebuilt every morning. Checks save on this device — staff never see this tab.</p>
     <div id="owner-today"></div>
   </div>
+<div data-panel="myday" hidden><h3>☀️ My Day — <span id="admin-myday-date"></span></h3><div class="progress"><i id="admin-myday-bar" style="width:0%"></i></div><p class="fine" id="admin-myday-count"></p><p class="fine" id="admin-myday-sync"></p><div id="admin-myday-list"></div><form id="admin-myday-add-form" class="add-row"><input id="admin-myday-add-text" type="text" placeholder="Add your own task…" required><select id="admin-myday-add-section"><option value="Personal">Personal</option><option value="CLUTCH">CLUTCH</option><option value="Gym &amp; Health">Gym &amp; Health</option><option value="School">School</option></select><button class="btn buy live" type="submit">Add</button></form><p style="margin-top:1rem"><button class="btn ghost" type="button" id="admin-myday-reset">Reset today</button></p></div>
 
 <div data-panel="notes" hidden>
 <h3>📝 Team notes — Sebastian, Emeri + Ajan</h3>
@@ -485,11 +542,13 @@ function roleLabel(r) { return r === 'owner' ? 'Owner' : r === 'gated' ? 'Owner 
 const $ = id => document.getElementById(id);
 const OWNER_KEY = 'clutch-admin-v1';
 const ACCT_KEY = 'clutch-owner-acct-v1';
-const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {} };
+const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, stock002: { S: 14, M: 14, L: 6, XL: 6 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {} };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
 // Packing checklist per order (localStorage, keyed by order id when known, else list index)
 var PACK_STEPS = ['packed', 'label', 'photo', 'dropped'];
+// Bulk order selection (orders panel) — index into d.orders → true
+var bulkSelected = {};
 var PACK_LABELS = { packed: 'Packed', label: 'Label printed', photo: 'Photo taken', dropped: 'Dropped at post office' };
 function loadPacking() { try { return JSON.parse(localStorage.getItem('clutch-packing-v1') || '{}'); } catch (e) { return {}; } }
 function savePacking(p) { try { localStorage.setItem('clutch-packing-v1', JSON.stringify(p)); } catch (e) {} }
@@ -536,13 +595,34 @@ setInterval(updateCountdown, 30000);
 function showAdmin(staffMode) {
   currentRole = staffMode || 'owner';
   $('admin-gate').hidden = true; $('owner-admin').hidden = false;
-  // Gated owners see every owner tab except 📋 Today. Staff-table owners (role
-  // 'owner' but not one of the two hardcoded owner emails) also don't get Today.
-  var hide = currentRole === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit', 'notes'] : currentRole === 'staff' ? ['payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'edit'] : currentRole === 'gated' ? ['today'] : !isHardOwner() ? ['today'] : [];
+  // Gated owners see every owner tab except 📋 Today and ☀️ My Day. Staff-table owners (role
+  // 'owner' but not one of the two hardcoded owner emails) also don't get Today or My Day.
+  var hide = currentRole === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'myday', 'edit', 'notes'] : currentRole === 'staff' ? ['payments', 'email', 'staff', 'profit', 'money', 'taxes', 'accounts', 'today', 'myday', 'edit'] : currentRole === 'gated' ? ['today', 'myday'] : !isHardOwner() ? ['today', 'myday'] : [];
   document.querySelectorAll('.owner-tabs button').forEach(function (b) { b.style.display = hide.indexOf(b.dataset.tab) !== -1 ? 'none' : ''; });
   var pinBox = $('owner-pin-change'); if (pinBox) pinBox.style.display = isHardOwner() ? '' : 'none';
   var ghBox = $('owner-gh-token-box'); if (ghBox) ghBox.style.display = isHardOwner() ? '' : 'none';
   renderOwner();
+  updateTabGroups();
+  // Banner schedule: adopt from Supabase clutch_settings if local edits have none.
+  try {
+    sb.from('clutch_settings').select('value').eq('key', 'banner_schedule').limit(1).then(function (r) {
+      if (r.error || !r.data || !r.data.length) return;
+      var v = null; try { v = JSON.parse(r.data[0].value || '{}'); } catch (e) {}
+      if (!v || !v.at) return;
+      var e = loadEdits();
+      if (!e.bannerAt) { e.bannerAt = v.at; try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (err2) {} applyEdits(); }
+    }).catch(function () {});
+  } catch (e2) {}
+  // My Day sync (best effort; localStorage is the fallback until the table answers).
+  mydaySbSyncLoad();
+}
+// Hide a whole tab group when every button in it is hidden (per role).
+function updateTabGroups() {
+  document.querySelectorAll('.tab-group').forEach(function (g) {
+    var anyVisible = false;
+    g.querySelectorAll('button').forEach(function (b) { if (b.style.display !== 'none') anyVisible = true; });
+    g.style.display = anyVisible ? '' : 'none';
+  });
 }
 // ---- Gated Owner + pending approvals --------------------------------
 // Emeri (role 'gated') sees everything an owner sees, but consequential
@@ -562,11 +642,13 @@ function approvalDetail(r) {
   var p = r.payload || {};
   switch (r.action) {
     case 'stock-edit': return p.stock ? ['S', 'M', 'L', 'XL'].map(function (s) { return s + ' → ' + (p.stock[s] === undefined ? '—' : p.stock[s]); }).join(', ') : '';
+    case 'stock002-edit': return p.stock002 ? ['S', 'M', 'L', 'XL'].map(function (s) { return s + ' → ' + (p.stock002[s] === undefined ? '—' : p.stock002[s]); }).join(', ') : '';
     case 'order-cancel': return 'Order — ' + (p.buyer || '') + ' (' + (p.size || '') + ')';
     case 'order-refund': return 'Order — ' + (p.buyer || '') + ' (' + (p.size || '') + ')';
     case 'order-swap': return 'Order — ' + (p.buyer || '') + ': ' + (p.fromSize || '') + ' → ' + (p.newSize || '');
     case 'order-add': return 'New Paid order — ' + (p.order ? p.order.buyer + ' (' + p.order.size + ', $' + p.order.total + ')' : '');
     case 'order-bulk-add': return (p.orders || []).length + ' order(s): ' + (p.orders || []).map(function (o) { return o.buyer + ' (' + o.size + ')'; }).join(', ');
+    case 'order-bulk-ship': return (p.orders || []).length + ' order(s): ' + (p.orders || []).map(function (o) { return o.buyer + ' (' + o.size + ')'; }).join(', ');
     case 'orders-clear': return 'Clears ALL orders from the log.';
     case 'site-edits': return 'Edits save on this device only until approved — publish still needs a separate approval.';
     case 'publish-edits': return 'Publishes the current site edits to the live site.';
@@ -640,6 +722,7 @@ function applyApproval(action, p, actor) {
   switch (action) {
     case 'publish-edits': {
       try { localStorage.setItem(EDIT_KEY, JSON.stringify(p.edits || {})); } catch (_) {}
+      mirrorBannerSchedule();
       applyEdits(); renderOwner(); publishEditsLive(); return true;
     }
     case 'go-live': { doGoLive(); return true; }
@@ -648,11 +731,20 @@ function applyApproval(action, p, actor) {
     }
     case 'site-edits': {
       try { localStorage.setItem(EDIT_KEY, JSON.stringify(p.edits || {})); } catch (_) {}
+      mirrorBannerSchedule();
       applyEdits(); renderOwner(); return true;
     }
     case 'stock-edit': {
       if (!p.stock) return false;
       ['S', 'M', 'L', 'XL'].forEach(function (s) { if (p.stock[s] !== undefined && p.stock[s] >= 0) d.stock[s] = p.stock[s]; });
+      try { ['S', 'M', 'L', 'XL'].forEach(function (s) { sb.from('clutch_stock').update({ stock_left: d.stock[s] }).eq('size', s).then(function () {}, function () {}); }); } catch (e) {}
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'stock002-edit': {
+      if (!p.stock002) return false;
+      if (!d.stock002) d.stock002 = { S: 14, M: 14, L: 6, XL: 6 };
+      ['S', 'M', 'L', 'XL'].forEach(function (s) { if (p.stock002[s] !== undefined && p.stock002[s] >= 0) d.stock002[s] = p.stock002[s]; });
+      try { ['S', 'M', 'L', 'XL'].forEach(function (s) { sb.from('clutch_stock_002').update({ stock_left: d.stock002[s] }).eq('size', s).then(function () {}, function () {}); }); } catch (e) {}
       saveOwner(d); renderOwner(); return true;
     }
     case 'order-cancel': {
@@ -680,7 +772,7 @@ function applyApproval(action, p, actor) {
       o3.size = p.newSize;
       if (d.stock[p.fromSize] !== undefined) d.stock[p.fromSize]++;
       if (d.stock[p.newSize] !== undefined) d.stock[p.newSize]--;
-      try { sb.from('clutch_stock').update({ stock_left: d.stock[p.fromSize] }).eq('size', p.fromSize); sb.from('clutch_stock').update({ stock_left: d.stock[p.newSize] }).eq('size', p.newSize); } catch (e) {}
+      try { sb.from('clutch_stock').update({ stock_left: d.stock[p.fromSize] }).eq('size', p.fromSize).then(function () {}, function () {}); sb.from('clutch_stock').update({ stock_left: d.stock[p.newSize] }).eq('size', p.newSize).then(function () {}, function () {}); } catch (e) {}
       if (!o3.history) o3.history = [];
       o3.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: 'Swapped ' + p.fromSize + ' → ' + p.newSize });
       logActivity('Swapped order #' + (ix3 + 1) + ' (' + o3.buyer + ') ' + p.fromSize + ' → ' + p.newSize + ' — approved for ' + who);
@@ -701,6 +793,24 @@ function applyApproval(action, p, actor) {
         if (d.stock[o5.size] > 0) d.stock[o5.size]--;
       });
       logActivity('Bulk import — ' + p.orders.length + ' orders added — approved for ' + who);
+      saveOwner(d); renderOwner(); return true;
+    }
+    case 'order-bulk-ship': {
+      if (!p.orders || !p.orders.length) return false;
+      var applied = 0;
+      p.orders.forEach(function (po) {
+        var ix = d.orders.findIndex(function (o) { return o.buyer === po.buyer && o.size === po.size && (po.total === undefined || (o.total === undefined ? 35 : o.total) === po.total); });
+        if (ix !== -1 && (d.orders[ix].status || 'Paid') === 'Paid') {
+          var ob = d.orders[ix];
+          ob.status = 'Shipped';
+          if (!ob.history) ob.history = [];
+          ob.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Shipped (bulk)' });
+          applied++;
+          try { sb.from('clutch_orders').update({ status: 'Shipped' }).eq('buyer', ob.buyer).eq('size', ob.size).eq('status', 'Paid').then(function () {}, function () {}); } catch (e2) {}
+        }
+      });
+      if (!applied) return false;
+      logActivity('Bulk shipped — ' + applied + ' orders — approved for ' + who);
       saveOwner(d); renderOwner(); return true;
     }
     case 'orders-clear': {
@@ -787,6 +897,301 @@ async function decideApproval(id, decision) {
   var m = $('owner-msg');
   if (m) m.textContent = decision === 'approved' ? (ok ? 'Approved — applied.' : 'Approved, but it could not be applied (check stock / the order may have changed) — marked as failed.') : 'Denied — nothing changed.';
   renderApprovals(); renderOwner();
+}
+// ---- My Day tab (owner-only; same data as myday.html) ------------------
+// Shares localStorage key 'clutch-myday-v1' + state shape with myday.html,
+// so the standalone page and this tab show the same list. Supabase mirror
+// (clutch_personal_tasks) is best effort; localStorage is the fallback.
+var MYDAY_KEY = 'clutch-myday-v1';
+var MYDAY_DROP = new Date('2026-11-27T18:00:00-05:00');
+var mydaySbOn = false;
+function mydayOwnerEmail() { return currentActor || OWNER_EMAILS[0]; }
+function mydayTodayStr(d) {
+  d = d || new Date();
+  var m = d.getMonth() + 1, day = d.getDate();
+  return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+}
+function mydayDaysLeft() {
+  var ms = MYDAY_DROP.getTime() - Date.now();
+  return Math.max(0, Math.ceil(ms / 86400000));
+}
+function mydayGymSession() {
+  var wd = new Date().getDay();
+  if (wd === 0) return { t: 'Upper light session', s: 'Sunday — upper body, light.' };
+  if (wd === 1) return { t: 'Session A', s: 'Goblet squat, bench, row, RDL, overhead press, plank.' };
+  if (wd === 2) return { t: 'Upper pull — 5:15 after student council', s: 'Tuesday gym after council ends 4:45.' };
+  if (wd === 3) return { t: 'Session B', s: 'Reverse lunge, incline press, row, hip thrust, lateral raise, dead bug.' };
+  if (wd === 4) return { t: 'Trainer / CrossFit — 85th & York', s: 'Thursday trainer session.' };
+  if (wd === 5) return { t: 'Rest day — stretch + recover', s: 'Friday is rest. No gym.' };
+  return { t: 'Basketball — run + handles', s: 'Saturday hoops.' };
+}
+function mydayDefaults() {
+  var n = mydayDaysLeft();
+  var g = mydayGymSession();
+  return [
+    { key: 'clutch:countdown', section: 'CLUTCH', t: n > 0 ? 'Post the day-' + n + ' countdown reel' : 'Preorders are open — post the launch reel', s: n > 0 ? n + ' days til preorders open Nov 27.' : 'Drop 01 preorders are live.' },
+    { key: 'clutch:replies', section: 'CLUTCH', t: 'Reply to comments + DMs', s: 'Every comment, every DM — fast.' },
+    { key: 'clutch:kevin', section: 'CLUTCH', t: 'Kevin check', s: '$260.40 breakdown + delivery date + digital proof before anything is cut.' },
+    { key: 'clutch:orders', section: 'CLUTCH', t: 'Orders + stock check', s: 'Any new orders? Any size at 2 or less?' },
+    { key: 'clutch:signups', section: 'CLUTCH', t: 'Signups check', s: 'Any new notify signups in the company Gmail?' },
+    { key: 'gym:session', section: 'Gym & Health', t: g.t, s: g.s },
+    { key: 'gym:shake', section: 'Gym & Health', t: 'Protein shake (Nurri)', s: 'After the session.' },
+    { key: 'gym:dinner', section: 'Gym & Health', t: 'Dinner menu with dad', s: 'You design it, dad cooks it.' },
+    { key: 'school:homework', section: 'School', t: 'Homework done', s: '' },
+    { key: 'school:bag', section: 'School', t: 'Bag packed', s: '' },
+    { key: 'school:shsat', section: 'School', t: 'SHSAT prep — 20 min', s: 'Test is Oct 18, 2027.' }
+  ];
+}
+function mydayLoadState() {
+  try {
+    var d = JSON.parse(localStorage.getItem(MYDAY_KEY) || 'null');
+    if (d && d.days && d.custom) return d;
+  } catch (e) {}
+  return { days: {}, custom: [] };
+}
+function mydaySaveState(st) { try { localStorage.setItem(MYDAY_KEY, JSON.stringify(st)); } catch (e) {} }
+function mydayVisibleCustoms(st) {
+  var today = mydayTodayStr();
+  return st.custom.filter(function (c) { return !c.done || c.doneDate === today; });
+}
+function mydayAllTasks(st) {
+  var today = mydayTodayStr();
+  var checks = st.days[today] || {};
+  var list = mydayDefaults().map(function (d) {
+    return { kind: 'def', key: d.key, section: d.section, t: d.t, s: d.s, done: !!checks[d.key] };
+  });
+  mydayVisibleCustoms(st).forEach(function (c) {
+    list.push({ kind: 'custom', key: c.id, section: c.section, t: c.text, s: '', done: !!c.done });
+  });
+  return list;
+}
+function mydayProgress() {
+  var tasks = mydayAllTasks(mydayLoadState());
+  var done = tasks.filter(function (t) { return t.done; }).length;
+  return { done: done, total: tasks.length };
+}
+async function mydaySbSyncLoad() {
+  if (!sb) return;
+  var email = mydayOwnerEmail();
+  if (!email) return;
+  try {
+    var today = mydayTodayStr();
+    var r = await sb.from('clutch_personal_tasks').select('id,text,section,done,task_date').eq('owner_email', email).or('task_date.eq.' + today + ',and(task_date.lt.' + today + ',done.eq.false)').order('id');
+    if (r.error || !r.data) { mydaySbOn = false; renderAdminMyDay(); return; }
+    mydaySbOn = true;
+    var st = mydayLoadState();
+    var changed = false;
+    var defTexts = {};
+    mydayDefaults().forEach(function (d) { defTexts[d.section + '|' + d.t] = d.key; });
+    r.data.forEach(function (row) {
+      var k = defTexts[row.section + '|' + row.text];
+      if (k) {
+        if (row.done) {
+          st.days[today] = st.days[today] || {};
+          if (!st.days[today][k]) { st.days[today][k] = true; changed = true; }
+        }
+      } else {
+        var exists = st.custom.some(function (c) { return c.sbId === row.id || (c.text === row.text && c.section === row.section && !c.done); });
+        if (!exists) {
+          st.custom.push({ id: 'sb' + row.id, sbId: row.id, text: row.text, section: row.section, added: row.task_date, done: !!row.done, doneDate: row.done ? today : null });
+          changed = true;
+        } else if (row.done) {
+          var c2 = st.custom.find(function (c) { return c.sbId === row.id; });
+          if (c2 && !c2.done) { c2.done = true; c2.doneDate = today; changed = true; }
+        }
+      }
+    });
+    if (changed) mydaySaveState(st);
+    renderAdminMyDay();
+  } catch (e) { mydaySbOn = false; renderAdminMyDay(); }
+}
+async function mydaySbUpsert(task) {
+  if (!sb || !mydaySbOn) return;
+  var email = mydayOwnerEmail();
+  if (!email) return;
+  try {
+    var today = mydayTodayStr();
+    var r = await sb.from('clutch_personal_tasks').select('id').eq('owner_email', email).eq('text', task.t).eq('section', task.section).eq('task_date', today);
+    if (r.error || !r.data) return;
+    if (r.data.length) {
+      var w = await sb.from('clutch_personal_tasks').update({ done: task.done }).eq('id', r.data[0].id).select();
+      var back = (w && w.data) || [];
+      if (task.kind === 'custom' && back[0] && task.key && String(task.key).indexOf('sb') !== 0) {
+        var st = mydayLoadState();
+        var c = st.custom.find(function (x) { return String(x.id) === String(task.key); });
+        if (c) { c.sbId = back[0].id; c.id = 'sb' + back[0].id; mydaySaveState(st); }
+      }
+    } else {
+      var w2 = await sb.from('clutch_personal_tasks').insert({ owner_email: email, text: task.t, section: task.section, done: task.done, task_date: today }).select();
+      var back2 = (w2 && w2.data) || [];
+      if (task.kind === 'custom' && back2[0]) {
+        var st2 = mydayLoadState();
+        var c2 = st2.custom.find(function (x) { return String(x.id) === String(task.key); });
+        if (c2) { c2.sbId = back2[0].id; c2.id = 'sb' + back2[0].id; mydaySaveState(st2); }
+      }
+    }
+  } catch (e) {}
+}
+async function mydaySbDelete(task) {
+  if (!sb || !mydaySbOn) return;
+  var email = mydayOwnerEmail();
+  if (!email) return;
+  try {
+    if (task.sbId) {
+      await sb.from('clutch_personal_tasks').delete().eq('id', task.sbId);
+    } else {
+      var r = await sb.from('clutch_personal_tasks').select('id').eq('owner_email', email).eq('text', task.t).eq('section', task.section);
+      if (!r.error && r.data) {
+        for (var i = 0; i < r.data.length; i++) { await sb.from('clutch_personal_tasks').delete().eq('id', r.data[i].id); }
+      }
+    }
+  } catch (e) {}
+}
+function renderAdminMyDay() {
+  var list = $('admin-myday-list'); if (!list) return;
+  var st = mydayLoadState();
+  var tasks = mydayAllTasks(st);
+  var done = tasks.filter(function (t) { return t.done; }).length;
+  var total = tasks.length;
+  var bar = $('admin-myday-bar'); if (bar) bar.style.width = (total ? Math.round(done / total * 100) : 0) + '%';
+  var cnt = $('admin-myday-count'); if (cnt) cnt.textContent = done + ' of ' + total + ' done today — ' + (total - done) + ' to go.';
+  var sync = $('admin-myday-sync'); if (sync) sync.textContent = mydaySbOn ? 'Sync: ON — saves across your phone and laptop.' : 'Sync: OFF — saving on this device only. Run SQL Part 10 in Supabase to turn it on.';
+  var dateEl = $('admin-myday-date'); if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+  var sections = ['CLUTCH', 'Gym & Health', 'School', 'Personal'];
+  var html = '';
+  sections.forEach(function (sec) {
+    var items = tasks.filter(function (t) { return t.section === sec; });
+    if (!items.length) {
+      if (sec !== 'Personal') return;
+      html += '<p class="sect">Personal</p><p class="fine">Nothing here yet — add your own below.</p>';
+      return;
+    }
+    html += '<p class="sect">' + esc(sec) + '</p>';
+    items.forEach(function (t) {
+      html += '<label class="task' + (t.done ? ' done' : '') + '"><input type="checkbox" data-myday-key="' + esc(t.key) + '" data-myday-kind="' + t.kind + '"' + (t.done ? ' checked' : '') + '><span><b>' + esc(t.t) + '</b>' + (t.s ? '<small>' + esc(t.s) + '</small>' : '') + '</span>' + (t.kind === 'custom' ? '<button type="button" class="del" data-myday-del="' + esc(t.key) + '" title="Delete">✕</button>' : '') + '</label>';
+    });
+  });
+  list.innerHTML = html;
+  list.querySelectorAll('[data-myday-key]').forEach(function (cb) {
+    cb.addEventListener('change', function () { mydayToggle(cb.dataset.mydayKey, cb.dataset.mydayKind, cb.checked); });
+  });
+  list.querySelectorAll('[data-myday-del]').forEach(function (btn) {
+    btn.addEventListener('click', function (e) { e.preventDefault(); mydayDelete(btn.dataset.mydayDel); });
+  });
+}
+function mydayToggle(key, kind, done) {
+  var st = mydayLoadState();
+  var today = mydayTodayStr();
+  var task = null;
+  if (kind === 'def') {
+    st.days[today] = st.days[today] || {};
+    if (done) st.days[today][key] = true; else delete st.days[today][key];
+    var d = mydayDefaults().find(function (x) { return x.key === key; });
+    if (d) task = { kind: 'def', key: key, t: d.t, section: d.section, done: done };
+  } else {
+    var c = st.custom.find(function (x) { return String(x.id) === String(key); });
+    if (c) {
+      c.done = done;
+      c.doneDate = done ? today : null;
+      task = { kind: 'custom', key: key, t: c.text, section: c.section, done: done, sbId: c.sbId };
+    }
+  }
+  mydaySaveState(st);
+  renderAdminMyDay();
+  if (task) mydaySbUpsert(task);
+}
+function mydayDelete(key) {
+  var st = mydayLoadState();
+  var idx = st.custom.findIndex(function (x) { return String(x.id) === String(key); });
+  if (idx < 0) return;
+  var gone = st.custom[idx];
+  st.custom.splice(idx, 1);
+  mydaySaveState(st);
+  renderAdminMyDay();
+  mydaySbDelete({ t: gone.text, section: gone.section, sbId: gone.sbId });
+}
+// ---- Data Center --------------------------------------------------------
+// One-page overview: countdown, sales, stock (both drops), attention items,
+// signups, My Day progress, money (owners only), pending approvals (owner only).
+function renderDataCenter() {
+  var el = $('owner-datacenter'); if (!el) return;
+  var d = loadOwner();
+  var ms = new Date('2026-11-27T18:00:00-05:00').getTime() - Date.now();
+  var cd = ms <= 0 ? '🔴 PREORDERS — live now' : '⏳ ' + Math.floor(ms / 864e5) + 'd ' + Math.floor(ms % 864e5 / 36e5) + 'h ' + Math.floor(ms % 36e5 / 6e4) + 'm to preorders';
+  var sold = (d.orders || []).filter(function (o) { return ['Paid', 'Shipped', 'Delivered'].indexOf(o.status || 'Paid') !== -1; });
+  var rev = sold.reduce(function (a, o) { return a + (o.total === undefined ? 35 : o.total); }, 0);
+  var costs = d.costs || { perPair: 10, shipping: 9, other: 0 };
+  var exp = (d.expenses || []).reduce(function (a, x) { return a + (+x.amount || 0); }, 0);
+  var profit = rev - sold.length * ((+costs.perPair || 0) + (+costs.shipping || 0)) - (+costs.other || 0) - exp;
+  var nowD = new Date();
+  var todayOnly = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate());
+  var daysLeft = Math.max(0, Math.round((new Date(2026, 10, 27) - todayOnly) / 864e5));
+  var leftN = Math.max(0, 30 - sold.length);
+  var pace = sold.length >= 30 ? 'Sold out — all 30 gone.' : daysLeft === 0 ? 'Preorders are open — ' + leftN + ' left.' : 'need ' + Math.ceil(leftN / daysLeft) + '/day by Nov 27';
+  var s001 = d.stock || { S: 10, M: 10, L: 5, XL: 5 };
+  var tot001 = ['S', 'M', 'L', 'XL'].reduce(function (a, s) { return a + (s001[s] || 0); }, 0);
+  var s002 = d.stock002 || { S: 14, M: 14, L: 6, XL: 6 };
+  var tot002 = ['S', 'M', 'L', 'XL'].reduce(function (a, s) { return a + (s002[s] || 0); }, 0);
+  var pend = (d.orders || []).filter(function (o) { return (o.status || 'Paid') === 'Pending'; }).length;
+  var under = (d.orders || []).filter(function (o) { return (o.status || 'Paid') === 'Underpaid'; }).length;
+  var paidUnshipped = (d.orders || []).filter(function (o) { return (o.status || 'Paid') === 'Paid'; }).length;
+  var low1 = ['S', 'M', 'L', 'XL'].filter(function (s) { return (s001[s] || 0) <= 2; }).map(function (s) { return s + ' (' + (s001[s] || 0) + ')'; });
+  var low2 = ['S', 'M', 'L', 'XL'].filter(function (s) { return (s002[s] || 0) <= 2; }).map(function (s) { return s + ' (' + (s002[s] || 0) + ')'; });
+  var lowTxt = (low1.length ? 'Drop 01: ' + low1.join(', ') : '') + (low1.length && low2.length ? ' · ' : '') + (low2.length ? 'Drop 02: ' + low2.join(', ') : '');
+  var signups = (d.signupEmails || []).length;
+  var mp = mydayProgress();
+  var moneyHtml;
+  if (currentRole === 'owner' || currentRole === 'gated') {
+    var revAll = (d.orders || []).filter(function (o) { return (o.status || 'Paid') !== 'Cancelled' && (o.status || 'Paid') !== 'Refunded'; }).reduce(function (a, o) { return a + (o.total === undefined ? 35 : o.total); }, 0);
+    var moneyIn = (d.moneyEntries || []).reduce(function (a, x) { return a + (+x.amount || 0); }, 0);
+    var bal = (+(d.startBalance || 0)) + revAll - exp + moneyIn;
+    var capLeft = 1000 - (d.orders || []).reduce(function (a, o) { return a + (o.total === undefined ? 35 : o.total); }, 0);
+    moneyHtml = 'Balance: <b>$' + bal.toFixed(2) + '</b> · Greenlight cap left: <b>$' + capLeft.toFixed(2) + '</b>';
+  } else {
+    moneyHtml = 'Money + approvals are owners-only.';
+  }
+  el.innerHTML = '<div class="dc-grid">'
+    + '<div class="dc-card"><b>⏳ Countdown</b><br>' + cd + '</div>'
+    + '<div class="dc-card"><b>💰 Sales</b><br>' + sold.length + ' of 30 sold · $' + rev.toFixed(2) + ' revenue · $' + profit.toFixed(2) + ' profit · ' + pace + '</div>'
+    + '<div class="dc-card"><b>📦 Stock — Drop 001</b><br>' + ['S', 'M', 'L', 'XL'].map(function (s) { return s + ' ' + (s001[s] || 0); }).join(' · ') + ' (' + tot001 + ' left)</div>'
+    + '<div class="dc-card"><b>📦 Stock — Drop 002</b><br>' + ['S', 'M', 'L', 'XL'].map(function (s) { return s + ' ' + (s002[s] || 0); }).join(' · ') + ' (' + tot002 + ' left)</div>'
+    + '<div class="dc-card"><b>⚠️ Needs attention</b><br>Pending: ' + pend + ' · Underpaid: ' + under + ' · Paid, not shipped: ' + paidUnshipped + (lowTxt ? '<br>Low stock — ' + lowTxt : '<br>Low stock: none') + '</div>'
+    + '<div class="dc-card"><b>📧 Signups</b><br>' + signups + ' signups · Waitlist: <span id="dc-waitlist">…</span></div>'
+    + '<div class="dc-card"><b>☀️ My Day</b><br>My Day: ' + mp.done + ' of ' + mp.total + ' done today</div>'
+    + '<div class="dc-card"><b>💵 Money</b><br>' + moneyHtml + '</div>'
+    + (currentRole === 'owner' ? '<div class="dc-card" id="dc-approvals-line"><b>⏳ Pending approvals</b><br><span id="dc-approvals">…</span> waiting</div>' : '')
+    + '</div>';
+  try {
+    sb.from('clutch_waitlist').select('size').then(function (r) {
+      var w = $('dc-waitlist'); if (!w) return;
+      w.textContent = (r.error || !r.data) ? '—' : String(r.data.length);
+    }).catch(function () { var w2 = $('dc-waitlist'); if (w2) w2.textContent = '—'; });
+  } catch (e) { var w3 = $('dc-waitlist'); if (w3) w3.textContent = '—'; }
+  if (currentRole === 'owner') {
+    loadApprovals().then(function (rows) {
+      var line = $('dc-approvals-line'); if (!line) return;
+      if (!approvalsUseSb) { line.style.display = 'none'; return; }
+      var span = $('dc-approvals'); if (span) span.textContent = String(rows.filter(function (r) { return r.status === 'pending'; }).length);
+    }).catch(function () {});
+  }
+}
+// ---- Discount code stats -------------------------------------------------
+function round2(n) { return Math.round(n * 100) / 100; }
+// An order counts for a code if (a) its note includes the code, (b) its total
+// equals the discounted $35 shipped / $25 pickup price, or (c) the code is a
+// referral code (ends in 10) and the order's ref handle matches.
+function discountStats(code, pct, orders) {
+  var uses = 0, revenue = 0;
+  (orders || []).forEach(function (o) {
+    var total = o.total === undefined ? 35 : o.total;
+    var hit = false;
+    if ((o.note || '').indexOf(code) !== -1) hit = true;
+    if (!hit && pct > 0 && (round2(total) === round2(35 * (1 - pct / 100)) || round2(total) === round2(25 * (1 - pct / 100)))) hit = true;
+    if (!hit && String(code).slice(-2) === '10' && (o.ref || '').toUpperCase() === String(code).slice(0, -2)) hit = true;
+    if (hit) { uses++; revenue += total; }
+  });
+  return { uses: uses, revenue: revenue };
 }
 function renderOwner() {
   const d = loadOwner(); if (!d.signupEmails) d.signupEmails = [];
@@ -1139,7 +1544,7 @@ function renderOwner() {
       var ckey = custKey(o.buyer);
       var escAttr = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
       var profHtml = openProfiles[o.buyer] ? '<div style="margin-top:.5rem;padding:.5rem;border:1px dashed var(--line);border-radius:8px"><b>Customer profile — ' + o.buyer + '</b><br><span class="fine">' + mine.length + ' order' + (mine.length === 1 ? '' : 's') + ' · $' + spent.toFixed(2) + ' spent · sizes: ' + mine.map(function (x) { return x.size; }).join(', ') + '</span>' + mine.map(function (x) { return '<br><span class="fine">#' + (d.orders.indexOf(x) + 1) + ' — ' + x.size + ' — $' + (x.total === undefined ? 35 : x.total) + ' — ' + (x.status || 'Paid') + '</span>'; }).join('') + '<br><label class="fine">Notes on this customer<br><textarea data-cust-note="' + escAttr(ckey) + '" rows="2" style="width:100%;padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#111;color:var(--ink)">' + escAttr(custNotes[ckey] || '') + '</textarea></label></div>' : '';
-      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">' + (i + 1) + '. ' + (dm ? '<a href="https://www.instagram.com/' + dm[1] + '/" target="_blank" rel="noopener"><b>' + o.buyer + '</b></a>' : '<b>' + o.buyer + '</b>') + (flagged ? ' 🚩' : '') + (dup ? ' ⚠️ ordered twice' : '') + ((o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : '') + (((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : '') + ' — ' + o.size + ' — ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + ' — <b>' + (o.status || 'Paid') + '</b> <span class="fine">profit ' + (op >= 0 ? '+' : '−') + '$' + Math.abs(op).toFixed(2) + '</span>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + (o.note ? '<br>📝 ' + o.note : '') + (hist ? '<br>' + hist : '') + packHtml + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button> <button class="btn ghost" type="button" data-order-note="' + i + '">Note</button> <button class="btn ghost" type="button" data-order-slip="' + i + '">Print slip</button> <button class="btn ghost" type="button" data-order-ship="' + i + '">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="' + i + '">' + (flagged ? 'Unflag' : 'Flag') + '</button>' + ((o.status || 'Paid') === 'Paid' ? ' <button class="btn ghost" type="button" data-order-shipit="' + i + '">✅ Mark shipped</button>' : '') + ' <button class="btn ghost" type="button" data-order-profile="' + i + '">' + (openProfiles[o.buyer] ? 'Hide profile' : 'Profile') + '</button>' + ((['S', 'M', 'L', 'XL'].indexOf(o.size) !== -1 && ['Pending', 'Paid', 'Shipped'].indexOf(o.status || 'Paid') !== -1) ? ' <select data-order-swap-size="' + i + '" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">' + ['S', 'M', 'L', 'XL'].map(function (s2) { return '<option' + (s2 === o.size ? ' selected' : '') + '>' + s2 + '</option>'; }).join('') + '</select> <button class="btn ghost" type="button" data-order-swap="' + i + '">Swap size</button>' : '') + (canCancel ? ' <button class="btn ghost" type="button" data-order-cancel="' + i + '">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="' + i + '">Refund</button>' : '') + profHtml + '</div>';
+      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px"><input type="checkbox" data-bulk-order="' + i + '"' + (bulkSelected[i] ? ' checked' : '') + '> ' + (i + 1) + '. ' + (dm ? '<a href="https://www.instagram.com/' + dm[1] + '/" target="_blank" rel="noopener"><b>' + o.buyer + '</b></a>' : '<b>' + o.buyer + '</b>') + (flagged ? ' 🚩' : '') + (dup ? ' ⚠️ ordered twice' : '') + ((o.status || '') === 'Underpaid' ? ' <span style="color:#ff8a7a"><b>⚠️ UNDERPAID — DO NOT SHIP</b></span>' : '') + (((o.status === 'Paid' || o.status === 'Shipped') && !o.tracking && o.at && ((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) > 3) ? ' <span style="color:#ff8a7a"><b>⚠️ SHIP BY — ' + Math.floor((Date.now() - new Date(o.at + 'T00:00:00').getTime()) / 864e5) + ' days old, no tracking yet</b></span>' : '') + ' — ' + o.size + ' — ' + o.pay + ' — $' + (o.total === undefined ? 35 : o.total) + ' — <b>' + (o.status || 'Paid') + '</b> <span class="fine">profit ' + (op >= 0 ? '+' : '−') + '$' + Math.abs(op).toFixed(2) + '</span>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + (o.note ? '<br>📝 ' + o.note : '') + (hist ? '<br>' + hist : '') + packHtml + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button> <button class="btn ghost" type="button" data-order-note="' + i + '">Note</button> <button class="btn ghost" type="button" data-order-slip="' + i + '">Print slip</button> <button class="btn ghost" type="button" data-order-ship="' + i + '">Ship it ↗</button> <button class="btn ghost" type="button" data-order-flag="' + i + '">' + (flagged ? 'Unflag' : 'Flag') + '</button>' + ((o.status || 'Paid') === 'Paid' ? ' <button class="btn ghost" type="button" data-order-shipit="' + i + '">✅ Mark shipped</button>' : '') + ' <button class="btn ghost" type="button" data-order-profile="' + i + '">' + (openProfiles[o.buyer] ? 'Hide profile' : 'Profile') + '</button>' + ((['S', 'M', 'L', 'XL'].indexOf(o.size) !== -1 && ['Pending', 'Paid', 'Shipped'].indexOf(o.status || 'Paid') !== -1) ? ' <select data-order-swap-size="' + i + '" style="padding:.4rem;border:1px solid var(--line);border-radius:8px;background:#0b0b0b;color:var(--ink);font:inherit;font-size:.8rem">' + ['S', 'M', 'L', 'XL'].map(function (s2) { return '<option' + (s2 === o.size ? ' selected' : '') + '>' + s2 + '</option>'; }).join('') + '</select> <button class="btn ghost" type="button" data-order-swap="' + i + '">Swap size</button>' : '') + (canCancel ? ' <button class="btn ghost" type="button" data-order-cancel="' + i + '">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="' + i + '">Refund</button>' : '') + profHtml + '</div>';
     }).join('');
     el.querySelectorAll('[data-order-status]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus]; o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Underpaid' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ ' + o.status }); saveOwner(dd); renderOwner(); if (o.status === 'Delivered') { try { navigator.clipboard.writeText('Your CLUTCH Drop 01 shorts were delivered 🙏 thank you for supporting — you are officially one of the first 30. Wear them well. If you loved them, drop a review on the site: https://clutchbuiltdifferent.com/#reviews — @clutchny1').then(function () { $('owner-msg').textContent = 'Delivered! Thank-you DM copied — paste it to ' + o.buyer + '.'; }).catch(function () {}); } catch (e) {} } }); });
     el.querySelectorAll('[data-order-ship]').forEach(function (b) { b.addEventListener('click', async function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderShip]; try { await navigator.clipboard.writeText(o.address || ''); } catch (e) {} window.open('https://www.pirateship.com', '_blank'); $('owner-msg').textContent = 'Address copied — paste it into Pirate Ship to buy the label.'; }); });
@@ -1178,9 +1583,10 @@ function renderOwner() {
       o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: 'Swapped ' + oldSize + ' → ' + ns });
       logAct('Swapped order #' + (+b.dataset.orderSwap + 1) + ' (' + o.buyer + ') ' + oldSize + ' → ' + ns);
       saveOwner(dd); renderOwner();
-      try { sb.from('clutch_stock').update({ stock_left: dd.stock[oldSize] }).eq('size', oldSize); sb.from('clutch_stock').update({ stock_left: dd.stock[ns] }).eq('size', ns); } catch (e) {}
+      try { sb.from('clutch_stock').update({ stock_left: dd.stock[oldSize] }).eq('size', oldSize).then(function () {}, function () {}); sb.from('clutch_stock').update({ stock_left: dd.stock[ns] }).eq('size', ns).then(function () {}, function () {}); } catch (e) {}
       $('owner-msg').textContent = 'Swapped ' + o.buyer + ' to ' + ns + ' — stock updated.';
     }); });
+    el.querySelectorAll('[data-bulk-order]').forEach(function (c) { c.addEventListener('change', function () { var ix = +c.dataset.bulkOrder; if (c.checked) bulkSelected[ix] = true; else delete bulkSelected[ix]; updateBulkCount(); }); });
   }
   var staffEl = $('staff-list');
   if (staffEl) {
@@ -1199,11 +1605,22 @@ function renderOwner() {
   var discEl = $('discount-list');
   if (discEl) {
     var list = (d.discounts && d.discounts.length) ? d.discounts : [{ code: 'CLUTCH10', pct: 10, active: true }];
-    discEl.innerHTML = list.map(function (x, i) { return '<div style="margin:.4rem 0"><b>' + x.code + '</b> — ' + x.pct + '% off ' + (x.active ? '· <b>ACTIVE</b>' : '') + ' <button class="btn ghost" type="button" data-disc-active="' + i + '">Set active</button> <button class="btn ghost" type="button" data-disc-remove="' + i + '">Remove</button></div>'; }).join('') || 'No codes yet.';
+    discEl.innerHTML = list.map(function (x, i) { var st = discountStats(x.code, x.pct, d.orders); return '<div style="margin:.4rem 0"><b>' + x.code + '</b> — ' + x.pct + '% off' + (x.active ? ' · <b>ACTIVE</b>' : '') + ' · used ' + st.uses + '× · $' + st.revenue.toFixed(2) + ' <button class="btn ghost" type="button" data-disc-active="' + i + '">Set active</button> <button class="btn ghost" type="button" data-disc-remove="' + i + '">Remove</button></div>'; }).join('') + '<p class="fine">Counts are matched from orders — gift code in the note, the discounted total, or the referral handle.</p>';
     discEl.querySelectorAll('[data-disc-active]').forEach(function (b) { b.addEventListener('click', function () { var l0 = (loadOwner().discounts && loadOwner().discounts.length) ? loadOwner().discounts : [{ code: 'CLUTCH10', pct: 10, active: true }]; var code0 = (l0[+b.dataset.discActive] || {}).code; if (isGated()) { requestApproval('discount-active', 'Set ' + code0 + ' as the active code', { code: code0 }); approvalQueuedMsg(); return; } const dd = loadOwner(); var l = (dd.discounts && dd.discounts.length) ? dd.discounts : [{ code: 'CLUTCH10', pct: 10, active: true }]; dd.discounts = l.map(function (x, x2) { x.active = x2 === +b.dataset.discActive; return x; }); saveOwner(dd); renderOwner(); }); });
     discEl.querySelectorAll('[data-disc-remove]').forEach(function (b) { b.addEventListener('click', function () { var l0 = (loadOwner().discounts && loadOwner().discounts.length) ? loadOwner().discounts : []; var code0 = (l0[+b.dataset.discRemove] || {}).code; if (isGated()) { requestApproval('discount-remove', 'Remove discount code ' + code0, { code: code0 }); approvalQueuedMsg(); return; } const dd = loadOwner(); var l = (dd.discounts && dd.discounts.length) ? dd.discounts : []; dd.discounts = l.filter(function (_, x) { return x !== +b.dataset.discRemove; }); saveOwner(dd); renderOwner(); }); });
   }
   ['S', 'M', 'L', 'XL'].forEach(function (s) { var inp = $('stock-edit-' + s); if (inp && document.activeElement !== inp) inp.value = d.stock[s]; });
+  // Drop 002 stock (Stock panel)
+  var s002 = d.stock002 || { S: 14, M: 14, L: 6, XL: 6 };
+  var s002El = $('owner-stock002');
+  if (s002El) {
+    var tot002 = ['S', 'M', 'L', 'XL'].reduce(function (a, s) { return a + (s002[s] || 0); }, 0);
+    s002El.textContent = ['S', 'M', 'L', 'XL'].map(function (s) { var n = s002[s] || 0; return s + ': ' + n + ' left' + (n === 0 ? ' — SOLD OUT' : n <= 2 ? ' — ⚠️ LOW' : ''); }).join(' · ') + ' — ' + tot002 + ' total left';
+  }
+  ['S', 'M', 'L', 'XL'].forEach(function (s) { var inp2 = $('stock002-edit-' + s); if (inp2 && document.activeElement !== inp2) inp2.value = s002[s]; });
+  renderAdminMyDay();
+  renderDataCenter();
+  updateBulkCount();
 }
 document.querySelectorAll('.owner-tabs button').forEach(function (b) { b.addEventListener('click', function () {
   document.querySelectorAll('.owner-tabs button').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
@@ -1218,8 +1635,8 @@ $('owner-order-form').addEventListener('submit', function (e) {
   d.orders.push(order);
   d.stock[size]--; saveOwner(d); renderOwner(); e.target.reset();
 });
-document.querySelectorAll('[data-sell]').forEach(function (b) { b.addEventListener('click', function () { const d = loadOwner(); const s = b.dataset.sell; if ((d.stock[s] || 0) <= 0) return; if (isGated()) { requestApproval('stock-edit', 'Sell 1 × size ' + s + ': ' + d.stock[s] + ' → ' + (d.stock[s] - 1), { stock: Object.assign({}, d.stock, { [s]: d.stock[s] - 1 }) }); approvalQueuedMsg(); return; } if ((d.stock[s] || 0) > 0) d.stock[s]--; saveOwner(d); renderOwner(); }); });
-$('owner-reset-stock').addEventListener('click', function () { if (isGated()) { requestApproval('stock-edit', 'Reset stock to 10/10/5/5', { stock: { S: 10, M: 10, L: 5, XL: 5 } }); approvalQueuedMsg(); return; } const d = loadOwner(); d.stock = { S: 10, M: 10, L: 5, XL: 5 }; saveOwner(d); renderOwner(); });
+document.querySelectorAll('[data-sell]').forEach(function (b) { b.addEventListener('click', function () { const d = loadOwner(); const s = b.dataset.sell; if ((d.stock[s] || 0) <= 0) return; if (isGated()) { requestApproval('stock-edit', 'Sell 1 × size ' + s + ': ' + d.stock[s] + ' → ' + (d.stock[s] - 1), { stock: Object.assign({}, d.stock, { [s]: d.stock[s] - 1 }) }); approvalQueuedMsg(); return; } if ((d.stock[s] || 0) > 0) { d.stock[s]--; try { sb.from('clutch_stock').update({ stock_left: d.stock[s] }).eq('size', s).then(function () {}, function () {}); } catch (e) {} } saveOwner(d); renderOwner(); }); });
+$('owner-reset-stock').addEventListener('click', function () { if (isGated()) { requestApproval('stock-edit', 'Reset stock to 10/10/5/5', { stock: { S: 10, M: 10, L: 5, XL: 5 } }); approvalQueuedMsg(); return; } const d = loadOwner(); d.stock = { S: 10, M: 10, L: 5, XL: 5 }; try { ['S', 'M', 'L', 'XL'].forEach(function (s) { sb.from('clutch_stock').update({ stock_left: d.stock[s] }).eq('size', s).then(function () {}, function () {}); }); } catch (e) {} saveOwner(d); renderOwner(); });
 $('owner-signups').addEventListener('change', function () { const d = loadOwner(); d.signups = parseInt($('owner-signups').value || '0', 10) || 0; saveOwner(d); renderOwner(); });
 $('owner-signup-add-form').addEventListener('submit', function (e) { e.preventDefault(); const d = loadOwner(); const em = $('owner-signup-email').value.trim(); if (em && d.signupEmails.indexOf(em) === -1) d.signupEmails.push(em); d.signups = d.signupEmails.length; saveOwner(d); renderOwner(); e.target.reset(); });
 $('owner-signup-export').addEventListener('click', async function () { try { await navigator.clipboard.writeText(loadOwner().signupEmails.join(', ')); $('owner-msg').textContent = 'Signup emails copied.'; } catch (e) {} });
@@ -1267,6 +1684,7 @@ $('owner-stock-save').addEventListener('click', function () {
   ['S', 'M', 'L', 'XL'].forEach(function (s) { const v = parseInt(($('stock-edit-' + s).value || '0'), 10); if (!isNaN(v) && v >= 0) next[s] = v; });
   if (isGated()) { requestApproval('stock-edit', 'Stock edit: ' + ['S', 'M', 'L', 'XL'].map(function (s) { return s + ' ' + (d.stock[s] || 0) + ' → ' + (next[s] !== undefined ? next[s] : d.stock[s]); }).join(', '), { stock: Object.assign({}, d.stock, next) }); approvalQueuedMsg(); return; }
   Object.assign(d.stock, next);
+  try { ['S', 'M', 'L', 'XL'].forEach(function (s) { sb.from('clutch_stock').update({ stock_left: d.stock[s] }).eq('size', s).then(function () {}, function () {}); }); } catch (e) {}
   saveOwner(d); renderOwner(); $('owner-msg').textContent = 'Stock updated.';
 });
 $('owner-cost-save').addEventListener('click', function () {
@@ -1294,7 +1712,9 @@ async function doGoLive() {
   var msg = $('owner-go-live-switch-msg');
   var d = loadOwner(); d.liveMode = true; saveOwner(d);
   var e = loadEdits(); e.announce = '🔴 PREORDERS ARE LIVE — Drop 01 preorders are open. 30 pieces, first paid, first served.';
+  e.bannerAt = '';
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+  mirrorBannerSchedule();
   applyEdits(); renderOwner();
   var hasToken = (function () { try { return !!localStorage.getItem(GH_KEY); } catch (_) { return false; } })();
   if (msg) msg.textContent = hasToken ? 'Live mode on. Publishing the banner…' : 'Live mode on. No GitHub key saved — the banner is set on this device only until you publish.';
@@ -1396,6 +1816,14 @@ $('owner-seed-form').addEventListener('submit', function (e) {
 // Edit the website from admin — edits save on this device, and copy out to Jerry to push live for everyone
 const EDIT_KEY = 'clutch-site-edits-v1';
 function loadEdits() { try { return JSON.parse(localStorage.getItem(EDIT_KEY) || '{}'); } catch (_) { return {}; } }
+// Banner schedule mirror — clutch_settings exists, so the schedule lives in
+// Supabase too (best effort, silent on failure; local edits stay the source).
+function mirrorBannerSchedule() {
+  try {
+    var e = loadEdits();
+    sb.from('clutch_settings').upsert({ key: 'banner_schedule', value: JSON.stringify({ text: e.announce || '', at: e.bannerAt || '' }) }).then(function () {}, function () {});
+  } catch (err) {}
+}
 var PV_IDS = { lede: 'pv-lede', price: 'pv-price', when: 'pv-when', buynote: 'pv-buynote', announce: 'pv-announce' };
 function fillPreview() {
   var e = loadEdits();
@@ -1409,6 +1837,29 @@ function savePreviewEdits() {
   var map = { lede: 'edit-lede', price: 'edit-price', when: 'edit-when', buynote: 'edit-buynote', announce: 'edit-announce' };
   Object.keys(map).forEach(function(k) { var f = $(map[k]); if (f) f.value = e[k] || ''; });
 }
+// Banner visibility, incl. scheduled banners + text baked in by a publish.
+// The bar shows if (local announce is set AND (no schedule OR now >= schedule))
+// OR (no local announce BUT the bar already has baked-in text AND (no
+// data-banner-at OR now >= its time)). Otherwise it hides. Guards for the
+// standalone admin, which has no #announce-bar (only the homepage does).
+function checkBannerSchedule() {
+  var bar = $('announce-bar');
+  if (!bar) return;
+  var e = loadEdits();
+  var now = Date.now();
+  var localText = (e.announce || '').trim();
+  if (localText) {
+    bar.textContent = localText;
+    var at = e.bannerAt ? Date.parse(e.bannerAt) : NaN;
+    bar.style.display = (!e.bannerAt || isNaN(at) || now >= at) ? '' : 'none';
+    return;
+  }
+  var baked = (bar.textContent || '').trim();
+  if (!baked) { bar.style.display = 'none'; return; }
+  var bat = bar.getAttribute('data-banner-at');
+  var bt = bat ? Date.parse(bat) : NaN;
+  bar.style.display = (!bat || isNaN(bt) || now >= bt) ? '' : 'none';
+}
 function applyEdits() {
   const e = loadEdits();
   const lede = document.querySelector('.hero .lede');
@@ -1420,7 +1871,14 @@ function applyEdits() {
   const note = document.querySelector('.buy-note');
   if (note && e.buynote) note.textContent = e.buynote;
   const bar = $('announce-bar');
-  if (bar) { if (e.announce) { bar.textContent = e.announce; bar.style.display = ''; } else { bar.style.display = 'none'; } }
+  if (bar) checkBannerSchedule();
+  var bw = $('edit-banner-when'); if (bw) bw.value = e.bannerAt || '';
+  var bs = $('owner-banner-sched-msg');
+  if (bs) {
+    if (e.bannerAt) { var bt = Date.parse(e.bannerAt); bs.textContent = (!isNaN(bt) && bt > Date.now()) ? 'Banner goes live ' + new Date(bt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Banner is live now'; }
+    else if (e.announce) bs.textContent = 'Banner is live now';
+    else bs.textContent = '';
+  }
   const fAnn = $('edit-announce'); if (fAnn && e.announce) fAnn.value = e.announce;
   const fLede = $('edit-lede'); if (fLede && e.lede) fLede.value = e.lede;
   const fPrice = $('edit-price'); if (fPrice && e.price) fPrice.value = e.price;
@@ -1435,14 +1893,14 @@ Object.keys(PV_IDS).forEach(function(k) { var el = $(PV_IDS[k]); if (el) el.addE
 const editForm = $('owner-edit-form');
 if (editForm) editForm.addEventListener('submit', e => {
   e.preventDefault();
-  const edits = Object.assign({}, loadEdits(), { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), announce: ($('edit-announce') ? $('edit-announce').value.trim() : ''), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') });
+  const edits = Object.assign({}, loadEdits(), { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), announce: ($('edit-announce') ? $('edit-announce').value.trim() : ''), bannerAt: ($('edit-banner-when') ? $('edit-banner-when').value : ''), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') });
   if (isGated()) {
     const old = loadEdits();
-    const changedContent = ['lede', 'price', 'when', 'buynote', 'announce'].filter(k => (edits[k] || '') !== (old[k] || ''));
+    const changedContent = ['lede', 'price', 'when', 'buynote', 'announce', 'bannerAt'].filter(k => (edits[k] || '') !== (old[k] || ''));
     const changedDiscount = (edits.discountCode || '') !== (old.discountCode || '') || (edits.discountPct || '') !== (old.discountPct || '');
     const m = $('owner-edit-msg');
     if (changedContent.length) {
-      requestApproval('site-edits', 'Site edits — ' + changedContent.map(k => k === 'lede' ? 'hero line' : k === 'price' ? 'price → ' + edits.price : k === 'when' ? 'date/time' : k === 'buynote' ? 'buy note' : 'announcement').join(', '), { edits: edits });
+      requestApproval('site-edits', 'Site edits — ' + changedContent.map(k => k === 'lede' ? 'hero line' : k === 'price' ? 'price → ' + edits.price : k === 'when' ? 'date/time' : k === 'buynote' ? 'buy note' : k === 'bannerAt' ? 'banner schedule' : 'announcement').join(', '), { edits: edits });
       if (m) m.textContent = 'Sent for approval — Sebastian will review it. Nothing is saved yet.';
       return;
     }
@@ -1453,6 +1911,7 @@ if (editForm) editForm.addEventListener('submit', e => {
     }
   }
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(edits)); } catch (_) {}
+  mirrorBannerSchedule();
   applyEdits();
   const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Publish my edits live" below to make them live for everyone (needs your GitHub key, one-time setup).';
 });
@@ -1501,15 +1960,26 @@ async function publishEditsLive(m) {
     if (e.buynote && e.buynote !== old.buynote) swap('<p class="fine buy-note">' + old.buynote + '</p>', '<p class="fine buy-note">' + e.buynote + '</p>', 'buy note');
     const barStyle = 'background:var(--tan);color:#111;text-align:center;padding:.5rem 1rem;font-weight:700;font-size:.9rem';
     const barOld = '<div id="announce-bar" style="display:none;' + barStyle + '"></div>';
+    const schedFuture = !!(e.bannerAt && !isNaN(Date.parse(e.bannerAt)) && Date.parse(e.bannerAt) > Date.now());
+    const barNew = '<div id="announce-bar"' + (schedFuture ? ' data-banner-at="' + new Date(e.bannerAt).toISOString() + '"' : '') + ' style="' + barStyle + '">' + (e.announce || '') + '</div>';
     if ((e.announce || '') !== (old.announce || '')) {
       if (e.announce) {
-        if (html.indexOf(barOld) !== -1) html = html.replace(barOld, '<div id="announce-bar" style="' + barStyle + '">' + e.announce + '</div>');
-        else if (old.announce && html.indexOf('>' + old.announce + '</div>') !== -1) html = html.replace('>' + old.announce + '</div>', '>' + e.announce + '</div>');
-        else missing.push('announcement banner');
+        if (html.indexOf(barOld) !== -1) html = html.replace(barOld, barNew);
+        else if (old.announce) {
+          var escOld = old.announce.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          var reBar = new RegExp('<div id="announce-bar"[^>]*>' + escOld + '</div>');
+          if (reBar.test(html)) html = html.replace(reBar, barNew);
+          else missing.push('announcement banner');
+        } else missing.push('announcement banner');
       } else {
         const barWithOld = '<div id="announce-bar" style="' + barStyle + '">' + old.announce + '</div>';
         if (old.announce && html.indexOf(barWithOld) !== -1) html = html.replace(barWithOld, barOld);
-        else missing.push('announcement banner');
+        else if (old.announce) {
+          var escOld2 = old.announce.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          var reBar2 = new RegExp('<div id="announce-bar"[^>]*>' + escOld2 + '</div>');
+          if (reBar2.test(html)) html = html.replace(reBar2, barOld);
+          else missing.push('announcement banner');
+        } else missing.push('announcement banner');
       }
     }
     // Squarespace-style text edits: swap the inner text of each [data-edit] element.
@@ -1547,8 +2017,8 @@ window.addEventListener('message', function (ev) {
     var vm2 = $('owner-visual-msg'); if (vm2) vm2.textContent = 'Saved on this device — hit "Publish my edits live" below to make it live for everyone.';
   }
 }); throw new Error('GitHub would not save it (' + put.status + (err.message ? ' — ' + err.message : '') + ').'); }
-    try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '' })); } catch (_) {}
-    if (m) m.textContent = '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
+    try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '', bannerAt: e.bannerAt || '' })); } catch (_) {}
+    if (m) m.textContent = schedFuture ? '✅ Published — the banner is scheduled and will appear ' + new Date(e.bannerAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '.' : '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
   } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
 }
 const ghPublish = $('owner-edit-publish');
@@ -1672,12 +2142,194 @@ $('owner-discount-save').addEventListener('click', function () {
   try { localStorage.setItem('clutch-site-edits-v1', JSON.stringify(e)); } catch (err) {}
   $('owner-discount-msg').textContent = 'Saved — code ' + (e.discountCode || 'CLUTCH10') + ' gives ' + (e.discountPct || '10') + '% off on the site.';
 });
+// ---- Drop 002 stock (Stock panel) --------------------------------------
+document.querySelectorAll('[data-sell002]').forEach(function (b) { b.addEventListener('click', function () {
+  const d = loadOwner(); if (!d.stock002) d.stock002 = { S: 14, M: 14, L: 6, XL: 6 };
+  const s = b.dataset.sell002;
+  if ((d.stock002[s] || 0) <= 0) return;
+  var next = Object.assign({}, d.stock002); next[s] = d.stock002[s] - 1;
+  if (isGated()) { requestApproval('stock002-edit', 'Sell 1 × Drop 002 size ' + s + ': ' + d.stock002[s] + ' → ' + next[s], { stock002: next }); approvalQueuedMsg(); return; }
+  d.stock002[s]--; saveOwner(d); renderOwner();
+  // NOTE: supabase-js builders are lazy — the update only executes once the
+  // promise is consumed, so the .then() below is what actually sends it.
+  try { sb.from('clutch_stock_002').update({ stock_left: d.stock002[s] }).eq('size', s).then(function () {}, function () {}); } catch (e) {}
+}); });
+$('owner-stock002-save').addEventListener('click', function () {
+  const d = loadOwner(); if (!d.stock002) d.stock002 = { S: 14, M: 14, L: 6, XL: 6 };
+  var next = {};
+  ['S', 'M', 'L', 'XL'].forEach(function (s) { const v = parseInt(($('stock002-edit-' + s).value || '0'), 10); if (!isNaN(v) && v >= 0) next[s] = v; });
+  if (isGated()) { requestApproval('stock002-edit', 'Stock002 edit: ' + ['S', 'M', 'L', 'XL'].map(function (s) { return s + ' ' + (d.stock002[s] || 0) + ' → ' + (next[s] !== undefined ? next[s] : d.stock002[s]); }).join(', '), { stock002: Object.assign({}, d.stock002, next) }); approvalQueuedMsg(); return; }
+  Object.assign(d.stock002, next);
+  saveOwner(d); renderOwner(); $('owner-msg').textContent = 'Drop 002 stock updated.';
+  try { ['S', 'M', 'L', 'XL'].forEach(function (s) { sb.from('clutch_stock_002').update({ stock_left: d.stock002[s] }).eq('size', s).then(function () {}, function () {}); }); } catch (e) {}
+});
+$('owner-reset-stock002').addEventListener('click', function () {
+  var fresh = { S: 14, M: 14, L: 6, XL: 6 };
+  if (isGated()) { requestApproval('stock002-edit', 'Reset Drop 002 stock to 14/14/6/6', { stock002: fresh }); approvalQueuedMsg(); return; }
+  const d = loadOwner(); d.stock002 = fresh; saveOwner(d); renderOwner();
+  try { ['S', 'M', 'L', 'XL'].forEach(function (s) { sb.from('clutch_stock_002').update({ stock_left: fresh[s] }).eq('size', s).then(function () {}, function () {}); }); } catch (e) {}
+});
+// ---- Bulk actions on orders --------------------------------------------
+function updateBulkCount() {
+  var d = loadOwner();
+  Object.keys(bulkSelected).forEach(function (k) { if (!d.orders[+k]) delete bulkSelected[k]; });
+  var n = Object.keys(bulkSelected).length;
+  var bc = $('bulk-count'); if (bc) bc.textContent = n ? n + ' selected' : '';
+  var sa = $('bulk-select-all');
+  if (sa) {
+    var boxes = document.querySelectorAll('[data-bulk-order]');
+    var all = boxes.length > 0;
+    boxes.forEach(function (c) { if (!c.checked) all = false; });
+    sa.checked = all;
+  }
+}
+var bsaEl = $('bulk-select-all');
+if (bsaEl) bsaEl.addEventListener('change', function () {
+  document.querySelectorAll('[data-bulk-order]').forEach(function (c) { c.checked = bsaEl.checked; if (bsaEl.checked) bulkSelected[+c.dataset.bulkOrder] = true; else delete bulkSelected[+c.dataset.bulkOrder]; });
+  updateBulkCount();
+});
+var bmsEl = $('bulk-mark-shipped');
+if (bmsEl) bmsEl.addEventListener('click', function () {
+  var idxs = Object.keys(bulkSelected).map(function (k) { return +k; });
+  if (!idxs.length) { $('owner-msg').textContent = 'Select at least one order first.'; return; }
+  var d = loadOwner();
+  var paidIdx = idxs.filter(function (ix) { return d.orders[ix] && (d.orders[ix].status || 'Paid') === 'Paid'; });
+  if (!paidIdx.length) { $('owner-msg').textContent = 'Select at least one Paid order first.'; return; }
+  if (isGated()) {
+    requestApproval('order-bulk-ship', 'Mark ' + paidIdx.length + ' orders shipped', { orders: paidIdx.map(function (ix) { var o = d.orders[ix]; return { buyer: o.buyer, size: o.size, total: o.total }; }) });
+    approvalQueuedMsg(); return;
+  }
+  var n = 0;
+  paidIdx.forEach(function (ix) {
+    var o = d.orders[ix];
+    o.status = 'Shipped';
+    if (!o.history) o.history = [];
+    o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Shipped (bulk)' });
+    n++;
+    try { sb.from('clutch_orders').update({ status: 'Shipped' }).eq('buyer', o.buyer).eq('size', o.size).eq('status', 'Paid').then(function () {}, function () {}); } catch (e) {}
+  });
+  if (n) logActivity('Bulk shipped — ' + n + ' orders');
+  saveOwner(d); renderOwner();
+  $('owner-msg').textContent = 'Marked ' + n + ' shipped.';
+});
+var bexEl = $('bulk-export');
+if (bexEl) bexEl.addEventListener('click', async function () {
+  var d = loadOwner();
+  var idxs = Object.keys(bulkSelected).map(function (k) { return +k; }).filter(function (ix) { return d.orders[ix]; });
+  var csv = 'buyer,size,pay,total,status,tracking,address,date\n' + idxs.map(function (ix) { var o = d.orders[ix]; return '"' + (o.buyer || '').replace(/"/g, '""') + '",' + o.size + ',' + o.pay + ',' + (o.total === undefined ? 35 : o.total) + ',' + (o.status || 'Paid') + ',' + (o.tracking || '') + ',"' + (o.address || '').replace(/"/g, '""') + '",' + (o.at || ''); }).join('\n');
+  try { await navigator.clipboard.writeText(csv); $('owner-msg').textContent = 'Selected orders copied as CSV.'; } catch (e) {}
+});
+// ---- Global search ------------------------------------------------------
+function switchAdminTab(name) { var b = document.querySelector('.owner-tabs button[data-tab="' + name + '"]'); if (b) b.click(); }
+function bindGsRows(container) {
+  container.querySelectorAll('.gs-row').forEach(function (row) {
+    row.addEventListener('click', function () {
+      var tab = row.dataset.gsTab, q = row.dataset.gsQ || '';
+      var res = $('admin-global-results'); if (res) res.innerHTML = '';
+      var gs = $('admin-global-search'); if (gs) gs.value = '';
+      switchAdminTab(tab);
+      if (tab === 'orders') { var os = $('order-search'); if (os) os.value = q; renderOwner(); }
+    });
+  });
+}
+function renderGlobalSearch(q) {
+  var res = $('admin-global-results'); if (!res) return;
+  var query = (q || '').trim().toLowerCase();
+  if (!query) { res.innerHTML = ''; return; }
+  var d = loadOwner();
+  var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+  var rows = [];
+  (d.orders || []).forEach(function (o) {
+    var hay = ((o.buyer || '') + ' ' + (o.size || '') + ' ' + (o.status || '') + ' ' + (o.note || '') + ' ' + (o.tracking || '') + ' ' + (o.pay || '')).toLowerCase();
+    if (hay.indexOf(query) !== -1) rows.push('<div class="gs-row" data-gs-tab="orders" data-gs-q="' + esc(o.buyer || '') + '">📦 order — ' + esc(o.buyer || '') + ' (' + esc(o.size || '') + ', $' + (o.total === undefined ? 35 : o.total) + ', ' + esc(o.status || 'Paid') + ')</div>');
+  });
+  (d.signupEmails || []).forEach(function (em) { if (em.toLowerCase().indexOf(query) !== -1) rows.push('<div class="gs-row" data-gs-tab="signups" data-gs-q="' + esc(em) + '">📧 signup — ' + esc(em) + '</div>'); });
+  (d.staff || []).forEach(function (s) { if ((s.email || '').toLowerCase().indexOf(query) !== -1) rows.push('<div class="gs-row" data-gs-tab="staff" data-gs-q="' + esc(s.email || '') + '">👤 staff — ' + esc(s.email || '') + ' (' + esc(roleLabel(s.role)) + ')</div>'); });
+  (d.discounts || []).forEach(function (x) { if ((x.code || '').toLowerCase().indexOf(query) !== -1) rows.push('<div class="gs-row" data-gs-tab="payments" data-gs-q="' + esc(x.code || '') + '">🏷️ discount — ' + esc(x.code || '') + ' (' + (x.pct || 0) + '% off)</div>'); });
+  res.innerHTML = rows.length ? rows.join('') : '<div class="fine">No matches for "' + esc(query) + '".</div>';
+  bindGsRows(res);
+  try {
+    sb.from('clutch_waitlist').select('email,size').then(function (r) {
+      var gs = $('admin-global-search');
+      if (!gs || gs.value.trim().toLowerCase() !== query) return;
+      if (r.error || !r.data) return;
+      var wrows = [];
+      r.data.forEach(function (w) {
+        if (((w.email || '') + ' ' + (w.size || '')).toLowerCase().indexOf(query) !== -1) wrows.push('<div class="gs-row" data-gs-tab="signups" data-gs-q="' + esc(w.email || '') + '">📧 waitlist — ' + esc(w.email || '') + ' (size ' + esc(w.size || '') + ')</div>');
+      });
+      if (wrows.length) {
+        var tmp = document.createElement('div'); tmp.innerHTML = wrows.join('');
+        bindGsRows(tmp);
+        while (tmp.firstChild) res.appendChild(tmp.firstChild);
+      }
+    }).catch(function () {});
+  } catch (e) {}
+}
+var gsInput = $('admin-global-search');
+if (gsInput) {
+  gsInput.addEventListener('input', function () { renderGlobalSearch(gsInput.value); });
+  gsInput.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { gsInput.value = ''; var res = $('admin-global-results'); if (res) res.innerHTML = ''; } });
+}
+document.addEventListener('click', function (ev) {
+  var res = $('admin-global-results'); if (!res || !res.innerHTML) return;
+  if (ev.target && ev.target.closest && (ev.target.closest('.admin-toolbar') || ev.target.closest('#admin-global-results'))) return;
+  res.innerHTML = '';
+});
+// ---- Dark mode (light theme toggle — the admin is dark by default) ------
+var THEME_KEY = 'clutch-admin-theme';
+function applyAdminTheme() {
+  var t = 'dark';
+  try { t = localStorage.getItem(THEME_KEY) || 'dark'; } catch (e) {}
+  document.body.classList.toggle('admin-light', t === 'light');
+  var b = $('admin-dark-toggle'); if (b) b.textContent = t === 'light' ? '🌙 Dark' : '☀️ Light';
+}
+var dtBtn = $('admin-dark-toggle');
+if (dtBtn) dtBtn.addEventListener('click', function () {
+  var cur = 'dark';
+  try { cur = localStorage.getItem(THEME_KEY) || 'dark'; } catch (e) {}
+  var next = cur === 'light' ? 'dark' : 'light';
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  applyAdminTheme();
+});
+applyAdminTheme();
+// ---- My Day add form + reset (wired once at load) -----------------------
+var mdAddForm = $('admin-myday-add-form');
+if (mdAddForm) mdAddForm.addEventListener('submit', function (e) {
+  e.preventDefault();
+  var text = ($('admin-myday-add-text').value || '').trim();
+  if (!text) return;
+  var section = $('admin-myday-add-section').value;
+  var st = mydayLoadState();
+  var item = { id: 'c' + Date.now() + Math.floor(Math.random() * 1000), text: text, section: section, added: mydayTodayStr(), done: false, doneDate: null };
+  st.custom.push(item);
+  mydaySaveState(st);
+  renderAdminMyDay();
+  e.target.reset();
+  mydaySbUpsert({ kind: 'custom', key: item.id, t: item.text, section: item.section, done: false });
+});
+var mdReset = $('admin-myday-reset');
+if (mdReset) mdReset.addEventListener('click', function () {
+  var st = mydayLoadState();
+  var today = mydayTodayStr();
+  st.days[today] = {};
+  st.custom.forEach(function (c) { if (c.doneDate === today) { c.done = false; c.doneDate = null; } });
+  mydaySaveState(st);
+  renderAdminMyDay();
+});
+// ---- Banner schedule ----------------------------------------------------
+// The 60s timer only re-checks banner visibility — never full applyEdits,
+// so it can't clobber text Sebastian is typing in the edit form.
+setInterval(checkBannerSchedule, 60000);
+var bcBtn = $('edit-banner-clear');
+if (bcBtn) bcBtn.addEventListener('click', function () { var bw = $('edit-banner-when'); if (bw) bw.value = ''; var bs = $('owner-banner-sched-msg'); if (bs) bs.textContent = ''; });
 (async function () {
   try {
     const r = await sb.from('clutch_stock').select('size,stock_left').limit(1);
     const on = !r.error;
     $('owner-sync-status').textContent = on ? 'Supabase sync: ON — orders + stock sync across your phone and laptop.' : 'Supabase sync: OFF — orders + stock save on this device only. Paste the SQL from the file I gave you into Supabase SQL Editor to turn it on.';
     if (on) { const s = await sb.from('clutch_stock').select('size,stock_left'); if (s.data) { const d = loadOwner(); s.data.forEach(function (row) { if (d.stock[row.size] !== undefined) d.stock[row.size] = row.stock_left; }); saveOwner(d); renderOwner(); } }
+    // Drop 002 stock — same table, keyed by size (never by id).
+    try { const s2 = await sb.from('clutch_stock_002').select('size,stock_left'); if (s2.data && s2.data.length) { const d2 = loadOwner(); if (!d2.stock002) d2.stock002 = { S: 14, M: 14, L: 6, XL: 6 }; s2.data.forEach(function (row) { if (d2.stock002[row.size] !== undefined) d2.stock002[row.size] = row.stock_left; }); saveOwner(d2); renderOwner(); } } catch (e2) {}
   } catch (e) {}
 })();
 (async function () {
