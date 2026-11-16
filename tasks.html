@@ -1,49 +1,72 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tasks — CLUTCH</title><link rel="stylesheet" href="assets/style.css">
 <style>
-.task{display:flex;gap:.7rem;align-items:flex-start;padding:.8rem;border:1px solid var(--line);border-radius:10px;margin:.5rem 0}
-.task.done{opacity:.55}.task.done b{text-decoration:line-through}
-.task input{width:1.3rem;height:1.3rem;margin-top:.15rem;accent-color:#c9a86a}
-.task small{display:block;color:var(--muted)}
+body{background:#0b0b0b}
+.tasks-hero{padding:2.5rem 1rem 1rem;max-width:760px;margin:0 auto}
+.tasks-hero .logo-big{font-size:clamp(3rem,12vw,5.5rem);line-height:.9;font-weight:900;letter-spacing:-.03em;margin:.2rem 0}
+.tasks-hero .logo-big span{color:var(--tan)}
+.progress{height:10px;background:#222;border-radius:99px;overflow:hidden;margin:1rem 0 .4rem}
+.progress i{display:block;height:100%;background:var(--tan);border-radius:99px;transition:width .4s}
+.task{display:flex;gap:.9rem;align-items:flex-start;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:14px;margin:.6rem 0;background:#111;cursor:pointer;transition:border-color .2s,transform .15s}
+.task:hover{border-color:var(--tan);transform:translateY(-1px)}
+.task.done{opacity:.5}
+.task.done b{text-decoration:line-through}
+.task input{width:1.4rem;height:1.4rem;margin-top:.1rem;accent-color:#c9a86a;flex:none;cursor:pointer}
+.task .tag{display:inline-block;font-size:.65rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:.15rem .5rem;border-radius:99px;border:1px solid var(--tan);color:var(--tan);margin-bottom:.3rem}
+.task .tag.money{border-color:#9fd89a;color:#9fd89a}
+.task .tag.site{border-color:#8ab4ff;color:#8ab4ff}
+.task .tag.social{border-color:#ff8a7a;color:#ff8a7a}
+.task b{font-size:1rem;line-height:1.3}
+.task small{display:block;color:var(--muted);margin-top:.2rem;line-height:1.4}
+.add-row{display:flex;gap:.5rem;margin-top:1.2rem}
+.add-row input{flex:1;padding:.8rem;border:1px solid var(--line);border-radius:10px;background:#111;color:var(--ink)}
 </style></head>
 <body><header class="nav"><a class="logo" href="/">CLUTCH</a><nav><a href="/">Home</a><a href="/admin.html">Admin</a><a href="/track.html">Track order</a></nav></header>
-<main style="max-width:760px;margin:2rem auto;padding:0 1rem">
-<p class="eyebrow">Your tasks</p><h2>Launch checklist.</h2>
-<p class="lede">Everything left before Drop 01 — Nov 27, 6PM ET. Tick them off as you go, it saves on this device. <span id="task-count" class="fine"></span></p>
+<main>
+<div class="tasks-hero">
+<p class="eyebrow">Built Different · Drop 01</p>
+<p class="logo-big">TASKS<span>.</span></p>
+<p class="lede">Everything left before Drop 01 — Nov 27, 6PM ET. Tick them off as you go.</p>
+<div class="progress"><i id="task-bar" style="width:0%"></i></div>
+<p class="fine" id="task-count"></p>
+</div>
+<div style="max-width:760px;margin:0 auto;padding:0 1rem 3rem">
 <div id="task-list"></div>
-<form id="task-add-form" style="margin-top:1rem">
-<input id="task-add-text" type="text" placeholder="Add your own task…" required style="padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:70%">
+<form id="task-add-form" class="add-row">
+<input id="task-add-text" type="text" placeholder="Add your own task…" required>
 <button class="btn buy live" type="submit">Add</button>
 </form>
-<p class="fine">Private — this page is just for you. Share the link only with people who should see your launch list.</p>
+<p class="fine" style="margin-top:1.5rem">Private — just for you. Share the link only with people who should see your launch list.</p>
+</div>
 </main>
 <script>
 const KEY = 'clutch-tasks-v1';
 const DEFAULTS = [
-  { t: 'Kevin — send the v3 pack (fixed map + logo separately + do-not-produce note)', s: 'Ask for the $260.40 breakdown, a delivery date, and a digital proof before anything is cut.' },
-  { t: 'Kevin — get the $260.40 breakdown in writing', s: 'Is that 30 pairs + shipping to NY, or just the shorts?' },
-  { t: 'Kevin — get a delivery date that still makes Nov 27', s: 'No payment / no production until this is confirmed.' },
-  { t: 'Kevin — approve the print sheet (only when the breakdown + date are in)', s: 'The new sheet looks right, but it is still unapproved.' },
-  { t: 'Post the Charlie Warr fit video (or post it yourself)', s: '15s video is built + caption ready. @charlie_warr, Yup "All nite".' },
-  { t: 'Send the Yup collab DM', s: 'Invite him as a collaborator on the Drop 002 reel + free Drop 01 pair when ready.' },
-  { t: 'Reply to Rich / have the call', s: 'Ask what he was thinking, don\'t agree to anything about money — "let me check with my dad first". Tell Dad about it.' },
-  { t: 'Turn OFF "Confirm email" in Supabase (so signups stop hitting the rate limit)', s: 'Supabase → Authentication → Sign In / Providers → Email → Confirm email OFF. Then tell Jerry to retest signup.' },
-  { t: 'Paste the Supabase tables SQL to turn on order/stock sync', s: 'Supabase → SQL Editor → paste supabase-tables.sql → Run. Admin will show "sync: ON".' },
-  { t: 'Send Jerry the secretary + Ajan emails (tomorrow)', s: 'Then he adds their admin access — say if they should just view or also edit.' },
-  { t: 'Google Search Console — submit the sitemap + request indexing', s: 'Submit clutchbuiltdifferent.com/sitemap.xml, then URL Inspection → Request Indexing for the homepage.' },
-  { t: 'Day-12 countdown post', s: 'Due today (Nov 15). Then day-11 tomorrow, all the way to Nov 27.' },
-  { t: 'Decide the giveaway — cap it at 1 winner?', s: 'Still unanswered. No date / no specific pair promised until there is stock.' },
-  { t: 'Confirm the Drop 01 bags (which size, ordered yet?)', s: '7.87" fits folded in thirds; 9.84 x 13.77 (+~$10) fits easier.' },
-  { t: 'Drop-day email — ready to send Nov 27, 6PM', s: 'Draft is in admin → Email tab. BCC the signup list, never To.' }
+  { t: 'Kevin — send the v3 pack', s: 'Fixed map + logo separately + do-not-produce note. Ask for the $260.40 breakdown, a delivery date, and a digital proof before anything is cut.', tag: 'Kevin', cls: '' },
+  { t: 'Kevin — get the $260.40 breakdown in writing', s: 'Is that 30 pairs + shipping to NY, or just the shorts?', tag: 'Kevin · Money', cls: 'money' },
+  { t: 'Kevin — get a delivery date that still makes Nov 27', s: 'No payment / no production until this is confirmed.', tag: 'Kevin', cls: '' },
+  { t: 'Kevin — approve the print sheet', s: 'Only when the breakdown + date are in. The new sheet looks right, but it is still unapproved.', tag: 'Kevin', cls: '' },
+  { t: 'Post the Charlie Warr fit video', s: '15s video is built + caption ready. @charlie_warr, Yup "All nite".', tag: 'Social', cls: 'social' },
+  { t: 'Send the Yup collab DM', s: 'Invite him as a collaborator on the Drop 002 reel + free Drop 01 pair when ready.', tag: 'Social', cls: 'social' },
+  { t: 'Reply to Rich / have the call', s: "Ask what he was thinking, don't agree to anything about money — 'let me check with my dad first'. Tell Dad about it.", tag: 'Social', cls: 'social' },
+  { t: 'Turn OFF "Confirm email" in Supabase', s: 'Supabase → Authentication → Sign In / Providers → Email → Confirm email OFF. Then tell Jerry to retest signup.', tag: 'Site', cls: 'site' },
+  { t: 'Paste the Supabase tables SQL', s: 'Supabase → SQL Editor → paste supabase-tables.sql → Run. Admin will show "sync: ON".', tag: 'Site', cls: 'site' },
+  { t: 'Send Jerry the secretary + Ajan emails', s: 'Then he adds their admin access — say if they should just view or also edit.', tag: 'Site', cls: 'site' },
+  { t: 'Google Search Console — sitemap + indexing', s: 'Submit clutchbuiltdifferent.com/sitemap.xml, then URL Inspection → Request Indexing for the homepage.', tag: 'Site', cls: 'site' },
+  { t: 'Day-12 countdown post', s: 'Due today (Nov 15). Then day-11 tomorrow, all the way to Nov 27.', tag: 'Social', cls: 'social' },
+  { t: 'Decide the giveaway — cap it at 1 winner?', s: 'Still unanswered. No date / no specific pair promised until there is stock.', tag: 'Social', cls: 'social' },
+  { t: 'Confirm the Drop 01 bags', s: 'Which size, ordered yet? 7.87" fits folded in thirds; 9.84 x 13.77 (+~$10) fits easier.', tag: 'Money', cls: 'money' },
+  { t: 'Drop-day email — ready to send Nov 27, 6PM', s: 'Draft is in admin → Email tab. BCC the signup list, never To.', tag: 'Site', cls: 'site' }
 ];
-function load() { try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.length) return d; } catch (e) {} return DEFAULTS.map((x, i) => ({ id: i, t: x.t, s: x.s, done: false })); }
+function load() { try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.length) return d; } catch (e) {} return DEFAULTS.map((x, i) => ({ id: i, t: x.t, s: x.s, tag: x.tag, cls: x.cls, done: false })); }
 function save(ts) { try { localStorage.setItem(KEY, JSON.stringify(ts)); } catch (e) {} }
 function render() {
   const ts = load();
   const done = ts.filter(x => x.done).length;
-  document.getElementById('task-count').textContent = done + ' of ' + ts.length + ' done.';
+  document.getElementById('task-count').textContent = done + ' of ' + ts.length + ' done — ' + (ts.length - done) + ' to go.';
+  document.getElementById('task-bar').style.width = Math.round(done / ts.length * 100) + '%';
   document.getElementById('task-list').innerHTML = ts.map(x =>
-    '<label class="task' + (x.done ? ' done' : '') + '"><input type="checkbox" data-task="' + x.id + '"' + (x.done ? ' checked' : '') + '><span><b>' + x.t + '</b><small>' + (x.s || '') + '</small></span></label>'
+    '<label class="task' + (x.done ? ' done' : '') + '"><input type="checkbox" data-task="' + x.id + '"' + (x.done ? ' checked' : '') + '><span><span class="tag ' + (x.cls || '') + '">' + (x.tag || 'Task') + '</span><b>' + x.t + '</b><small>' + (x.s || '') + '</small></span></label>'
   ).join('');
   document.querySelectorAll('[data-task]').forEach(cb => cb.addEventListener('change', () => {
     const t2 = load(); const item = t2.find(y => String(y.id) === cb.dataset.task);
@@ -56,7 +79,7 @@ document.getElementById('task-add-form').addEventListener('submit', e => {
   const ts = load();
   const text = document.getElementById('task-add-text').value.trim();
   if (!text) return;
-  ts.push({ id: Date.now(), t: text, s: '', done: false });
+  ts.push({ id: Date.now(), t: text, s: '', tag: 'Task', cls: '', done: false });
   save(ts); render(); e.target.reset();
 });
 </script></body></html>
