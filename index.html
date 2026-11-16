@@ -261,6 +261,7 @@ section,.nav{background-color:transparent}
     <button type="button" data-tab="edit">Edit site</button>
     <button type="button" data-tab="staff">Staff</button>
     <button type="button" data-tab="profit">Profit</button>
+    <button type="button" data-tab="money">Money</button>
   </nav>
 
   <div data-panel="dash">
@@ -401,7 +402,7 @@ First paid, first served.
     <p class="fine">Revenue minus what each pair actually cost you (Kevin + shipping + anything else). Update the costs below when you know the real numbers and the profit updates instantly.</p>
     <div id="owner-profit"></div>
     <p class="fine">Cost per pair $ <input id="cost-perPair" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Shipping per order $ <input id="cost-shipping" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Other costs $ <input id="cost-other" type="number" min="0" step="0.01" style="width:5rem"> <button class="btn ghost" type="button" id="owner-cost-save">Save costs</button></p>
-    <p class="fine">Defaults: $8.68 per pair (Kevin's $260.40 ÷ 30) and ~$9 shipping per order (USPS Ground Advantage estimate — change it once you print real labels).</p>
+    <p class="fine">Defaults: $10 per pair ($300 ÷ 30) and ~$9 shipping per order (USPS Ground Advantage estimate — change it once you print real labels).</p>
     <h3>Expense log</h3>
     <form id="expense-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
       <input id="expense-label" type="text" placeholder="What did you spend on? e.g. bags" style="flex:2;min-width:160px">
@@ -409,6 +410,18 @@ First paid, first served.
       <button class="btn buy live" type="submit">Add expense</button>
     </form>
     <p class="fine" id="expense-list"></p>
+  </div>
+
+  <div data-panel="money" hidden>
+    <h3>Money tracker — every dollar in and out.</h3>
+    <p class="fine">Orders add money in automatically. Expenses and anything you add below show as money out. The running balance is what you actually have.</p>
+    <div id="owner-money"></div>
+    <form id="money-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem">
+      <input id="money-label" type="text" placeholder="e.g. Paid Kevin $300, or Birthday money in" style="flex:2;min-width:180px">
+      <input id="money-amount" type="number" step="0.01" placeholder="+ / − amount" style="width:8rem">
+      <button class="btn buy live" type="submit">Add</button>
+    </form>
+    <p class="fine">Use a negative number for money out (e.g. −300) and a positive number for money in (e.g. 50).</p>
   </div>
 
   <p class="fine" id="owner-msg"></p>
@@ -947,7 +960,7 @@ if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
 });
 
 const OWNER_KEY = 'clutch-admin-v1';
-const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false };
+const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0 };
 function loadOwner() {
   try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
   catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
@@ -962,7 +975,7 @@ function renderOwner() {
   const shipped = d.orders.filter(o => o.status === 'Shipped' || o.status === 'Delivered').length;
   const sold = d.orders.filter(o => (o.status || 'Paid') !== 'Cancelled' && (o.status || 'Paid') !== 'Refunded');
   const expTotal = (d.expenses || []).reduce((a, x) => a + (+x.amount || 0), 0);
-  const costs = d.costs || { perPair: 8.68, shipping: 9, other: 0 };
+  const costs = d.costs || { perPair: 10, shipping: 9, other: 0 };
   const revTotal = sold.reduce((a, o) => a + (o.total === undefined ? 35 : o.total), 0);
   const costTotal = sold.length * ((+costs.perPair || 0) + (+costs.shipping || 0)) + (+costs.other || 0) + expTotal;
   const profitTotal = revTotal - costTotal;
@@ -1011,6 +1024,29 @@ function renderOwner() {
   }
   const liveBtn = $('owner-live-toggle');
   if (liveBtn) liveBtn.textContent = d.liveMode ? '🔴 LIVE MODE ON — tap to turn off' : 'Turn on drop-day live mode';
+  // money tracker ledger
+  const moneyEl = $('owner-money');
+  if (moneyEl) {
+    const start = +(d.startBalance || 0);
+    const rows = [];
+    (d.orders || []).forEach((o, i) => { if ((o.status || 'Paid') !== 'Cancelled' && (o.status || 'Paid') !== 'Refunded') rows.push({ at: o.at || '', label: 'Order #' + (i + 1) + ' — ' + o.buyer + ' (' + o.size + ', ' + o.pay + ')', amount: +(o.total === undefined ? 35 : o.total) }); });
+    (d.expenses || []).forEach(x => rows.push({ at: x.at || '', label: 'Expense — ' + x.label, amount: -(+x.amount || 0) }));
+    (d.moneyEntries || []).forEach(x => rows.push({ at: x.at || '', label: x.label, amount: +x.amount || 0 }));
+    rows.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+    let bal = start, inTot = 0, outTot = 0;
+    const html = rows.map(r => {
+      bal += r.amount; if (r.amount >= 0) inTot += r.amount; else outTot += -r.amount;
+      return `<div style="display:flex;justify-content:space-between;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--line)"><span><span class="fine">${r.at}</span> ${r.label}</span><span><b style="color:${r.amount >= 0 ? '#9fd89a' : '#ff8a7a'}">${r.amount >= 0 ? '+' : '−'}$${Math.abs(r.amount).toFixed(2)}</b> <span class="fine">→ $${bal.toFixed(2)}</span></span></div>`;
+    }).join('');
+    moneyEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.6rem;margin:.6rem 0">
+      <div><small>Money in</small><b style="display:block;font-size:1.3rem;color:#9fd89a">+$${inTot.toFixed(2)}</b></div>
+      <div><small>Money out</small><b style="display:block;font-size:1.3rem;color:#ff8a7a">−$${outTot.toFixed(2)}</b></div>
+      <div><small>Balance</small><b style="display:block;font-size:1.3rem">$${bal.toFixed(2)}</b></div></div>
+      <p class="fine">Starting balance: $ <input id="money-start" type="number" step="0.01" style="width:6rem" value="${start}"> <button class="btn ghost" type="button" id="money-start-save">Save</button> <span class="fine">(put −300 here once you've paid Kevin, or leave 0)</span></p>
+      ${html || '<p class="fine">Nothing yet — orders and expenses show up here automatically.</p>'}`;
+    const sb2 = $('money-start-save');
+    if (sb2) sb2.addEventListener('click', () => { const dd = loadOwner(); dd.startBalance = parseFloat(($('money-start').value || '0')) || 0; saveOwner(dd); renderOwner(); });
+  }
   const statsEl = $('owner-stats');
   if (statsEl) statsEl.innerHTML = [
     ['Revenue', '$' + revenue], ['Orders', d.orders.length], ['Shipped', shipped], ['Stock left', stockLeft + ' / 30'], ['Signups', d.signups || d.signupEmails.length]
@@ -1275,10 +1311,21 @@ if (stockSave) stockSave.addEventListener('click', () => {
 });
 const costSave = $('owner-cost-save');
 if (costSave) costSave.addEventListener('click', () => {
-  const d = loadOwner(); if (!d.costs) d.costs = { perPair: 8.68, shipping: 9, other: 0 };
+  const d = loadOwner(); if (!d.costs) d.costs = { perPair: 10, shipping: 9, other: 0 };
   ['perPair', 'shipping', 'other'].forEach(k => { const v = parseFloat(($('cost-' + k).value || '0')); if (!isNaN(v) && v >= 0) d.costs[k] = v; });
   saveOwner(d); renderOwner();
   const m = $('owner-msg'); if (m) m.textContent = 'Costs updated — profit recalculated.';
+});
+const moneyForm = $('money-add-form');
+if (moneyForm) moneyForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const d = loadOwner(); if (!d.moneyEntries) d.moneyEntries = [];
+  const label = ($('money-label').value || '').trim();
+  const amount = parseFloat(($('money-amount').value || '0')) || 0;
+  if (!label || !amount) return;
+  d.moneyEntries.push({ label, amount, at: new Date().toISOString().slice(0, 10) });
+  logActivity(`Money entry — ${label} $${amount.toFixed(2)}`);
+  saveOwner(d); renderOwner(); moneyForm.reset();
 });
 const liveToggle = $('owner-live-toggle');
 if (liveToggle) liveToggle.addEventListener('click', () => { const d = loadOwner(); d.liveMode = !d.liveMode; saveOwner(d); renderOwner(); });
