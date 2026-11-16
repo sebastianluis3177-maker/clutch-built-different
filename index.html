@@ -208,7 +208,26 @@ section,.nav{background-color:transparent}
 <section id="owner" class="owner" hidden>
   <p class="eyebrow">Owner only</p>
   <h2>Admin — Drop 01</h2>
-  <p class="fine">This panel is hidden — only you know the dot in the map opens it. Everything here is saved on this device only (localStorage), nothing is sent anywhere. Signups live in your Gmail, not on the site — use the link below to open them.</p>
+  <p class="fine">This panel is hidden — only you know the dot in the map opens it. Your account lives on this device only — make one once, then log in with your PIN to see the admin stuff. Nothing is sent anywhere. Signups live in your Gmail, not on the site — use the link below to open them.</p>
+  <div id="owner-auth">
+    <form id="owner-signup-form">
+      <h3>Make your owner account</h3>
+      <input id="owner-new-user" type="text" placeholder="Username — e.g. seb" required>
+      <input id="owner-new-pin" type="password" inputmode="numeric" placeholder="Pick a PIN (4+ digits)" minlength="4" required>
+      <input id="owner-new-pin2" type="password" inputmode="numeric" placeholder="Repeat PIN" minlength="4" required>
+      <button class="btn buy live" type="submit">Create account</button>
+    </form>
+    <form id="owner-login-form" hidden>
+      <h3>Log in</h3>
+      <p class="fine" id="owner-login-who"></p>
+      <input id="owner-pin" type="password" inputmode="numeric" placeholder="Your PIN" minlength="4" required>
+      <button class="btn buy live" type="submit">Log in</button>
+    </form>
+    <p class="fine" id="owner-auth-msg"></p>
+    <p><button class="btn ghost" type="button" id="owner-logout" hidden>Log out</button>
+    <button class="btn ghost" type="button" id="owner-reset-account">Reset account</button></p>
+  </div>
+  <div id="owner-admin" hidden>
   <div class="owner-grid">
     <div>
       <h3>Stock left</h3>
@@ -244,6 +263,7 @@ section,.nav{background-color:transparent}
     <button class="btn ghost" type="button" id="owner-clear">Clear orders</button>
   </p>
   <p class="fine" id="owner-msg"></p>
+  </div>
 </section>
 
 <section id="how" class="how">
@@ -466,14 +486,75 @@ if (copyBtn) copyBtn.addEventListener('click', async () => {
 // opens it; #owner in the URL also opens it. Records are saved on this
 // device only (localStorage) — signups live in Gmail, linked from the panel.
 const ownerPanel = $('owner'), ownerDot = $('owner-dot');
+let ownerAuthed = false;
+async function hashPin(pin) {
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('clutch-owner:' + pin));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (_) { let h = 0; for (const c of pin) h = (h * 31 + c.charCodeAt(0)) >>> 0; return 'fallback-' + h; }
+}
+const OWNER_ACCT_KEY = 'clutch-owner-acct-v1';
+function loadAcct() { try { return JSON.parse(localStorage.getItem(OWNER_ACCT_KEY) || 'null'); } catch (_) { return null; } }
+function saveAcct(a) { try { localStorage.setItem(OWNER_ACCT_KEY, JSON.stringify(a)); } catch (_) {} }
+function showOwnerAuth() {
+  const acct = loadAcct();
+  const signup = $('owner-signup-form'), login = $('owner-login-form'), admin = $('owner-admin'), logout = $('owner-logout');
+  if (signup) signup.hidden = !!acct;
+  if (login) login.hidden = !acct;
+  if (admin) admin.hidden = true;
+  if (logout) logout.hidden = true;
+  const who = $('owner-login-who');
+  if (who && acct) who.textContent = 'Logged in as ' + acct.user + ' — enter your PIN to open admin.';
+  ownerAuthed = false;
+}
+function showOwnerAdmin() {
+  const admin = $('owner-admin'), logout = $('owner-logout');
+  const signup = $('owner-signup-form'), login = $('owner-login-form');
+  if (signup) signup.hidden = true;
+  if (login) login.hidden = true;
+  if (admin) admin.hidden = false;
+  if (logout) logout.hidden = false;
+  ownerAuthed = true;
+  renderOwner();
+}
 function openOwner() {
   if (!ownerPanel) return;
   ownerPanel.hidden = false;
   ownerPanel.scrollIntoView({ behavior: 'smooth' });
-  renderOwner();
+  if (ownerAuthed) renderOwner(); else showOwnerAuth();
 }
 if (ownerDot) ownerDot.addEventListener('click', openOwner);
 if (location.hash === '#owner') openOwner();
+const signupForm = $('owner-signup-form');
+if (signupForm) signupForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const user = $('owner-new-user').value.trim();
+  const pin = $('owner-new-pin').value, pin2 = $('owner-new-pin2').value;
+  const msg = $('owner-auth-msg');
+  if (pin !== pin2) { if (msg) msg.textContent = 'PINs don\u2019t match — try again.'; return; }
+  if (pin.length < 4) { if (msg) msg.textContent = 'Pick a PIN with at least 4 digits.'; return; }
+  saveAcct({ user, pinHash: await hashPin(pin), created: new Date().toISOString().slice(0, 10) });
+  if (msg) msg.textContent = 'Account made — welcome, ' + user + '.';
+  showOwnerAdmin();
+});
+const loginForm = $('owner-login-form');
+if (loginForm) loginForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const acct = loadAcct();
+  const msg = $('owner-auth-msg');
+  if (!acct) { showOwnerAuth(); return; }
+  if (await hashPin($('owner-pin').value) === acct.pinHash) { if (msg) msg.textContent = ''; showOwnerAdmin(); }
+  else if (msg) msg.textContent = 'Wrong PIN — try again.';
+});
+const logoutBtn = $('owner-logout');
+if (logoutBtn) logoutBtn.addEventListener('click', () => { showOwnerAuth(); });
+const resetAcctBtn = $('owner-reset-account');
+if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
+  if (!confirm('Reset the owner account on this device? Your order log + stock stay, but you\u2019ll have to make a new account + PIN.')) return;
+  try { localStorage.removeItem(OWNER_ACCT_KEY); } catch (_) {}
+  showOwnerAuth();
+  const msg = $('owner-auth-msg'); if (msg) msg.textContent = 'Account reset — make a new one above.';
+});
 
 const OWNER_KEY = 'clutch-admin-v1';
 const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0 };
