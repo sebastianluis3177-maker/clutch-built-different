@@ -186,6 +186,11 @@ section,.nav{background-color:transparent}
 <p class="fine">Log in with the owner email on the <a href="/#account">account page</a> — or use your owner PIN below.</p>
 <form id="owner-login-form"><input id="owner-pin" type="password" inputmode="numeric" placeholder="Your PIN" minlength="4" required>
 <button class="btn buy live" type="submit">Log in with PIN</button></form>
+<form id="owner-signup-form" hidden><input id="owner-new-user" type="text" placeholder="Username — e.g. seb" required>
+<input id="owner-new-pin" type="password" inputmode="numeric" placeholder="Pick a PIN (4+ digits)" minlength="4" required>
+<input id="owner-new-pin2" type="password" inputmode="numeric" placeholder="Repeat PIN" minlength="4" required>
+<button class="btn buy live" type="submit">Create account</button></form>
+<p><button class="btn ghost" type="button" id="owner-forgot-pin">Forgot PIN? Start over</button></p>
 <p class="fine" id="owner-auth-msg"></p>
 </div>
 <div id="owner-admin" hidden>
@@ -413,7 +418,7 @@ const ACCT_KEY = 'clutch-owner-acct-v1';
 const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {}, fundGoal: 487, giftCards: [], seeding: [{ name: 'Yup (@yup.wav)', got: 'Free Drop 01 pair (promised)', posted: false }], postCal: {}, dailyTasks: {} };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
-async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
+async function sha(s) { try { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); } catch (e) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return 'fallback-' + h; } }
 function updateCountdown() {
   var el = $('owner-countdown'); if (!el) return;
   var ms = new Date('2026-11-27T18:00:00-05:00').getTime() - Date.now();
@@ -1027,12 +1032,35 @@ $('owner-tax-save2').addEventListener('click', function () { const d = loadOwner
 $('owner-login-form').addEventListener('submit', async function (e) {
   e.preventDefault();
   let acct = null; try { acct = JSON.parse(localStorage.getItem(ACCT_KEY) || 'null'); } catch (err) {}
-  if (!acct) { $('owner-auth-msg').textContent = 'No owner account on this device yet — make one from the homepage admin dot first, or log in with the owner email.'; return; }
+  if (!acct) { $('owner-auth-msg').textContent = 'No owner account on this device yet — make one below, or log in with the owner email.'; return; }
   const h = await sha('clutch-owner:' + $('owner-pin').value);
   if (h === acct.pinHash) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (err) {} showAdmin(); }
   else $('owner-auth-msg').textContent = 'Wrong PIN.';
 });
 $('owner-logout').addEventListener('click', async function () { await sb.auth.signOut(); try { sessionStorage.removeItem('clutch-owner-session'); } catch (e) {} location.reload(); });
+// Owner account create + PIN reset (standalone admin)
+const signupF = $('owner-signup-form'), loginF = $('owner-login-form');
+function showSignupForm() { if (signupF) signupF.hidden = false; if (loginF) loginF.hidden = true; }
+function showLoginForm() { if (signupF) signupF.hidden = true; if (loginF) loginF.hidden = false; }
+try { if (!localStorage.getItem(ACCT_KEY)) showSignupForm(); } catch (err) {}
+if (signupF) signupF.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const user = ($('owner-new-user').value || '').trim();
+  const pin = $('owner-new-pin').value, pin2 = $('owner-new-pin2').value;
+  const msg = $('owner-auth-msg');
+  if (pin !== pin2) { if (msg) msg.textContent = 'PINs don\u2019t match — try again.'; return; }
+  if (pin.length < 4) { if (msg) msg.textContent = 'Pick a PIN with at least 4 digits.'; return; }
+  try { localStorage.setItem(ACCT_KEY, JSON.stringify({ user: user, pinHash: await sha('clutch-owner:' + pin), created: new Date().toISOString().slice(0, 10) })); sessionStorage.setItem('clutch-owner-session', '1'); } catch (err) {}
+  if (msg) msg.textContent = 'Account made — welcome, ' + user + '.';
+  showAdmin();
+});
+const forgotBtn = $('owner-forgot-pin');
+if (forgotBtn) forgotBtn.addEventListener('click', function () {
+  if (!confirm('Reset the owner account on this device? Your orders + stock stay, but you\u2019ll make a new PIN.')) return;
+  try { localStorage.removeItem(ACCT_KEY); sessionStorage.removeItem('clutch-owner-session'); } catch (err) {}
+  showSignupForm();
+  const msg = $('owner-auth-msg'); if (msg) msg.textContent = 'Account reset — pick a new PIN below.';
+});
 $('owner-waitlist-notify').addEventListener('click', async function () {
   const d = loadOwner();
   const emails = (d.signupEmails || []).join(', ');
