@@ -35,7 +35,7 @@ section{padding:4.5rem 1.25rem;max-width:1180px;margin:0 auto}
 .nav nav a:not(.pill){display:none}
 .pill{border:1px solid var(--ink);padding:.45rem .8rem;border-radius:99px}
 .hero{text-align:center;padding-top:3.5rem;min-height:calc(100svh - 100px);display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative}
-.owner-dot{position:absolute;right:1.2rem;bottom:1.2rem;width:12px;height:12px;border-radius:50%;border:0;background:var(--tan);opacity:.18;cursor:pointer;padding:0}
+.owner-dot{position:absolute;right:1.2rem;bottom:1.2rem;width:8px;height:8px;border-radius:50%;border:0;background:#cfc6b6;opacity:.07;cursor:pointer;padding:0}
 .owner{background:#111;border:1px solid var(--line);border-radius:12px;text-align:left}
 .owner-grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:1rem 0}
 .owner input,.owner select{background:#0b0b0b;color:#f5efe4;border:1px solid var(--line);border-radius:8px;padding:.55rem .7rem;font:inherit}
@@ -256,9 +256,10 @@ section,.nav{background-color:transparent}
       <input id="owner-buyer" type="text" placeholder="Buyer @ / name" required>
       <select id="owner-size"><option>S</option><option>M</option><option>L</option><option>XL</option></select>
       <select id="owner-pay"><option>Greenlight</option><option>Cash App</option><option>Cash / pickup</option></select>
+      <input id="owner-address" type="text" placeholder="Ship to — name + address (or 'pickup')">
       <button class="btn buy live" type="submit">Add order</button>
     </form>
-    <p class="fine" id="owner-orders"></p>
+    <div class="fine" id="owner-orders"></div>
     <p>
       <button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
       <button class="btn ghost" type="button" id="owner-clear">Clear orders</button>
@@ -294,6 +295,12 @@ section,.nav{background-color:transparent}
     <h3>Payments</h3>
     <p class="fine" id="owner-payments"></p>
     <p class="fine">Greenlight pay link: <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">gl.me/u/qqMvQlZ6mTpb</a> — $35 per pair. Your parent approves every Greenlight payment.<br>Cash App: in the DM, $cashtag sent there — backup only.<br>Heads up: Greenlight + Cash App both cap at $1,000 received in 30 days. 30 pairs at $35 = $1,050, so the last pair or two may need cash / pickup.</p>
+    <h3>QR codes — scan to pay / scan to shop</h3>
+    <p class="fine">Pay QR (Greenlight, $35):</p>
+    <p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fgl.me%2Fu%2FqqMvQlZ6mTpb" alt="QR code — pay $35 via Greenlight" width="180" height="180" loading="lazy"></p>
+    <p class="fine">Site QR (clutchbuiltdifferent.com):</p>
+    <p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fclutchbuiltdifferent.com%2F" alt="QR code — CLUTCH website" width="180" height="180" loading="lazy"></p>
+    <p class="fine">Screenshot these and post them on IG stories / flyers.</p>
   </div>
 
   <div data-panel="email" hidden>
@@ -316,6 +323,12 @@ First paid, first served.
 
 — CLUTCH, Built Different</pre>
     <p><button class="btn ghost" type="button" id="owner-email-copy">Copy email draft</button></p>
+    <h3>DM reply templates — tap to copy</h3>
+    <p><button class="btn ghost" type="button" data-tpl="paid">You're in — pay $35</button>
+    <button class="btn ghost" type="button" data-tpl="soldout">Size sold out</button>
+    <button class="btn ghost" type="button" data-tpl="shipped">Shipped — tracking</button>
+    <button class="btn ghost" type="button" data-tpl="pickup">Local pickup</button></p>
+    <p class="fine" id="owner-tpl-msg"></p>
   </div>
 
   <p class="fine" id="owner-msg"></p>
@@ -395,6 +408,19 @@ Name: [your name]</pre>
   </table>
   </div>
   <p class="fine">Elastic waistband stretches about 12″ past the relaxed size (an S pulls to ~39″). Waist runs a little snug — between sizes, go up. Above-the-knee hoop cut.</p>
+</section>
+
+<section id="waitlist" class="notify">
+  <p class="eyebrow">Sold out?</p>
+  <h2>Join the waitlist.</h2>
+  <p>If your size sells out, drop your email + size and we'll hit you first if one frees up — or first for Drop 002.</p>
+  <form id="waitlist-form" novalidate>
+    <label class="sr" for="waitlist-email">Email</label>
+    <input id="waitlist-email" name="email" type="email" placeholder="you@email.com" autocomplete="email" required>
+    <select id="waitlist-size" name="size" aria-label="Size wanted"><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+    <button class="btn buy live" type="submit">Join waitlist</button>
+  </form>
+  <p id="waitlist-msg" class="msg" role="status"></p>
 </section>
 
 <section id="drop2" class="drop2">
@@ -637,10 +663,40 @@ function renderOwner() {
   const listEl = $('owner-signup-list');
   if (listEl) listEl.textContent = d.signupEmails.length ? d.signupEmails.join(', ') : 'No signup emails saved here yet — check Gmail for the real list.';
   const ordersEl = $('owner-orders');
-  if (ordersEl) ordersEl.textContent = d.orders.length
-    ? d.orders.map((o, i) => `${i + 1}. ${o.buyer} — ${o.size} — ${o.pay} — $${o.total || 35}`).join('\n')
-    : 'No orders logged yet.';
+  if (ordersEl) {
+    if (!d.orders.length) { ordersEl.textContent = 'No orders logged yet.'; }
+    else {
+      ordersEl.innerHTML = d.orders.map((o, i) => {
+        const low = o.status || 'Paid';
+        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. <b>${o.buyer}</b> — ${o.size} — ${o.pay} — $${o.total || 35} — <b>${low}</b>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button></div>`;
+      }).join('');
+      ordersEl.querySelectorAll('[data-order-status]').forEach(b => b.addEventListener('click', () => {
+        const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus];
+        o.status = o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid';
+        saveOwner(dd); renderOwner();
+      }));
+      ordersEl.querySelectorAll('[data-order-tracking]').forEach(b => b.addEventListener('click', () => {
+        const t = prompt('Tracking number for this order:');
+        if (t === null) return;
+        const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner();
+      }));
+    }
+  }
+  syncSizePicker(d);
 }
+// Size picker follows admin stock: 0 left = sold out (disabled), 2 or fewer = low stock warning.
+// Note: stock lives on this device only until Supabase sync — visitors see the default stock.
+function syncSizePicker(d) {
+  d = d || loadOwner();
+  document.querySelectorAll('#size-picker button').forEach(b => {
+    const n = d.stock[b.dataset.size];
+    b.disabled = n === 0;
+    b.style.opacity = n === 0 ? '.35' : '';
+    const span = b.querySelector('span');
+    if (span) span.textContent = n === 0 ? 'Sold out' : n <= 2 ? `${n} left — low` : `${n} pcs · ${{ S: '29″', M: '31″', L: '33″', XL: '35″' }[b.dataset.size]}`;
+  });
+}
+syncSizePicker();
 // Admin tabs — a whole dashboard inside the same site, no new website
 document.querySelectorAll('.owner-tabs button').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('.owner-tabs button').forEach(x => x.classList.remove('on'));
@@ -668,6 +724,32 @@ if (emailCopy) emailCopy.addEventListener('click', async () => {
   const t = $('owner-email-draft'); if (!t) return;
   try { await navigator.clipboard.writeText(t.textContent); const m = $('owner-msg'); if (m) m.textContent = 'Email draft copied.'; } catch (_) {}
 });
+// DM reply templates — tap to copy, paste into IG
+const TPLS = {
+  paid: `You're in 🙏 $35 total — pay here: https://gl.me/u/qqMvQlZ6mTpb — then lmk your size + ship address and I'll confirm it`,
+  soldout: `That size is sold out rn 😭 want a different size, or want me to put you on the waitlist for it?`,
+  shipped: `Shipped 📦 tracking: [tracking number] — USPS Ground Advantage, should be there in 2-5 days`,
+  pickup: `Bet — free local pickup in NYC, lmk what day works and we'll meet up`
+};
+document.querySelectorAll('[data-tpl]').forEach(b => b.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(TPLS[b.dataset.tpl] || ''); const m = $('owner-tpl-msg'); if (m) m.textContent = 'Copied — paste it into the DM.'; } catch (_) {}
+}));
+// Waitlist form — anyone can join, posts to the same Gmail inbox as notify signups
+const wlForm = $('waitlist-form'), wlMsg = $('waitlist-msg');
+if (wlForm) wlForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('waitlist-email').value.trim();
+  const size = $('waitlist-size').value;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { wlMsg.className = 'msg err'; wlMsg.textContent = 'Enter a valid email.'; return; }
+  wlMsg.className = 'msg'; wlMsg.textContent = 'Sending…';
+  try {
+    const r = await fetch(FORM_ENDPOINT, { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ email, size, _subject: 'CLUTCH Drop 01 — waitlist signup' }) });
+    const data = await r.json().catch(() => ({}));
+    if (String(data.success) !== 'true') throw 0;
+    wlMsg.className = 'msg ok'; wlMsg.textContent = `You're on the waitlist for size ${size}. We'll hit you first if one frees up.`;
+    wlForm.reset();
+  } catch (_) { wlMsg.className = 'msg'; wlMsg.innerHTML = `That didn't go through — <a href="${IG}" target="_blank" rel="noopener">DM us on Instagram</a> instead.`; }
+});
 document.querySelectorAll('[data-sell]').forEach(b => b.addEventListener('click', () => {
   const d = loadOwner();
   if (d.stock[b.dataset.sell] > 0) d.stock[b.dataset.sell]--;
@@ -682,7 +764,7 @@ if (orderForm) orderForm.addEventListener('submit', e => {
   e.preventDefault();
   const d = loadOwner();
   const size = $('owner-size').value;
-  d.orders.push({ buyer: $('owner-buyer').value.trim(), size, pay: $('owner-pay').value, total: 35, at: new Date().toISOString().slice(0, 10) });
+  d.orders.push({ buyer: $('owner-buyer').value.trim(), size, pay: $('owner-pay').value, total: 35, status: 'Paid', address: ($('owner-address') ? $('owner-address').value.trim() : ''), at: new Date().toISOString().slice(0, 10) });
   if (d.stock[size] > 0) d.stock[size]--;
   saveOwner(d); renderOwner(); orderForm.reset();
   const m = $('owner-msg'); if (m) m.textContent = 'Order logged.';
@@ -690,7 +772,7 @@ if (orderForm) orderForm.addEventListener('submit', e => {
 const exportBtn = $('owner-export');
 if (exportBtn) exportBtn.addEventListener('click', async () => {
   const d = loadOwner();
-  const csv = 'buyer,size,pay,total,date\n' + d.orders.map(o => `"${o.buyer}",${o.size},${o.pay},${o.total || 35},${o.at || ''}`).join('\n');
+  const csv = 'buyer,size,pay,total,status,tracking,address,date\n' + d.orders.map(o => `"${(o.buyer || '').replace(/"/g, '""')}",${o.size},${o.pay},${o.total || 35},${o.status || 'Paid'},${o.tracking || ''},"${(o.address || '').replace(/"/g, '""')}",${o.at || ''}`).join('\n');
   try { await navigator.clipboard.writeText(csv); const m = $('owner-msg'); if (m) m.textContent = 'Orders copied as CSV — paste into Notes / Sheets.'; }
   catch (_) { const m = $('owner-msg'); if (m) m.textContent = csv; }
 });
