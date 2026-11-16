@@ -360,8 +360,8 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
   </div>
 
 <div data-panel="staff" hidden><h3>Staff access</h3>
-<p class="fine">People who can log in to admin. Only your two emails get full access — staff get the limited dashboard (Dashboard / Orders / Stock). This list syncs across you, Emeri, and Ajan through Supabase.</p>
-<form id="staff-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="staff-email" type="email" placeholder="staff email" required style="flex:2;min-width:180px"><select id="staff-role"><option value="view">Staff — view only</option><option value="staff">Staff — view orders + stock</option><option value="owner">Owner — full access</option></select><button class="btn buy live" type="submit">Add</button></form>
+<p class="fine">Add someone by email and pick their role — <b>Owner</b> gets full access, <b>Staff</b> gets the limited dashboard (Dashboard / Orders / Stock). They log in with that email after making an account on the site. This list syncs across you, Emeri, and Ajan through Supabase.</p>
+<form id="staff-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="staff-email" type="email" placeholder="staff email" required style="flex:2;min-width:180px"><select id="staff-role"><option value="staff" selected>Staff — orders + stock only</option><option value="owner">Owner — full access</option></select><button class="btn buy live" type="submit">Add</button></form>
 <p class="fine" id="staff-list"></p>
 <h3>Assign a task</h3>
 <form id="owner-assign-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="assign-text" type="text" placeholder="Task — e.g. Reply to all DMs" style="flex:2;min-width:180px"><select id="assign-who"><option>Sebastian</option><option>Emeri</option><option>Ajan</option></select><input id="assign-due" type="date" style="width:9.5rem"><button class="btn buy live" type="submit">Assign</button></form>
@@ -757,7 +757,7 @@ function renderOwner() {
   var staffEl = $('staff-list');
   if (staffEl) {
     var staff = (d.staff || []).concat(OWNER_EMAILS.map(function (e) { return { email: e, role: 'owner', name: 'Sebastian' }; }));
-    staffEl.innerHTML = staff.length ? staff.map(function (s, i) { return '<div style="margin:.4rem 0">' + (s.name ? s.name + ' — ' : '') + s.email + ' · <b>' + s.role + '</b>' + (s.role !== 'owner' ? ' <button class="btn ghost" type="button" data-staff-remove="' + i + '">Remove</button>' : '') + '</div>'; }).join('') : 'No staff yet — add Emeri + Ajan below.';
+    staffEl.innerHTML = staff.length ? staff.map(function (s, i) { return '<div style="margin:.4rem 0">' + (s.name ? s.name + ' — ' : '') + s.email + ' · <b>' + s.role + '</b>' + (OWNER_EMAILS.indexOf(s.email) === -1 ? ' <button class="btn ghost" type="button" data-staff-remove="' + i + '">Remove</button>' : '') + '</div>'; }).join('') : 'No staff yet — add Emeri + Ajan below.';
     staffEl.querySelectorAll('[data-staff-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); dd.staff = (dd.staff || []).filter(function (_, x) { return x !== +b.dataset.staffRemove; }); saveOwner(dd); renderOwner(); }); });
   }
   var gcEl = $('owner-giftcards');
@@ -816,7 +816,7 @@ $('staff-add-form').addEventListener('submit', async function (e) {
   if (!d.staff.some(function (s) { return s.email === email; }) && OWNER_EMAILS.indexOf(email) === -1) d.staff.push({ email: email, role: role, name: '' });
   try { await sb.from('clutch_staff').insert({ email: email, name: '', role: role }); } catch (err) {}
   saveOwner(d); renderOwner(); e.target.reset();
-  $('owner-msg').textContent = 'Staff added — they can log in with that email once they make an account on the site.';
+  $('owner-msg').textContent = role === 'owner' ? 'Owner added — full access once they log in with that email.' : 'Staff added — limited dashboard once they log in with that email.';
 });
 $('discount-add-form').addEventListener('submit', function (e) {
   e.preventDefault();
@@ -1171,8 +1171,10 @@ $('owner-discount-save').addEventListener('click', function () {
     try {
       const sr = await sb.from('clutch_staff').select('email,role').eq('email', user.email).limit(1);
       if (sr.data && sr.data.length) {
+        var srole = sr.data[0].role || 'staff';
+        if (srole === 'owner') { $('admin-who').textContent = 'Logged in as owner: ' + user.email; showAdmin(); return; }
         $('admin-who').textContent = 'Logged in as staff: ' + user.email + ' (limited dashboard — orders + stock only).';
-        showAdmin(sr.data[0].role || 'staff'); return;
+        showAdmin(srole); return;
       }
     } catch (err) {}
     $('admin-who').textContent = 'Logged in as ' + user.email + ' — that account is not the owner or staff, so admin is locked.'; return;

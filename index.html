@@ -466,10 +466,10 @@ First paid, first served.
 
   <div data-panel="staff" hidden>
     <h3>Staff access</h3>
-    <p class="fine">People who can log in to admin. Only your two emails get full access — staff get the limited dashboard (Dashboard / Orders / Stock). This list syncs across you, Emeri, and Ajan through Supabase.</p>
+    <p class="fine">Add someone by email and pick their role — <b>Owner</b> gets full access, <b>Staff</b> gets the limited dashboard (Dashboard / Orders / Stock). They log in with that email after making an account on the site. This list syncs across you, Emeri, and Ajan through Supabase.</p>
     <form id="staff-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
       <input id="staff-email" type="email" placeholder="staff email" required style="flex:2;min-width:180px">
-      <select id="staff-role"><option value="view">Staff — view only</option><option value="staff">Staff — view orders + stock</option><option value="owner">Owner — full access</option></select>
+      <select id="staff-role"><option value="staff" selected>Staff — orders + stock only</option><option value="owner">Owner — full access</option></select>
       <button class="btn buy live" type="submit">Add</button>
     </form>
     <p class="fine" id="staff-list"></p>
@@ -880,9 +880,10 @@ async function refreshAccountUI() {
     if (out) out.hidden = false;
     if (msg) { msg.className = 'msg ok'; msg.textContent = OWNER_EMAILS.includes(user.email) ? 'You are the owner.' : 'Logged in.'; }
     if (OWNER_EMAILS.includes(user.email)) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (_) {} if (typeof showOwnerAdmin === 'function') showOwnerAdmin(); }
-    else if (sbSyncOn) {
+    else {
+      // Staff lookup runs unconditionally: sbGet returns null if the clutch_staff table is not there yet, and refreshAccountUI() fires before sbSyncCheck() sets sbSyncOn, so gating on sbSyncOn would skip staff logins entirely.
       const rows = await sbGet('clutch_staff', '?select=email,role&email=eq.' + encodeURIComponent(user.email));
-      if (rows && rows.length) { const role = rows[0].role || 'staff'; if (msg) { msg.className = 'msg ok'; msg.textContent = role === 'view' ? 'Logged in as staff — view only.' : 'Logged in as staff — limited dashboard (orders + stock only).'; } if (typeof showOwnerAdmin === 'function') showOwnerAdmin(role); }
+      if (rows && rows.length) { const role = rows[0].role || 'staff'; if (msg) { msg.className = 'msg ok'; msg.textContent = role === 'owner' ? 'Logged in as owner — full access.' : role === 'view' ? 'Logged in as staff — view only.' : 'Logged in as staff — limited dashboard (orders + stock only).'; } if (typeof showOwnerAdmin === 'function') showOwnerAdmin(role === 'owner' ? undefined : role); }
     }
   } else {
     if (who) who.textContent = '';
@@ -1530,7 +1531,7 @@ function renderOwner() {
   const staffEl = $('staff-list');
   if (staffEl) {
     const staff = (d.staff || []).concat(OWNER_EMAILS.map(e => ({ email: e, role: 'owner', name: 'Sebastian' })));
-    staffEl.innerHTML = staff.length ? staff.map((s, i) => `<div style="margin:.4rem 0">${s.name ? s.name + ' — ' : ''}${s.email} · <b>${s.role}</b>${s.role !== 'owner' ? ` <button class="btn ghost" type="button" data-staff-remove="${i}">Remove</button>` : ''}</div>`).join('') : 'No staff yet — add Emeri + Ajan below.';
+    staffEl.innerHTML = staff.length ? staff.map((s, i) => `<div style="margin:.4rem 0">${s.name ? s.name + ' — ' : ''}${s.email} · <b>${s.role}</b>${OWNER_EMAILS.includes(s.email) ? '' : ` <button class="btn ghost" type="button" data-staff-remove="${i}">Remove</button>`}</div>`).join('') : 'No staff yet — add Emeri + Ajan below.';
     staffEl.querySelectorAll('[data-staff-remove]').forEach(b => b.addEventListener('click', () => {
       const dd = loadOwner(); dd.staff = (dd.staff || []).filter((_, x) => x !== +b.dataset.staffRemove); saveOwner(dd); renderOwner();
     }));
@@ -1821,7 +1822,7 @@ if (staffForm) staffForm.addEventListener('submit', e => {
   if (!d.staff.some(s => s.email === email) && !OWNER_EMAILS.includes(email)) d.staff.push({ email, role, name: '' });
   if (sbSyncOn) sbPost('clutch_staff', { email, name: '', role });
   saveOwner(d); renderOwner(); staffForm.reset();
-  const m = $('owner-msg'); if (m) m.textContent = 'Staff added — they can log in with that email once they make an account on the site.';
+  const m = $('owner-msg'); if (m) m.textContent = role === 'owner' ? 'Owner added — full access once they log in with that email.' : 'Staff added — limited dashboard once they log in with that email.';
 });
 const discForm = $('discount-add-form');
 if (discForm) discForm.addEventListener('submit', e => {
