@@ -175,6 +175,10 @@ section,.nav{background-color:transparent}
 @media(min-width:800px){.sticky-buy{justify-content:center;gap:2rem}}
 .foot{padding-bottom:3rem}
 
+.fit-tip input,.fit-tip select{padding:.5rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+#review-form input,#review-form select{margin:.3rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+#discount-code{padding:.5rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+
 </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Product","name":"CLUTCH UES Mesh Basketball Shorts — Drop 01",
@@ -340,6 +344,7 @@ First paid, first served.
       <label class="fine">Price<br><input id="edit-price" type="text" value="$25"></label>
       <label class="fine">Drop date / time<br><input id="edit-when" type="text" value="Fri, Nov 27, 2026 · 6:00 PM ET"></label>
       <label class="fine">Buy note<br><input id="edit-buynote" type="text" style="width:100%" value="PREORDERS open Fri, Nov 27, 6PM ET · $25 + shipping ($35 total) · Pay via Greenlight — or Cash App in the DM. Pick your size first, then DM @clutchny1 — first paid, first served."></label>
+      <label class="fine">Discount code<br><input id="edit-discount-code" type="text" value="CLUTCH10" style="width:9rem"> <input id="edit-discount-pct" type="number" min="0" max="50" value="10" style="width:4rem"> % off</label>
       <button class="btn buy live" type="submit">Save edits (this device)</button>
       <button class="btn ghost" type="button" id="owner-edit-copy">Copy edits for Jerry</button>
       <button class="btn ghost" type="button" id="owner-edit-reset">Reset edits</button>
@@ -389,7 +394,8 @@ First paid, first served.
       <button type="button" data-size="L"><b>L</b><span>5 pcs · 33″</span></button><button type="button" data-size="XL"><b>XL</b><span>5 pcs · 35″</span></button>
     </div>
     <p class="fine" id="size-msg">Tap a size, then hit buy — your DM will say which size you want.</p>
-    <p class="fine">30 pieces total. All sales final. No restocks.</p>
+    <p class="fine" id="stock-left">30 of 30 left.</p>
+    <p class="fine">30 pieces total. All sales final. No restocks. <a href="/track.html">Track your order →</a></p>
   </div>
 </section>
 
@@ -403,6 +409,7 @@ Price: $25 + shipping
 Pay: Greenlight — https://gl.me/u/qqMvQlZ6mTpb ($35 total, or Cash App in the DM)
 Shipping: USPS Ground Advantage, about $8–$11 in the US — or free local pickup in NYC
 Name: [your name]</pre>
+  <p><label class="fine">Discount code <input id="discount-code" type="text" placeholder="e.g. CLUTCH10" style="width:9rem"> <button class="btn ghost" type="button" id="apply-discount">Apply</button></label> <span class="fine" id="discount-msg"></span></p>
   <button class="btn buy live" id="copy-order" type="button">Copy order DM</button>
   <p class="fine" id="copy-msg">Then open Instagram and paste it in a DM to @clutchny1.</p>
   <p><a class="btn ghost" href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">Open @clutchny1 to send it</a></p>
@@ -424,6 +431,10 @@ Name: [your name]</pre>
   </table>
   </div>
   <p class="fine">Elastic waistband stretches about 12″ past the relaxed size (an S pulls to ~39″). Waist runs a little snug — between sizes, go up. Above-the-knee hoop cut.</p>
+  <div class="fit-tip"><b>Find my size.</b> Measure your waist in inches, type it in, we'll tell you.
+  <p><input id="waist-in" type="number" min="24" max="45" placeholder="Waist in inches" style="width:9rem"> <button class="btn ghost" type="button" id="find-size">Find my size</button> <span id="size-finder-msg" class="fine"></span></p></div>
+  <div class="fit-tip"><b>Shipping estimate.</b> Type your ZIP and we'll estimate USPS Ground Advantage.
+  <p><input id="ship-zip" type="text" inputmode="numeric" placeholder="ZIP code" style="width:8rem"> <button class="btn ghost" type="button" id="ship-est">Estimate</button> <span id="ship-msg" class="fine"></span></p></div>
 </section>
 
 <section id="waitlist" class="notify">
@@ -467,6 +478,7 @@ Name: [your name]</pre>
   </div>
   <p class="fine light">That’s all you get for now. No date, no price, no full design until it’s ready — this one’s staying under wraps.</p>
   <p class="fine light">First look drops on IG — <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a></p>
+  <p><a class="btn ghost" href="/drop002.html">See the Drop 002 page →</a></p>
 </section>
 
 <section id="proof" class="proof">
@@ -478,6 +490,30 @@ Name: [your name]</pre>
     <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener"><b>“All nite” — @yup.wav</b><span>The sound behind the countdown + the Charlie fit video</span></a>
   </div>
   <p class="fine">Follow <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> — countdown, sneak peeks, and drop-day updates live there first.</p>
+</section>
+
+
+<section id="ig" class="proof">
+  <p class="eyebrow">On Instagram</p>
+  <h2>Latest from @clutchny1</h2>
+  <div class="proof-grid">
+    <a href="https://www.instagram.com/reel/Dff0v0Kj5_5/" target="_blank" rel="noopener"><b>Drop 002 sneak peek</b><span>The 6-train teaser reel</span></a>
+    <a href="https://www.instagram.com/reel/Dfc_N9YCYgC/" target="_blank" rel="noopener"><b>Day 20 countdown</b><span>20 days til Drop 01</span></a>
+    <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener"><b>@clutchny1</b><span>Follow for countdowns + drop-day updates</span></a>
+  </div>
+</section>
+
+<section id="reviews" class="notify">
+  <p class="eyebrow">Reviews</p>
+  <h2>What buyers say.</h2>
+  <div id="review-list" class="fine">No reviews yet — be the first after you get your pair.</div>
+  <form id="review-form" novalidate>
+    <input id="review-name" type="text" placeholder="Your name / @" required>
+    <select id="review-stars" aria-label="Stars"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select>
+    <input id="review-text" type="text" placeholder="How are they? (fit, print, quality…)" required>
+    <button class="btn buy live" type="submit">Post review</button>
+  </form>
+  <p id="review-msg" class="msg" role="status"></p>
 </section>
 
 <section id="faq" class="faq">
@@ -518,6 +554,7 @@ Name: [your name]</pre>
   <img class="foot-logo" src="data:image/png;base64,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kFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAA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" alt="" width="1290" height="1203">
   <p class="logo big">CLUTCH</p>
   <p class="fine">Built Different · Upper East Side, NYC</p>
+  <p class="fine" id="drop-status">PREORDERS open Fri, Nov 27, 6PM ET.</p>
   <p class="fine osm">Background map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> (ODbL)</p>
 </footer>
 <script>
@@ -549,7 +586,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
    ========================================================= */
 const STRIPE_LINK = '';
 const FORM_ENDPOINT = 'https://formsubmit.co/ajax/sebastianluis3177@gmail.com';
-const NOTIFY_EMAIL = ''; // optional: address for mailto fallback (leave '' to use Instagram DM prompt)
+const NOTIFY_EMAIL = '';
+// Discount code — set in admin (Edit site tab). Default: CLUTCH10 = 10% off the $35 total.
+function getDiscount() { const e = loadEdits(); return { code: (e.discountCode || 'CLUTCH10').toUpperCase(), pct: parseInt(e.discountPct || '10', 10) || 0 }; }
+let appliedDiscount = 0;
+function orderTotal() { return 35 - appliedDiscount; } // optional: address for mailto fallback (leave '' to use Instagram DM prompt)
 
 const $ = id => document.getElementById(id);
 
@@ -560,6 +601,49 @@ const OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com']
 const OWNER_EMAIL = OWNER_EMAILS[0];
 let supabaseClient = null;
 try { if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (_) {}
+
+// ---- Supabase sync (orders / stock / signups / waitlist / reviews) ----
+// Works off localStorage until the tables exist in Supabase. Sebastian pastes
+// the SQL from clutch-brand-launch/files/supabase-tables.sql into the Supabase
+// SQL Editor once, then this syncs across phone + laptop automatically.
+let sbSyncOn = false;
+async function sbGet(table, query) {
+  if (!supabaseClient) return null;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query || ''}`, { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (_) { return null; }
+}
+async function sbPost(table, row) {
+  if (!supabaseClient) return false;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) });
+    return r.ok;
+  } catch (_) { return false; }
+}
+async function sbPatch(table, id, row) {
+  if (!supabaseClient) return false;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'PATCH', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(row) });
+    return r.ok;
+  } catch (_) { return false; }
+}
+async function sbSyncCheck() {
+  const rows = await sbGet('clutch_stock', '?select=size,left&limit=1');
+  sbSyncOn = Array.isArray(rows);
+  const el = document.getElementById('owner-sync-status');
+  if (el) el.textContent = sbSyncOn ? 'Supabase sync: ON — orders + stock sync across your phone and laptop.' : 'Supabase sync: OFF — orders + stock save on this device only. Paste the SQL I gave you into Supabase SQL Editor to turn it on.';
+  if (sbSyncOn) {
+    const stockRows = await sbGet('clutch_stock', '?select=size,left');
+    if (stockRows && stockRows.length) {
+      const d = loadOwner();
+      stockRows.forEach(r => { if (d.stock[r.size] !== undefined) d.stock[r.size] = r.left; });
+      saveOwner(d); renderOwner();
+    }
+  }
+}
+
 async function refreshAccountUI() {
   const msg = $('account-msg'), who = $('account-who'), out = $('account-logout');
   if (!supabaseClient) { if (msg) { msg.className = 'msg'; msg.textContent = 'Accounts are offline right now — check back in a bit.'; } return; }
@@ -583,9 +667,10 @@ if (acctForm) acctForm.addEventListener('submit', async e => {
   if (!supabaseClient) { msg.className = 'msg err'; msg.textContent = 'Accounts are offline right now — Supabase did not load. Try refreshing the page.'; return; }
   try {
     const { error } = await supabaseClient.auth.signUp({ email, password: pw, options: { emailRedirectTo: 'https://clutchbuiltdifferent.com/#account' } });
-    if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
+    if (error) { msg.className = 'msg err'; msg.textContent = /rate limit/i.test(error.message) ? 'Too many signups right now — try again in a bit.' : error.message; return; }
     msg.className = 'msg ok'; msg.textContent = 'Account made — check your email to confirm it, then log in.';
     refreshAccountUI();
+sbSyncCheck();
   } catch (err) { msg.className = 'msg err'; msg.textContent = 'Signup failed: ' + (err && err.message ? err.message : 'network error — try again.'); }
 });
 const acctLogin = $('account-login');
@@ -620,7 +705,7 @@ function setBuy(live) {
 }
 function tick() {
   const d = DROP - Date.now();
-  if (d <= 0) { $('countdown').classList.add('done'); ['d','h','m','s'].forEach(k => $('cd-'+k).textContent = '00'); setBuy(true); return false; }
+  if (d <= 0) { $('countdown').classList.add('done'); ['d','h','m','s'].forEach(k => $('cd-'+k).textContent = '00'); setBuy(true); const eb = document.querySelector('.hero .eyebrow'); if (eb) eb.textContent = 'Drop 01 · LIVE NOW'; if (buy) buy.textContent = 'Drop is live — DM @clutchny1'; const st = document.getElementById('drop-status'); if (st) st.textContent = 'LIVE NOW — first paid, first served.'; return false; }
   $('cd-d').textContent = pad(Math.floor(d / 864e5));
   $('cd-h').textContent = pad(Math.floor(d / 36e5) % 24);
   $('cd-m').textContent = pad(Math.floor(d / 6e4) % 60);
@@ -642,7 +727,8 @@ const sizeMsg = $('size-msg');
 const orderText = $('order-text');
 const copyMsg = $('copy-msg');
 function orderPrompt(size) {
-  return `Hi! I want to preorder CLUTCH Drop 01 — UES Mesh Shorts\nSize: ${size || '[pick a size above]'}\nPrice: $25 + shipping\nPay: Greenlight — https://gl.me/u/qqMvQlZ6mTpb ($35 total, or Cash App in the DM)\nShipping: USPS Ground Advantage, about $8–$11 in the US — or free local pickup in NYC\nName: [your name]`;
+  const total = orderTotal();
+  return `Hi! I want to preorder CLUTCH Drop 01 — UES Mesh Shorts\nSize: ${size || '[pick a size above]'}\nPrice: $25 + shipping${appliedDiscount ? ` (discount applied: -$${appliedDiscount})` : ''}\nPay: Greenlight — https://gl.me/u/qqMvQlZ6mTpb ($${total} total, or Cash App in the DM)\nShipping: USPS Ground Advantage, about $8–$11 in the US — or free local pickup in NYC\nName: [your name]`;
 }
 let picked = '';
 document.querySelectorAll('#size-picker button').forEach(b => b.addEventListener('click', () => {
@@ -652,6 +738,60 @@ document.querySelectorAll('#size-picker button').forEach(b => b.addEventListener
   sizeMsg.textContent = `Size ${picked} picked — DM @clutchny1 “I want size ${picked}” to buy.`;
   if (orderText) orderText.textContent = orderPrompt(picked);
 }));
+
+// Discount code — apply in the order section, updates the total in the DM text
+const discBtn = $('apply-discount');
+if (discBtn) discBtn.addEventListener('click', () => {
+  const d = getDiscount();
+  const code = ($('discount-code').value || '').trim().toUpperCase();
+  const m = $('discount-msg');
+  if (code === d.code && d.pct > 0) { appliedDiscount = Math.round(35 * d.pct / 100 * 100) / 100; if (m) m.textContent = `Applied — $${orderTotal()} total instead of $35.`; }
+  else { appliedDiscount = 0; if (m) m.textContent = 'That code didn\'t work.'; }
+  if (orderText) orderText.textContent = orderPrompt(picked);
+});
+
+// Size finder — waist inches to size
+const findSizeBtn = $('find-size');
+if (findSizeBtn) findSizeBtn.addEventListener('click', () => {
+  const w = parseInt(($('waist-in').value || '').trim(), 10);
+  const m = $('size-finder-msg');
+  if (!w || w < 24 || w > 45) { if (m) m.textContent = 'Enter a waist between 24 and 45 inches.'; return; }
+  const size = w <= 29 ? 'S' : w <= 32 ? 'M' : w <= 34 ? 'L' : 'XL';
+  if (m) m.textContent = `You're a ${size} — waist ${w}″ sits in the ${size} range. Between sizes, go up.`;
+});
+
+// Shipping estimator — USPS Ground Advantage, holiday prices Oct 2026 – Jan 2027
+const shipBtn = $('ship-est');
+if (shipBtn) shipBtn.addEventListener('click', () => {
+  const z = ($('ship-zip').value || '').trim();
+  const m = $('ship-msg');
+  if (!/^\d{5}$/.test(z)) { if (m) m.textContent = 'Enter a 5-digit ZIP.'; return; }
+  const first = z[0];
+  const est = { '0': 9, '1': 8, '2': 9, '3': 10, '4': 9, '5': 9, '6': 10, '7': 10, '8': 11, '9': 11 }[first] || 10;
+  if (m) m.textContent = `About $${est} via USPS Ground Advantage (2–5 days) — $${(35 + est).toFixed(0)} all-in. Priority Mail padded flat-rate is about $13.`;
+});
+
+// Reviews — saved on this device + to Supabase when the tables exist
+const REV_KEY = 'clutch-reviews-v1';
+function loadReviews() { try { return JSON.parse(localStorage.getItem(REV_KEY) || '[]'); } catch (_) { return []; } }
+function renderReviews() {
+  const list = $('review-list'); if (!list) return;
+  const rs = loadReviews();
+  if (!rs.length) { list.textContent = 'No reviews yet — be the first after you get your pair.'; return; }
+  list.innerHTML = rs.map(r => `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px"><b>${r.name}</b> ${'★'.repeat(r.stars)}<br>${r.text}</div>`).join('');
+}
+renderReviews();
+const revForm = $('review-form');
+if (revForm) revForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const rs = loadReviews();
+  const r = { name: $('review-name').value.trim() || 'anon', stars: parseInt($('review-stars').value, 10), text: $('review-text').value.trim() };
+  if (!r.text) return;
+  rs.unshift(r); try { localStorage.setItem(REV_KEY, JSON.stringify(rs.slice(0, 50))); } catch (_) {}
+  if (sbSyncOn) sbPost('clutch_reviews', { name: r.name, stars: r.stars, text: r.text });
+  renderReviews(); revForm.reset();
+  const m = $('review-msg'); if (m) { m.className = 'msg ok'; m.textContent = 'Thanks — review posted.'; }
+});
 
 // Copy order DM
 const copyBtn = $('copy-order');
@@ -783,6 +923,10 @@ function renderOwner() {
     }
   }
   syncSizePicker(d);
+  const chartEl = $('owner-chart');
+  if (chartEl) { const bySize = { S: 0, M: 0, L: 0, XL: 0 }; d.orders.forEach(o => { if (bySize[o.size] !== undefined) bySize[o.size]++; }); const max = Math.max(1, ...Object.values(bySize)); chartEl.innerHTML = Object.entries(bySize).map(([s, n]) => '<div style="margin:.3rem 0">' + s + ' — ' + n + ' sold <span style="display:inline-block;background:var(--tan);height:.7rem;width:' + Math.round(n / max * 100) + '%"></span></div>').join(''); }
+  const leftEl = $('stock-left');
+  if (leftEl) { const left = Object.values(d.stock).reduce((a,b)=>a+b,0); leftEl.textContent = left === 0 ? 'SOLD OUT — join the waitlist below.' : left <= 5 ? `Only ${left} of 30 left.` : `${left} of 30 left.`; }
 }
 // Size picker follows admin stock: 0 left = sold out (disabled), 2 or fewer = low stock warning.
 // Note: stock lives on this device only until Supabase sync — visitors see the default stock.
@@ -818,6 +962,14 @@ if (signupExport) signupExport.addEventListener('click', async () => {
   const d = loadOwner();
   try { await navigator.clipboard.writeText((d.signupEmails || []).join(', ')); const m = $('owner-msg'); if (m) m.textContent = 'Signup emails copied.'; }
   catch (_) {}
+});
+
+const wlNotify = $('owner-waitlist-notify');
+if (wlNotify) wlNotify.addEventListener('click', async () => {
+  const d = loadOwner();
+  const emails = (d.signupEmails || []).join(', ');
+  const text = 'Subject: A CLUTCH size freed up\n\nA pair just freed up — first to DM @clutchny1 gets it. $35 total via Greenlight: https://gl.me/u/qqMvQlZ6mTpb\n\nBCC: ' + emails;
+  try { await navigator.clipboard.writeText(text); const m = $('owner-waitlist-msg'); if (m) m.textContent = 'Copied — paste into Gmail, put the emails in BCC, and send.'; } catch (_) {}
 });
 const emailCopy = $('owner-email-copy');
 if (emailCopy) emailCopy.addEventListener('click', async () => {
@@ -856,7 +1008,7 @@ applyEdits();
 const editForm = $('owner-edit-form');
 if (editForm) editForm.addEventListener('submit', e => {
   e.preventDefault();
-  const edits = { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim() };
+  const edits = { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') };
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(edits)); } catch (_) {}
   applyEdits();
   const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Copy edits for Jerry" to make them live for everyone.';
@@ -881,6 +1033,7 @@ if (wlForm) wlForm.addEventListener('submit', async e => {
     const r = await fetch(FORM_ENDPOINT, { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ email, size, _subject: 'CLUTCH Drop 01 — waitlist signup' }) });
     const data = await r.json().catch(() => ({}));
     if (String(data.success) !== 'true') throw 0;
+    if (sbSyncOn) sbPost('clutch_waitlist', { email, size });
     wlMsg.className = 'msg ok'; wlMsg.textContent = `You're on the waitlist for size ${size}. We'll hit you first if one frees up.`;
     wlForm.reset();
   } catch (_) { wlMsg.className = 'msg'; wlMsg.innerHTML = `That didn't go through — <a href="${IG}" target="_blank" rel="noopener">DM us on Instagram</a> instead.`; }
@@ -899,7 +1052,11 @@ if (orderForm) orderForm.addEventListener('submit', e => {
   e.preventDefault();
   const d = loadOwner();
   const size = $('owner-size').value;
-  d.orders.push({ buyer: $('owner-buyer').value.trim(), size, pay: $('owner-pay').value, total: 35, status: 'Paid', address: ($('owner-address') ? $('owner-address').value.trim() : ''), at: new Date().toISOString().slice(0, 10) });
+  const disc = getDiscount();
+  const total = 35 - (appliedDiscount || 0);
+  const order = { buyer: $('owner-buyer').value.trim(), size, pay: $('owner-pay').value, total, status: 'Paid', address: ($('owner-address') ? $('owner-address').value.trim() : ''), at: new Date().toISOString().slice(0, 10) };
+  d.orders.push(order);
+  if (sbSyncOn) { sbPost('clutch_orders', { buyer: order.buyer, size, pay: order.pay, total, status: 'Paid', address: order.address }); sbPatch('clutch_stock', size, { left: d.stock[size] }); }
   if (d.stock[size] > 0) d.stock[size]--;
   saveOwner(d); renderOwner(); orderForm.reset();
   const m = $('owner-msg'); if (m) m.textContent = 'Order logged.';
@@ -926,6 +1083,7 @@ form.addEventListener('submit', async e => {
       // FormSubmit returns HTTP 200 even on failure, with success as the string "true"/"false".
       const data = await r.json().catch(() => ({}));
       if (String(data.success) !== 'true') throw new Error(data.message || 'form not delivered');
+      if (sbSyncOn) sbPost('clutch_signups', { email });
       msg.className = 'msg ok'; msg.textContent = "You're on the list. We'll hit you before Nov 27 · 6PM ET.";
       form.reset(); return;
     } catch (_) { /* fall through to fallback */ }

@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Track your order — CLUTCH</title><link rel="stylesheet" href="assets/style.css"></head>
+<body><header class="nav"><a class="logo" href="/">CLUTCH</a><nav><a href="/">Home</a><a href="/drop002.html">Drop 002</a></nav></header>
+<main style="max-width:700px;margin:2rem auto;padding:0 1rem">
+<p class="eyebrow">Drop 01</p><h2>Track your order.</h2>
+<p class="lede">Put in the email you ordered with and your order number (it's the number in the DM where Sebastian confirmed you — order #1, #2, and so on).</p>
+<form id="track-form" novalidate>
+<input id="track-email" type="email" placeholder="you@email.com" required style="padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
+<input id="track-num" type="number" min="1" placeholder="Order #" required style="width:6rem;padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
+<button class="btn buy live" type="submit">Track it</button>
+</form>
+<p id="track-msg" class="msg" role="status"></p>
+<div id="track-result" class="fine"></div>
+<p class="fine">Can't find it? DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> with your name + size and we'll look it up.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb = window.supabase.createClient('https://fgnuaxhujvxkfzzcvdqf.supabase.co', 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz');
+document.getElementById('track-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = document.getElementById('track-email').value.trim().toLowerCase();
+  const num = parseInt(document.getElementById('track-num').value, 10);
+  const msg = document.getElementById('track-msg'), out = document.getElementById('track-result');
+  msg.textContent = 'Looking it up…'; out.textContent = '';
+  // Orders are stored by buyer name/email in the admin log; the site looks them up
+  // in Supabase when the tables exist, otherwise it tells you to DM.
+  try {
+    const r = await sb.from('clutch_orders').select('*').order('id', { ascending: true }).limit(100);
+    if (r.error) throw 0;
+    const orders = r.data || [];
+    const o = orders[num - 1];
+    if (!o) { msg.textContent = 'No order #' + num + ' found yet.'; return; }
+    const steps = ['Paid', 'Shipped', 'Delivered'];
+    const idx = steps.indexOf(o.status || 'Paid');
+    msg.className = 'msg ok'; msg.textContent = 'Found it.';
+    out.innerHTML = '<b>Order #' + num + '</b> — ' + o.size + ' — ' + (o.pay || '') + ' — $' + (o.total || 35) + '<br>Status: <b>' + (o.status || 'Paid') + '</b>' + (o.tracking ? '<br>Tracking: ' + o.tracking : '') + '<br><br>' + steps.map((s, i) => (i <= idx ? '✅ ' : '⬜ ') + s).join('<br>');
+  } catch (_) {
+    msg.className = 'msg'; msg.textContent = "Order tracking isn't synced yet — DM @clutchny1 with your name + size and we'll look it up.";
+  }
+});
+</script></body></html>
