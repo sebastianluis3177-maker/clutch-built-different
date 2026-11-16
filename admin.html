@@ -194,6 +194,7 @@ section,.nav{background-color:transparent}
 <button type="button" data-tab="staff">Staff</button>
 <button type="button" data-tab="profit">Profit</button>
 <button type="button" data-tab="money">Money</button>
+<button type="button" data-tab="taxes">Taxes</button>
 </nav>
 <div data-panel="dash"><div class="owner-stats" id="owner-stats"></div>
 <div id="owner-alerts"></div>
@@ -313,6 +314,15 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
 <h3>Expense log</h3>
 <form id="expense-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="expense-label" type="text" placeholder="What did you spend on? e.g. bags" style="flex:2;min-width:160px"><input id="expense-amount" type="number" min="0" step="0.01" placeholder="$" style="width:6rem"><button class="btn buy live" type="submit">Add expense</button></form>
 <p class="fine" id="expense-list"></p></div>
+<div data-panel="taxes" hidden>
+<h3>Taxes — what you need to file.</h3>
+<p class="fine">Rough estimates only — not tax advice. You're a minor and your parents claim you as a dependent, so a parent should check this with a tax pro. Your dad doesn't have an accountant, so keep this page tidy — it's your whole paper trail.</p>
+<div id="owner-taxes"></div>
+<p class="fine">Set-aside % <input id="owner-tax-pct2" type="number" min="0" max="100" step="1" style="width:4rem"> <button class="btn ghost" type="button" id="owner-tax-save2">Save</button> (same % as the Profit tab)</p>
+<h3>Filing checklist</h3>
+<div id="owner-tax-checks"></div>
+<p class="fine">Key facts (checked Nov 2026): if your net profit hits $400 in a year, you likely have to file a federal return and pay 15.3% self-employment tax — even as a dependent. Federal income tax is likely $0 while your total income is under the $16,100 standard deduction. No 1099-K is expected from Cash App / Greenlight at 30 pairs ($1,050 max) — that only kicks in over $20,000 AND 200+ transactions — but the income is taxable whether or not a form shows up. NY sales tax on the shorts is a separate question for a parent.</p>
+</div>
 <div data-panel="money" hidden><h3>Money tracker — every dollar in and out.</h3>
 <p class="fine">Orders add money in automatically. Expenses and anything you add below show as money out. The running balance is what you actually have.</p>
 <div id="owner-money"></div>
@@ -347,11 +357,11 @@ const OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com']
 const $ = id => document.getElementById(id);
 const OWNER_KEY = 'clutch-admin-v1';
 const ACCT_KEY = 'clutch-owner-acct-v1';
-const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {} };
+const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false, moneyEntries: [], startBalance: 0, taxPct: 15, templates: [], flagged: [], notes: [], assignments: [], dropChecklist: {}, calendarChecks: {}, taxChecks: {} };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
-function showAdmin(staffMode) { $('admin-gate').hidden = true; $('owner-admin').hidden = false; if (staffMode) { var hide = staffMode === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money'] : ['payments', 'email', 'staff', 'profit', 'money']; document.querySelectorAll('.owner-tabs button').forEach(function (b) { if (hide.indexOf(b.dataset.tab) !== -1) b.style.display = 'none'; }); } renderOwner(); }
+function showAdmin(staffMode) { $('admin-gate').hidden = true; $('owner-admin').hidden = false; if (staffMode) { var hide = staffMode === 'view' ? ['orders', 'signups', 'stock', 'payments', 'email', 'staff', 'profit', 'money', 'taxes'] : ['payments', 'email', 'staff', 'profit', 'money', 'taxes']; document.querySelectorAll('.owner-tabs button').forEach(function (b) { if (hide.indexOf(b.dataset.tab) !== -1) b.style.display = 'none'; }); } renderOwner(); }
 function renderOwner() {
   const d = loadOwner(); if (!d.signupEmails) d.signupEmails = [];
   const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
@@ -379,6 +389,32 @@ function renderOwner() {
       + '<p class="fine">🧾 Tax set-aside (' + (d.taxPct || 15) + '% of profit): <b>$' + (profitP * ((d.taxPct || 15) / 100)).toFixed(2) + '</b> — keep that untouched. Safe to spend: <b>$' + (profitP * (1 - (d.taxPct || 15) / 100)).toFixed(2) + '</b>. <span class="fine">(Rough estimate, not tax advice.)</span></p>';
   }
   ['perPair', 'shipping', 'other'].forEach(function (k) { var inp = $('cost-' + k); if (inp && document.activeElement !== inp) inp.value = costsP[k]; });
+  var txEl = $('owner-taxes');
+  if (txEl) {
+    var seTaxable = Math.max(0, profitP * 0.9235);
+    var seTax = profitP >= 400 ? seTaxable * 0.153 : 0;
+    var setAside = profitP * ((d.taxPct || 15) / 100);
+    var mustFile = profitP >= 400;
+    txEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.6rem;margin:.6rem 0">'
+      + '<div><small>Gross sales</small><b style="display:block;font-size:1.3rem">$' + revP.toFixed(2) + '</b></div>'
+      + '<div><small>Costs</small><b style="display:block;font-size:1.3rem">−$' + costP.toFixed(2) + '</b></div>'
+      + '<div><small>Net profit</small><b style="display:block;font-size:1.3rem">$' + profitP.toFixed(2) + '</b></div>'
+      + '<div><small>Self-employment tax (15.3%)</small><b style="display:block;font-size:1.3rem">$' + seTax.toFixed(2) + '</b></div>'
+      + '<div><small>Federal income tax</small><b style="display:block;font-size:1.3rem">$0.00</b></div>'
+      + '<div><small>Set aside (' + (d.taxPct || 15) + '%)</small><b style="display:block;font-size:1.3rem">$' + setAside.toFixed(2) + '</b></div></div>'
+      + '<p class="fine">' + (mustFile ? '⚠️ <b>You likely HAVE to file a federal return</b> — net profit is $' + profitP.toFixed(2) + ', over the $400 self-employment line. Estimated self-employment tax: $' + seTax.toFixed(2) + ' (15.3% of 92.35% of profit).' : '✅ <b>Probably no filing needed yet</b> — net profit is under the $400 self-employment line. If it crosses $400, you likely have to file.') + '</p>'
+      + '<p class="fine">Federal income tax is likely $0 — your total income is way under the $16,100 standard deduction (2026, single). NY state income tax is separate and small at this size. <b>Tax year 2026 — returns due mid-April 2027.</b></p>'
+      + '<p class="fine">📬 <b>1099-K:</b> no form expected — Cash App / Greenlight only report over $20,000 AND 200+ transactions (30 pairs maxes out at $1,050). The income is still taxable even without a form.</p>';
+  }
+  var txChkEl = $('owner-tax-checks');
+  if (txChkEl) {
+    var items = ['Kept every receipt (Kevin, bags, shipping labels)', 'Logged every sale + what they paid (orders tab has them)', 'Asked a parent about NY sales tax on the shorts', 'Checked whether Cash App / Greenlight will send any tax form', 'Parent confirmed how filing works as a dependent', 'Filed the return (or set a reminder for April 2027)'];
+    var tc = d.taxChecks || {};
+    txChkEl.innerHTML = items.map(function (it, i) { return '<label style="display:block;margin:.3rem 0"><input type="checkbox" data-taxcheck="' + i + '" ' + (tc[i] ? 'checked' : '') + '> ' + (tc[i] ? '<s>' + it + '</s>' : it) + '</label>'; }).join('');
+    txChkEl.querySelectorAll('[data-taxcheck]').forEach(function (c) { c.addEventListener('change', function () { const dd = loadOwner(); if (!dd.taxChecks) dd.taxChecks = {}; dd.taxChecks[+c.dataset.taxcheck] = c.checked; saveOwner(dd); renderOwner(); }); });
+  }
+  var txPct2 = $('owner-tax-pct2');
+  if (txPct2 && document.activeElement !== txPct2) txPct2.value = d.taxPct || 15;
   var expEl = $('expense-list');
   if (expEl) {
     var ex = d.expenses || [];
@@ -730,6 +766,7 @@ $('owner-whatif-go').addEventListener('click', function () {
   if (el) el.innerHTML = 'At <b>$' + price.toFixed(2) + '</b> × ' + pairs + ' pairs: revenue $' + (price * pairs).toFixed(2) + ' — profit <b>$' + profit.toFixed(2) + '</b> ($' + (profit / pairs).toFixed(2) + ' per pair).';
 });
 document.querySelectorAll('[data-quick-reply]').forEach(function (b) { b.addEventListener('click', async function () { try { await navigator.clipboard.writeText(b.dataset.quickReply); $('owner-msg').textContent = 'Quick reply copied — paste it in the DM.'; } catch (e) {} }); });
+$('owner-tax-save2').addEventListener('click', function () { const d = loadOwner(); const v = parseFloat(($('owner-tax-pct2').value || '15')); if (!isNaN(v) && v >= 0 && v <= 100) d.taxPct = v; saveOwner(d); renderOwner(); });
 $('owner-login-form').addEventListener('submit', async function (e) {
   e.preventDefault();
   let acct = null; try { acct = JSON.parse(localStorage.getItem(ACCT_KEY) || 'null'); } catch (err) {}
