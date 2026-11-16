@@ -221,7 +221,7 @@ section,.nav{background-color:transparent}
   </div>
   <p class="when">Fri, Nov 27, 2026 · 6:00 PM ET</p>
   <div class="cta">
-    <a class="btn buy live" id="buy" href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">Preorder — DM @clutchny1</a>
+    <a class="btn buy live" id="buy" href="/checkout.html">Checkout — $35 total</a>
     <a class="btn" href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Pay $35 via Greenlight</a>
     <a class="btn ghost" href="#notify">Get notified</a>
   </div>
@@ -265,6 +265,11 @@ section,.nav{background-color:transparent}
 
   <div data-panel="dash">
     <div class="owner-stats" id="owner-stats"></div>
+    <div id="owner-alerts"></div>
+    <p><button class="btn ghost" type="button" id="owner-live-toggle">Turn on drop-day live mode</button></p>
+    <div id="owner-live-feed"></div>
+    <h3>Sales by day</h3>
+    <div id="owner-sales-chart" class="fine"></div>
     <p class="fine">Drop 01 — Nov 27, 6PM ET · $25 + shipping ($35 total) · 30 pieces · No restocks · All sales final</p>
     <p class="fine">Quick links: <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">IG DMs — @clutchny1</a> · <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Greenlight pay link</a> · <a href="https://clutchbuiltdifferent.com/" target="_blank" rel="noopener">Live site</a></p>
   </div>
@@ -274,11 +279,11 @@ section,.nav{background-color:transparent}
     <form id="owner-order-form">
       <input id="owner-buyer" type="text" placeholder="Buyer @ / name" required>
       <select id="owner-size"><option>S</option><option>M</option><option>L</option><option>XL</option></select>
-      <select id="owner-pay"><option>Greenlight</option><option>Cash App</option><option>Cash / pickup</option></select>
+      <select id="owner-pay"><option>Greenlight</option><option>Cash App</option><option>Cash / pickup</option><option>Free</option></select>
       <input id="owner-address" type="text" placeholder="Ship to — name + address (or 'pickup')">
       <button class="btn buy live" type="submit">Add order</button>
     </form>
-    <p style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="order-search" type="search" placeholder="Search orders — buyer, size, pay…" style="flex:1;min-width:160px"><select id="order-filter"><option value="">All statuses</option><option>Paid</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option></select></p>
+    <p style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="order-search" type="search" placeholder="Search orders — buyer, size, pay…" style="flex:1;min-width:160px"><select id="order-filter"><option value="">All statuses</option><option>Pending</option><option>Paid</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option></select></p>
     <div class="fine" id="owner-orders"></div>
     <p>
       <button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
@@ -295,7 +300,8 @@ section,.nav{background-color:transparent}
       <button class="btn buy live" type="submit">Add signup</button>
     </form>
     <p class="fine" id="owner-signup-list"></p>
-    <p><button class="btn ghost" type="button" id="owner-signup-export">Copy signup emails</button></p>
+    <p><button class="btn ghost" type="button" id="owner-signup-export">Copy signup emails</button> <button class="btn ghost" type="button" id="owner-giveaway-pick">🎲 Pick a giveaway winner</button></p>
+    <p class="fine" id="owner-giveaway-winner"></p>
   </div>
 
   <div data-panel="stock" hidden>
@@ -385,6 +391,8 @@ First paid, first served.
       <button class="btn buy live" type="submit">Add</button>
     </form>
     <p class="fine" id="staff-list"></p>
+    <h3>Activity log</h3>
+    <p class="fine" id="owner-activity"></p>
     <p class="fine">Tip: send Jerry Emeri + Ajan's emails and he'll add them here for you.</p>
   </div>
 
@@ -394,6 +402,13 @@ First paid, first served.
     <div id="owner-profit"></div>
     <p class="fine">Cost per pair $ <input id="cost-perPair" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Shipping per order $ <input id="cost-shipping" type="number" min="0" step="0.01" style="width:5rem"> &nbsp; Other costs $ <input id="cost-other" type="number" min="0" step="0.01" style="width:5rem"> <button class="btn ghost" type="button" id="owner-cost-save">Save costs</button></p>
     <p class="fine">Defaults: $8.68 per pair (Kevin's $260.40 ÷ 30) and ~$9 shipping per order (USPS Ground Advantage estimate — change it once you print real labels).</p>
+    <h3>Expense log</h3>
+    <form id="expense-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <input id="expense-label" type="text" placeholder="What did you spend on? e.g. bags" style="flex:2;min-width:160px">
+      <input id="expense-amount" type="number" min="0" step="0.01" placeholder="$" style="width:6rem">
+      <button class="btn buy live" type="submit">Add expense</button>
+    </form>
+    <p class="fine" id="expense-list"></p>
   </div>
 
   <p class="fine" id="owner-msg"></p>
@@ -565,7 +580,7 @@ Name: [your name]</pre>
   <p class="eyebrow">FAQ</p>
   <h2>Before you ask</h2>
   <details><summary>When does Drop 01 go live?</summary><p>Friday, November 27, 2026 at 6:00 PM ET, right here on this site.</p></details>
-  <details><summary>How do I buy a pair?</summary><p>Pick your size above, then tap the “DM @clutchny1 to buy” button — it takes you to @clutchny1 on Instagram. DM your size there to buy. First paid, first served.</p></details>
+  <details><summary>How do I buy a pair?</summary><p>Tap “Checkout” above, pick your size, fill in your details — then it sends you to the Greenlight link to pay $35 total ($25 if you pick free NYC pickup). First paid, first served. You can also still DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> to buy.</p></details>
   <details><summary>Cash or card? Shipping?</summary><p>$25 + shipping ($35 total), pay via Greenlight — or Cash App in the DM. We ship in the US with USPS Ground Advantage (about $8–$11, depends where you are) — or free local pickup in NYC. No holds without payment.</p></details>
   <details><summary>How much?</summary><p>$25 a pair, plus shipping.</p></details>
   <details><summary>How many are there?</summary><p>30 total: 10 Small, 10 Medium, 5 Large, 5 XL. When a size is gone, it's gone.</p></details>
@@ -587,7 +602,7 @@ Name: [your name]</pre>
 </section>
 </main>
 
-<div class="sticky-buy"><span><b>PREORDERS · $25 + shipping</b> · Nov 27, 6PM ET</span><a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">Preorder — DM @clutchny1</a></div>
+<div class="sticky-buy"><span><b>PREORDERS · $25 + shipping</b> · Nov 27, 6PM ET</span><a href="/checkout.html">Checkout — $35 total</a></div>
 
 <footer class="foot">
   <div class="socials">
@@ -932,22 +947,24 @@ if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
 });
 
 const OWNER_KEY = 'clutch-admin-v1';
-const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 8.68, shipping: 9, other: 0 } };
+const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }], costs: { perPair: 10, shipping: 9, other: 0 }, expenses: [], activity: [], liveMode: false };
 function loadOwner() {
   try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
   catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
 }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (_) {} }
+function logActivity(text) { try { const d = loadOwner(); if (!d.activity) d.activity = []; d.activity.unshift({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text }); d.activity = d.activity.slice(0, 50); saveOwner(d); } catch (_) {} }
 function renderOwner() {
   const d = loadOwner();
   if (!d.signupEmails) d.signupEmails = [];
   const stockLeft = Object.values(d.stock).reduce((a, b) => a + b, 0);
-  const revenue = d.orders.reduce((a, o) => a + (o.total || 35), 0);
+  const revenue = d.orders.reduce((a, o) => a + (o.total === undefined ? 35 : o.total), 0);
   const shipped = d.orders.filter(o => o.status === 'Shipped' || o.status === 'Delivered').length;
-  const sold = d.orders.filter(o => (o.status || 'Paid') !== 'Cancelled');
+  const sold = d.orders.filter(o => (o.status || 'Paid') !== 'Cancelled' && (o.status || 'Paid') !== 'Refunded');
+  const expTotal = (d.expenses || []).reduce((a, x) => a + (+x.amount || 0), 0);
   const costs = d.costs || { perPair: 8.68, shipping: 9, other: 0 };
-  const revTotal = sold.reduce((a, o) => a + (o.total || 35), 0);
-  const costTotal = sold.length * ((+costs.perPair || 0) + (+costs.shipping || 0)) + (+costs.other || 0);
+  const revTotal = sold.reduce((a, o) => a + (o.total === undefined ? 35 : o.total), 0);
+  const costTotal = sold.length * ((+costs.perPair || 0) + (+costs.shipping || 0)) + (+costs.other || 0) + expTotal;
   const profitTotal = revTotal - costTotal;
   const profitEl = $('owner-profit');
   if (profitEl) {
@@ -959,9 +976,41 @@ function renderOwner() {
       <div><small>Profit</small><b style="display:block;font-size:1.3rem;color:${profitTotal >= 0 ? '#9fd89a' : '#ff8a7a'}">$${profitTotal.toFixed(2)}</b></div>
       <div><small>Profit / pair</small><b style="display:block;font-size:1.3rem">$${perPairProfit.toFixed(2)}</b></div>
       <div><small>Sold</small><b style="display:block;font-size:1.3rem">${sold.length} / 30</b></div></div>
-      <p class="fine">Costs right now: $${(+costs.perPair || 0).toFixed(2)} per pair (Kevin, $260.40 / 30) + $${(+costs.shipping || 0).toFixed(2)} shipping per order + $${(+costs.other || 0).toFixed(2)} other. Cancelled orders don't count. If all 30 sell at $35: profit ≈ $${full.toFixed(2)}.</p>`;
+      <p class="fine">Costs right now: $${(+costs.perPair || 0).toFixed(2)} per pair ($300 / 30 — Kevin quoted $260.40, breakdown still unconfirmed) + $${(+costs.shipping || 0).toFixed(2)} shipping per order + $${(+costs.other || 0).toFixed(2)} other + $${expTotal.toFixed(2)} logged expenses. Cancelled / refunded orders don't count. If all 30 sell at $35: profit ≈ $${full.toFixed(2)}.</p>`;
   }
   ['perPair', 'shipping', 'other'].forEach(k => { const inp = $('cost-' + k); if (inp && document.activeElement !== inp) inp.value = costs[k]; });
+  const expEl = $('expense-list');
+  if (expEl) {
+    const ex = d.expenses || [];
+    expEl.innerHTML = ex.length ? ex.map((x, i) => `<div style="margin:.3rem 0">${x.label} — $${(+x.amount || 0).toFixed(2)} <span class="fine">${x.at || ''}</span> <button class="btn ghost" type="button" data-exp-remove="${i}">Remove</button></div>`).join('') + `<p class="fine">Expenses total: $${expTotal.toFixed(2)} — counted in the profit above.</p>` : 'No expenses logged yet.';
+    expEl.querySelectorAll('[data-exp-remove]').forEach(b => b.addEventListener('click', () => { const dd = loadOwner(); dd.expenses = (dd.expenses || []).filter((_, x) => x !== +b.dataset.expRemove); saveOwner(dd); renderOwner(); }));
+  }
+  // low-stock alerts + sales-by-day chart + live feed + activity log
+  const alertEl = $('owner-alerts');
+  if (alertEl) {
+    const lows = Object.entries(d.stock).filter(([s, n]) => n <= 2);
+    alertEl.innerHTML = lows.length ? lows.map(([s, n]) => `<div style="background:#3a1d1d;border:1px solid #ff8a7a;border-radius:8px;padding:.6rem;margin:.4rem 0">⚠️ LOW STOCK — size ${s}: only ${n} left${n === 0 ? ' — SOLD OUT' : ''}.</div>`).join('') : '';
+  }
+  const chartEl2 = $('owner-sales-chart');
+  if (chartEl2) {
+    const byDay = {};
+    d.orders.filter(o => (o.status || 'Paid') !== 'Cancelled' && (o.status || 'Paid') !== 'Refunded').forEach(o => { const day = (o.at || '').slice(5, 10) || 'n/a'; byDay[day] = (byDay[day] || 0) + 1; });
+    const days = Object.keys(byDay).sort();
+    const max = Math.max(1, ...Object.values(byDay));
+    chartEl2.innerHTML = days.length ? days.map(day => `<div style="margin:.3rem 0">${day} — ${byDay[day]} sold <span style="display:inline-block;background:var(--tan);height:.7rem;width:${Math.round(byDay[day] / max * 100)}%"></span></div>`).join('') : '<p class="fine">No sales yet — the chart fills in as orders come in.</p>';
+  }
+  const feedEl = $('owner-live-feed');
+  if (feedEl) {
+    const recent = [...d.orders].reverse().slice(0, 5);
+    feedEl.innerHTML = d.liveMode ? (recent.length ? recent.map(o => `<div style="margin:.3rem 0">🔴 ${o.buyer} — ${o.size} — $${o.total === undefined ? 35 : o.total} — <b>${o.status || 'Paid'}</b> <span class="fine">${o.at || ''}</span></div>`).join('') : 'Live mode is on — waiting for the first order…') : '';
+  }
+  const actEl = $('owner-activity');
+  if (actEl) {
+    const act = d.activity || [];
+    actEl.innerHTML = act.length ? act.map(a => `<div style="margin:.3rem 0"><span class="fine">${a.at}</span> — ${a.text}</div>`).join('') : 'No activity yet — actions by you, Emeri, and Ajan will show up here.';
+  }
+  const liveBtn = $('owner-live-toggle');
+  if (liveBtn) liveBtn.textContent = d.liveMode ? '🔴 LIVE MODE ON — tap to turn off' : 'Turn on drop-day live mode';
   const statsEl = $('owner-stats');
   if (statsEl) statsEl.innerHTML = [
     ['Revenue', '$' + revenue], ['Orders', d.orders.length], ['Shipped', shipped], ['Stock left', stockLeft + ' / 30'], ['Signups', d.signups || d.signupEmails.length]
@@ -989,11 +1038,11 @@ function renderOwner() {
       ordersEl.innerHTML = shown.map(({ o, i }) => {
         const low = o.status || 'Paid';
         const canCancel = low !== 'Cancelled';
-        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. <b>${o.buyer}</b> — ${o.size} — ${o.pay} — $${o.total || 35} — <b>${low}</b>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button>${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button>` : ''}</div>`;
+        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. <b>${o.buyer}</b> — ${o.size} — ${o.pay} — $${o.total === undefined ? 35 : o.total} — <b>${low}</b>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}${o.note ? '<br>📝 ' + o.note : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button> <button class="btn ghost" type="button" data-order-note="${i}">Note</button> <button class="btn ghost" type="button" data-order-slip="${i}">Print slip</button>${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button> <button class="btn ghost" type="button" data-order-refund="${i}">Refund</button>` : ''}</div>`;
       }).join('');
       ordersEl.querySelectorAll('[data-order-status]').forEach(b => b.addEventListener('click', () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus];
-        o.status = o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid';
+        o.status = o.status === 'Pending' ? 'Paid' : o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid';
         saveOwner(dd); renderOwner();
       }));
       ordersEl.querySelectorAll('[data-order-tracking]').forEach(b => b.addEventListener('click', () => {
@@ -1001,10 +1050,28 @@ function renderOwner() {
         if (t === null) return;
         const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner();
       }));
+      ordersEl.querySelectorAll('[data-order-note]').forEach(b => b.addEventListener('click', () => {
+        const dd = loadOwner(); const o = dd.orders[+b.dataset.orderNote];
+        const t = prompt('Note for this order (customer notes, gift message, etc.):', o.note || '');
+        if (t === null) return; o.note = t.trim(); saveOwner(dd); renderOwner();
+      }));
+      ordersEl.querySelectorAll('[data-order-slip]').forEach(b => b.addEventListener('click', () => {
+        const dd = loadOwner(); const o = dd.orders[+b.dataset.orderSlip];
+        const w = window.open('', '_blank', 'width=500,height=600');
+        if (!w) return;
+        w.document.write(`<html><head><title>Packing slip — CLUTCH</title><style>body{font-family:monospace;padding:24px}h1{font-size:28px}hr{border:1px dashed #000}</style></head><body><h1>CLUTCH — Packing slip</h1><hr><p><b>Order #${+b.dataset.orderSlip + 1}</b> · ${o.at || ''}</p><p>Buyer: <b>${o.buyer}</b><br>Size: <b>${o.size}</b> · UES Mesh Shorts<br>Pay: ${o.pay} — $${o.total === undefined ? 35 : o.total}<br>Status: ${o.status || 'Paid'}</p><p>Ship to:<br>${(o.address || 'pickup').replace(/</g, '&lt;')}</p>${o.tracking ? `<p>Tracking: ${o.tracking}</p>` : ''}${o.note ? `<p>Note: ${o.note}</p>` : ''}<hr><p>Built Different — clutchbuiltdifferent.com</p><script>window.print()<\/script></body></html>`);
+        w.document.close();
+      }));
+      ordersEl.querySelectorAll('[data-order-refund]').forEach(b => b.addEventListener('click', () => {
+        if (!confirm('Refund this order? The size goes back into stock and it stops counting toward revenue/profit.')) return;
+        const dd = loadOwner(); const o = dd.orders[+b.dataset.orderRefund];
+        if (o.status !== 'Refunded' && o.status !== 'Cancelled') { o.status = 'Refunded'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: dd.stock[o.size] }); logActivity(`Refunded order #${+b.dataset.orderRefund + 1} (${o.buyer}, ${o.size})`); }
+        saveOwner(dd); renderOwner();
+      }));
       ordersEl.querySelectorAll('[data-order-cancel]').forEach(b => b.addEventListener('click', () => {
         if (!confirm('Cancel this order? The size goes back into stock.')) return;
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderCancel];
-        if (o.status !== 'Cancelled') { o.status = 'Cancelled'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: dd.stock[o.size] }); }
+        if (o.status !== 'Cancelled') { o.status = 'Cancelled'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: dd.stock[o.size] }); logActivity(`Cancelled order #${+b.dataset.orderCancel + 1} (${o.buyer}, ${o.size})`); }
         saveOwner(dd); renderOwner();
       }));
     }
@@ -1044,7 +1111,7 @@ function syncSizePicker(d) {
     b.disabled = n === 0;
     b.style.opacity = n === 0 ? '.35' : '';
     const span = b.querySelector('span');
-    if (span) span.textContent = n === 0 ? 'Sold out' : n <= 2 ? `${n} left — low` : `${n} pcs · ${{ S: '29″', M: '31″', L: '33″', XL: '35″' }[b.dataset.size]}`;
+    if (span) span.textContent = n === 0 ? 'SOLD OUT' : n <= 2 ? `ALMOST GONE — ${n} left` : `${n} pcs · ${{ S: '29″', M: '31″', L: '33″', XL: '35″' }[b.dataset.size]}`;
   });
 }
 syncSizePicker();
@@ -1163,9 +1230,11 @@ if (orderForm) orderForm.addEventListener('submit', e => {
   const d = loadOwner();
   const size = $('owner-size').value;
   const disc = getDiscount();
-  const total = 35 - (appliedDiscount || 0);
-  const order = { buyer: $('owner-buyer').value.trim(), size, pay: $('owner-pay').value, total, status: 'Paid', address: ($('owner-address') ? $('owner-address').value.trim() : ''), at: new Date().toISOString().slice(0, 10) };
+  const payVal = $('owner-pay').value;
+  const total = payVal === 'Free' ? 0 : 35 - (appliedDiscount || 0);
+  const order = { buyer: $('owner-buyer').value.trim(), size, pay: payVal, total, status: 'Paid', address: ($('owner-address') ? $('owner-address').value.trim() : ''), at: new Date().toISOString().slice(0, 10) };
   d.orders.push(order);
+  logActivity(`Added order — ${order.buyer}, size ${size}, $${total}`);
   if (sbSyncOn) { sbPost('clutch_orders', { buyer: order.buyer, size, pay: order.pay, total, status: 'Paid', address: order.address }); sbPatch('clutch_stock', size, { stock_left: d.stock[size] }); }
   if (d.stock[size] > 0) d.stock[size]--;
   saveOwner(d); renderOwner(); orderForm.reset();
@@ -1211,10 +1280,32 @@ if (costSave) costSave.addEventListener('click', () => {
   saveOwner(d); renderOwner();
   const m = $('owner-msg'); if (m) m.textContent = 'Costs updated — profit recalculated.';
 });
+const liveToggle = $('owner-live-toggle');
+if (liveToggle) liveToggle.addEventListener('click', () => { const d = loadOwner(); d.liveMode = !d.liveMode; saveOwner(d); renderOwner(); });
+const expForm = $('expense-add-form');
+if (expForm) expForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const d = loadOwner(); if (!d.expenses) d.expenses = [];
+  const label = ($('expense-label').value || '').trim();
+  const amount = parseFloat(($('expense-amount').value || '0')) || 0;
+  if (!label || !amount) return;
+  d.expenses.push({ label, amount, at: new Date().toISOString().slice(0, 10) });
+  logActivity(`Logged expense — ${label} $${amount.toFixed(2)}`);
+  saveOwner(d); renderOwner(); expForm.reset();
+});
+const giveBtn = $('owner-giveaway-pick');
+if (giveBtn) giveBtn.addEventListener('click', () => {
+  const d = loadOwner(); const list = d.signupEmails || [];
+  const w = $('owner-giveaway-winner');
+  if (!list.length) { if (w) w.textContent = 'No signup emails saved here yet — check Gmail for the real list first.'; return; }
+  const pick = list[Math.floor(Math.random() * list.length)];
+  if (w) w.innerHTML = `🎉 Winner: <b>${pick}</b><br><span class="fine">DM them: "yo you won the CLUTCH giveaway 🙏 lmk your size + ship address"</span>`;
+  logActivity(`Giveaway winner picked: ${pick}`);
+});
 const exportBtn = $('owner-export');
 if (exportBtn) exportBtn.addEventListener('click', async () => {
   const d = loadOwner();
-  const csv = 'buyer,size,pay,total,status,tracking,address,date\n' + d.orders.map(o => `"${(o.buyer || '').replace(/"/g, '""')}",${o.size},${o.pay},${o.total || 35},${o.status || 'Paid'},${o.tracking || ''},"${(o.address || '').replace(/"/g, '""')}",${o.at || ''}`).join('\n');
+  const csv = 'buyer,size,pay,total,status,tracking,address,date\n' + d.orders.map(o => `"${(o.buyer || '').replace(/"/g, '""')}",${o.size},${o.pay},${o.total === undefined ? 35 : o.total},${o.status || 'Paid'},${o.tracking || ''},"${(o.address || '').replace(/"/g, '""')}",${o.at || ''}`).join('\n');
   try { await navigator.clipboard.writeText(csv); const m = $('owner-msg'); if (m) m.textContent = 'Orders copied as CSV — paste into Notes / Sheets.'; }
   catch (_) { const m = $('owner-msg'); if (m) m.textContent = csv; }
 });
