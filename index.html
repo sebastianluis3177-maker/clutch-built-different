@@ -560,7 +560,7 @@ if (acctForm) acctForm.addEventListener('submit', async e => {
   const email = $('account-email').value.trim(), pw = $('account-password').value;
   if (!supabaseClient) { msg.className = 'msg err'; msg.textContent = 'Accounts are offline right now.'; return; }
   msg.className = 'msg'; msg.textContent = 'Creating your account…';
-  const { error } = await supabaseClient.auth.signUp({ email, password: pw });
+  const { error } = await supabaseClient.auth.signUp({ email, password: pw, options: { emailRedirectTo: 'https://clutchbuiltdifferent.com/#account' } });
   if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
   msg.className = 'msg ok'; msg.textContent = 'Account made — check your email to confirm it, then log in.';
   refreshAccountUI();
@@ -917,6 +917,12 @@ form.addEventListener('submit', async e => {
 });
 
 // Supabase session check, after $ and the owner functions are defined
+// After clicking the confirm-email link, Supabase drops you back on the site with
+// a token in the URL — jump straight to the account section so you can see you're logged in.
+if (location.hash.indexOf('access_token') !== -1) {
+  const acct = document.getElementById('account');
+  if (acct) setTimeout(function () { acct.scrollIntoView({ behavior: 'smooth' }); }, 400);
+}
 refreshAccountUI();
 
 </script>
