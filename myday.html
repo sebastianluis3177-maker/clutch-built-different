@@ -1,0 +1,361 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Day — CLUTCH</title><link rel="stylesheet" href="assets/style.css">
+<style>
+body{background:#0b0b0b}
+.myday-hero{padding:2.5rem 1rem 1rem;max-width:760px;margin:0 auto}
+.myday-hero .logo-big{font-size:clamp(3rem,12vw,5.5rem);line-height:.9;font-weight:900;letter-spacing:-.03em;margin:.2rem 0}
+.myday-hero .logo-big span{color:var(--tan)}
+.progress{height:10px;background:#222;border-radius:99px;overflow:hidden;margin:1rem 0 .4rem}
+.progress i{display:block;height:100%;background:var(--tan);border-radius:99px;transition:width .4s}
+.sect{font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--tan);margin:1.6rem 0 .2rem}
+.task{display:flex;gap:.9rem;align-items:flex-start;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:14px;margin:.6rem 0;background:#111;cursor:pointer;transition:border-color .2s,transform .15s}
+.task:hover{border-color:var(--tan);transform:translateY(-1px)}
+.task.done{opacity:.5}
+.task.done b{text-decoration:line-through}
+.task input{width:1.4rem;height:1.4rem;margin-top:.1rem;accent-color:#c9a86a;flex:none;cursor:pointer}
+.task b{font-size:1rem;line-height:1.3}
+.task small{display:block;color:var(--muted);margin-top:.2rem;line-height:1.4}
+.task .del{margin-left:auto;flex:none;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:.2rem .4rem}
+.task .del:hover{color:#ff8a7a}
+.add-row{display:flex;gap:.5rem;margin-top:1.2rem;flex-wrap:wrap}
+.add-row input[type=text]{flex:1;min-width:12rem;padding:.8rem;border:1px solid var(--line);border-radius:10px;background:#111;color:var(--ink)}
+.add-row select{padding:.8rem;border:1px solid var(--line);border-radius:10px;background:#111;color:var(--ink)}
+.login-box{max-width:420px;margin:2rem auto;padding:1.5rem;border:1px solid var(--line);border-radius:14px;background:#111}
+.login-box input{width:100%;padding:.8rem;margin:.4rem 0;border:1px solid var(--line);border-radius:10px;background:#0b0b0b;color:var(--ink);font-size:16px}
+.msg{margin:.6rem 0;min-height:1.2em}
+.msg.err{color:#ff8a7a}
+.msg.ok{color:#9fd89a}
+</style></head>
+<body><header class="nav"><a class="logo" href="/">CLUTCH</a><nav><a href="/">Home</a><a href="/admin.html">Admin</a><a href="/tasks.html">Launch tasks</a></nav></header>
+<main>
+<div id="myday-private" hidden>
+  <div style="max-width:760px;margin:3rem auto;padding:0 1rem;text-align:center">
+    <p class="eyebrow">Built Different</p>
+    <h2>This page is private.</h2>
+    <p class="lede">My Day is only for Sebastian. <a href="/">Back home →</a></p>
+  </div>
+</div>
+<div id="myday-login" hidden>
+  <div class="login-box">
+    <p class="eyebrow">Built Different</p>
+    <h2 style="margin:.2rem 0">My Day</h2>
+    <p class="lede">Log in to see your day.</p>
+    <form id="myday-login-form">
+      <input id="myday-email" type="email" placeholder="Email" required autocomplete="email">
+      <input id="myday-password" type="password" placeholder="Password" required autocomplete="current-password">
+      <button class="btn buy live" type="submit" style="width:100%;margin-top:.5rem">Log in</button>
+    </form>
+    <p class="msg" id="myday-login-msg"></p>
+    <p class="fine">Only Sebastian's accounts can open this page.</p>
+  </div>
+</div>
+<div id="myday-app" hidden>
+  <div class="myday-hero">
+    <p class="eyebrow" id="myday-date-line">Built Different</p>
+    <p class="logo-big">MY DAY<span>.</span></p>
+    <p class="lede" id="myday-sub">Your day, your goals — CLUTCH, gym, school, and whatever else is on your mind.</p>
+    <div class="progress"><i id="myday-bar" style="width:0%"></i></div>
+    <p class="fine" id="myday-count"></p>
+    <p class="fine" id="myday-sync"></p>
+  </div>
+  <div style="max-width:760px;margin:0 auto;padding:0 1rem 3rem">
+    <div id="myday-list"></div>
+    <form id="myday-add-form" class="add-row">
+      <input id="myday-add-text" type="text" placeholder="Add your own task…" required>
+      <select id="myday-add-section">
+        <option value="Personal">Personal</option>
+        <option value="CLUTCH">CLUTCH</option>
+        <option value="Gym &amp; Health">Gym &amp; Health</option>
+        <option value="School">School</option>
+      </select>
+      <button class="btn buy live" type="submit">Add</button>
+    </form>
+    <p style="margin-top:1.5rem"><button class="btn" id="myday-reset" type="button">Reset today</button>
+    <button class="btn" id="myday-logout" type="button">Log out</button></p>
+    <p class="fine" style="margin-top:1rem">Private — only your account can see this. Recurring tasks refresh every morning; your own tasks stay until you finish or delete them.</p>
+  </div>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  var OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com'];
+  var SB_URL = 'https://fgnuaxhujvxkfzzcvdqf.supabase.co';
+  var SB_KEY = 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz';
+  var KEY = 'clutch-myday-v1';
+  var DROP = new Date('2026-11-27T18:00:00-05:00');
+  var sb = null;
+  try { if (window.supabase) sb = window.supabase.createClient(SB_URL, SB_KEY); } catch (e) { sb = null; }
+  var sbOn = false; // true once the clutch_personal_tasks table answers
+  var ownerEmail = '';
+
+  function todayStr(d) {
+    d = d || new Date();
+    var m = d.getMonth() + 1, day = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+  }
+  function daysLeft() {
+    var ms = DROP.getTime() - Date.now();
+    return Math.max(0, Math.ceil(ms / 86400000));
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function gymSession() {
+    var wd = new Date().getDay();
+    if (wd === 0) return { t: 'Upper light session', s: 'Sunday — upper body, light.' };
+    if (wd === 1) return { t: 'Session A', s: 'Goblet squat, bench, row, RDL, overhead press, plank.' };
+    if (wd === 2) return { t: 'Upper pull — 5:15 after student council', s: 'Tuesday gym after council ends 4:45.' };
+    if (wd === 3) return { t: 'Session B', s: 'Reverse lunge, incline press, row, hip thrust, lateral raise, dead bug.' };
+    if (wd === 4) return { t: 'Trainer / CrossFit — 85th & York', s: 'Thursday trainer session.' };
+    if (wd === 5) return { t: 'Rest day — stretch + recover', s: 'Friday is rest. No gym.' };
+    return { t: 'Basketball — run + handles', s: 'Saturday hoops.' };
+  }
+  function defaults() {
+    var n = daysLeft();
+    var g = gymSession();
+    return [
+      { key: 'clutch:countdown', section: 'CLUTCH', t: n > 0 ? 'Post the day-' + n + ' countdown reel' : 'Preorders are open — post the launch reel', s: n > 0 ? n + ' days til preorders open Nov 27.' : 'Drop 01 preorders are live.' },
+      { key: 'clutch:replies', section: 'CLUTCH', t: 'Reply to comments + DMs', s: 'Every comment, every DM — fast.' },
+      { key: 'clutch:kevin', section: 'CLUTCH', t: 'Kevin check', s: '$260.40 breakdown + delivery date + digital proof before anything is cut.' },
+      { key: 'clutch:orders', section: 'CLUTCH', t: 'Orders + stock check', s: 'Any new orders? Any size at 2 or less?' },
+      { key: 'clutch:signups', section: 'CLUTCH', t: 'Signups check', s: 'Any new notify signups in the company Gmail?' },
+      { key: 'gym:session', section: 'Gym & Health', t: g.t, s: g.s },
+      { key: 'gym:shake', section: 'Gym & Health', t: 'Protein shake (Nurri)', s: 'After the session.' },
+      { key: 'gym:dinner', section: 'Gym & Health', t: 'Dinner menu with dad', s: 'You design it, dad cooks it.' },
+      { key: 'school:homework', section: 'School', t: 'Homework done', s: '' },
+      { key: 'school:bag', section: 'School', t: 'Bag packed', s: '' },
+      { key: 'school:shsat', section: 'School', t: 'SHSAT prep — 20 min', s: 'Test is Oct 18, 2027.' }
+    ];
+  }
+  function loadState() {
+    try {
+      var d = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (d && d.days && d.custom) return d;
+    } catch (e) {}
+    return { days: {}, custom: [] };
+  }
+  function saveState(st) { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  function visibleCustoms(st) {
+    var today = todayStr();
+    return st.custom.filter(function (c) { return !c.done || c.doneDate === today; });
+  }
+  function allTasks(st) {
+    var today = todayStr();
+    var checks = st.days[today] || {};
+    var list = defaults().map(function (d) {
+      return { kind: 'def', key: d.key, section: d.section, t: d.t, s: d.s, done: !!checks[d.key] };
+    });
+    visibleCustoms(st).forEach(function (c) {
+      list.push({ kind: 'custom', key: c.id, section: c.section, t: c.text, s: '', done: !!c.done });
+    });
+    return list;
+  }
+
+  // --- Supabase mirror (best effort; table exists only after SQL Part 10 is run) ---
+  function sbQ(path) {
+    return fetch(SB_URL + '/rest/v1/' + path, { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+  }
+  function sbWrite(method, path, body) {
+    return fetch(SB_URL + '/rest/v1/' + path, { method: method, headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: body ? JSON.stringify(body) : undefined });
+  }
+  async function sbSyncLoad() {
+    if (!sb || !ownerEmail) return;
+    try {
+      var today = todayStr();
+      var r = await sbQ('clutch_personal_tasks?select=id,text,section,done,task_date&owner_email=eq.' + encodeURIComponent(ownerEmail) + '&or=(task_date.eq.' + today + ',and(task_date.lt.' + today + ',done.eq.false))&order=id');
+      if (!r.ok) { sbOn = false; return; }
+      var rows = await r.json();
+      if (!Array.isArray(rows)) { sbOn = false; return; }
+      sbOn = true;
+      var st = loadState();
+      var changed = false;
+      var defTexts = {};
+      defaults().forEach(function (d) { defTexts[d.section + '|' + d.t] = d.key; });
+      rows.forEach(function (row) {
+        var k = defTexts[row.section + '|' + row.text];
+        if (k) {
+          if (row.done) {
+            st.days[today] = st.days[today] || {};
+            if (!st.days[today][k]) { st.days[today][k] = true; changed = true; }
+          }
+        } else {
+          var exists = st.custom.some(function (c) { return c.sbId === row.id || (c.text === row.text && c.section === row.section && !c.done); });
+          if (!exists) {
+            st.custom.push({ id: 'sb' + row.id, sbId: row.id, text: row.text, section: row.section, added: row.task_date, done: !!row.done, doneDate: row.done ? today : null });
+            changed = true;
+          } else if (row.done) {
+            var c2 = st.custom.find(function (c) { return c.sbId === row.id; });
+            if (c2 && !c2.done) { c2.done = true; c2.doneDate = today; changed = true; }
+          }
+        }
+      });
+      if (changed) saveState(st);
+    } catch (e) { sbOn = false; }
+  }
+  async function sbUpsertTask(task) {
+    if (!sb || !ownerEmail || !sbOn) return;
+    try {
+      var today = todayStr();
+      var r = await sbQ('clutch_personal_tasks?select=id&owner_email=eq.' + encodeURIComponent(ownerEmail) + '&text=eq.' + encodeURIComponent(task.t) + '&section=eq.' + encodeURIComponent(task.section) + '&task_date=eq.' + today);
+      if (!r.ok) return;
+      var rows = await r.json();
+      if (rows && rows.length) {
+        var w = await sbWrite('PATCH', 'clutch_personal_tasks?id=eq.' + rows[0].id, { done: task.done });
+        var back = await w.json().catch(function () { return []; });
+        if (task.kind === 'custom' && back && back[0] && task.key && String(task.key).indexOf('sb') !== 0) {
+          var st = loadState();
+          var c = st.custom.find(function (x) { return String(x.id) === String(task.key); });
+          if (c) { c.sbId = back[0].id; c.id = 'sb' + back[0].id; saveState(st); }
+        }
+      } else {
+        var w2 = await sbWrite('POST', 'clutch_personal_tasks', { owner_email: ownerEmail, text: task.t, section: task.section, done: task.done, task_date: today });
+        var back2 = await w2.json().catch(function () { return []; });
+        if (task.kind === 'custom' && back2 && back2[0]) {
+          var st2 = loadState();
+          var c2 = st2.custom.find(function (x) { return String(x.id) === String(task.key); });
+          if (c2) { c2.sbId = back2[0].id; c2.id = 'sb' + back2[0].id; saveState(st2); }
+        }
+      }
+    } catch (e) {}
+  }
+  async function sbDeleteTask(task) {
+    if (!sb || !ownerEmail || !sbOn) return;
+    try {
+      if (task.sbId) {
+        await sbWrite('DELETE', 'clutch_personal_tasks?id=eq.' + task.sbId);
+      } else {
+        var r = await sbQ('clutch_personal_tasks?select=id&owner_email=eq.' + encodeURIComponent(ownerEmail) + '&text=eq.' + encodeURIComponent(task.t) + '&section=eq.' + encodeURIComponent(task.section));
+        if (r.ok) {
+          var rows = await r.json();
+          for (var i = 0; i < rows.length; i++) { await sbWrite('DELETE', 'clutch_personal_tasks?id=eq.' + rows[i].id); }
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- render ---
+  function render() {
+    var st = loadState();
+    var tasks = allTasks(st);
+    var done = tasks.filter(function (t) { return t.done; }).length;
+    var total = tasks.length;
+    document.getElementById('myday-bar').style.width = (total ? Math.round(done / total * 100) : 0) + '%';
+    document.getElementById('myday-count').textContent = done + ' of ' + total + ' done today — ' + (total - done) + ' to go.';
+    document.getElementById('myday-sync').textContent = sbOn ? 'Sync: ON — saves across your phone and laptop.' : 'Sync: OFF — saving on this device only. Run SQL Part 10 in Supabase to turn it on.';
+    var sections = ['CLUTCH', 'Gym & Health', 'School', 'Personal'];
+    var html = '';
+    sections.forEach(function (sec) {
+      var items = tasks.filter(function (t) { return t.section === sec; });
+      if (!items.length) {
+        if (sec !== 'Personal') return;
+        html += '<p class="sect">Personal</p><p class="fine">Nothing here yet — add your own below.</p>';
+        return;
+      }
+      html += '<p class="sect">' + esc(sec) + '</p>';
+      items.forEach(function (t) {
+        html += '<label class="task' + (t.done ? ' done' : '') + '"><input type="checkbox" data-myday-key="' + esc(t.key) + '" data-myday-kind="' + t.kind + '"' + (t.done ? ' checked' : '') + '><span><b>' + esc(t.t) + '</b>' + (t.s ? '<small>' + esc(t.s) + '</small>' : '') + '</span>' + (t.kind === 'custom' ? '<button type="button" class="del" data-myday-del="' + esc(t.key) + '" title="Delete">✕</button>' : '') + '</label>';
+      });
+    });
+    document.getElementById('myday-list').innerHTML = html;
+    document.querySelectorAll('[data-myday-key]').forEach(function (cb) {
+      cb.addEventListener('change', function () { toggleTask(cb.dataset.mydayKey, cb.dataset.mydayKind, cb.checked); });
+    });
+    document.querySelectorAll('[data-myday-del]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) { e.preventDefault(); deleteTask(btn.dataset.mydayDel); });
+    });
+  }
+  function toggleTask(key, kind, done) {
+    var st = loadState();
+    var today = todayStr();
+    var task = null;
+    if (kind === 'def') {
+      st.days[today] = st.days[today] || {};
+      if (done) st.days[today][key] = true; else delete st.days[today][key];
+      var d = defaults().find(function (x) { return x.key === key; });
+      if (d) task = { kind: 'def', key: key, t: d.t, section: d.section, done: done };
+    } else {
+      var c = st.custom.find(function (x) { return String(x.id) === String(key); });
+      if (c) {
+        c.done = done;
+        c.doneDate = done ? today : null;
+        task = { kind: 'custom', key: key, t: c.text, section: c.section, done: done, sbId: c.sbId };
+      }
+    }
+    saveState(st);
+    render();
+    if (task) sbUpsertTask(task);
+  }
+  function deleteTask(key) {
+    var st = loadState();
+    var idx = st.custom.findIndex(function (x) { return String(x.id) === String(key); });
+    if (idx < 0) return;
+    var gone = st.custom[idx];
+    st.custom.splice(idx, 1);
+    saveState(st);
+    render();
+    sbDeleteTask({ t: gone.text, section: gone.section, sbId: gone.sbId });
+  }
+
+  // --- gate + login ---
+  function show(el) { ['myday-private', 'myday-login', 'myday-app'].forEach(function (id) { document.getElementById(id).hidden = id !== el; }); }
+  async function boot() {
+    var dateLine = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    document.getElementById('myday-date-line').textContent = dateLine + ' · ' + daysLeft() + ' days til preorders';
+    if (!sb) { document.getElementById('myday-login-msg').textContent = 'Accounts are offline right now — Supabase did not load. Try refreshing the page.'; show('myday-login'); return; }
+    var user = null;
+    try { var res = await sb.auth.getUser(); user = res && res.data ? res.data.user : null; } catch (e) { user = null; }
+    if (user && OWNER_EMAILS.indexOf(user.email) >= 0) {
+      ownerEmail = user.email;
+      show('myday-app');
+      render();
+      await sbSyncLoad();
+      render();
+    } else if (user) {
+      show('myday-private');
+    } else {
+      show('myday-login');
+    }
+  }
+  document.getElementById('myday-login-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('myday-login-msg');
+    var email = document.getElementById('myday-email').value.trim();
+    var pw = document.getElementById('myday-password').value;
+    if (!sb) { msg.className = 'msg err'; msg.textContent = 'Accounts are offline right now.'; return; }
+    msg.className = 'msg'; msg.textContent = 'Logging in…';
+    try {
+      var res = await sb.auth.signInWithPassword({ email: email, password: pw });
+      if (res.error) { msg.className = 'msg err'; msg.textContent = res.error.message; return; }
+      msg.className = 'msg ok'; msg.textContent = 'Logged in.';
+      boot();
+    } catch (err) { msg.className = 'msg err'; msg.textContent = 'Login failed: ' + (err && err.message ? err.message : 'network error'); }
+  });
+  document.getElementById('myday-add-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = document.getElementById('myday-add-text').value.trim();
+    if (!text) return;
+    var section = document.getElementById('myday-add-section').value;
+    var st = loadState();
+    var item = { id: 'c' + Date.now() + Math.floor(Math.random() * 1000), text: text, section: section, added: todayStr(), done: false, doneDate: null };
+    st.custom.push(item);
+    saveState(st);
+    render();
+    e.target.reset();
+    sbUpsertTask({ kind: 'custom', key: item.id, t: item.text, section: item.section, done: false });
+  });
+  document.getElementById('myday-reset').addEventListener('click', function () {
+    var st = loadState();
+    var today = todayStr();
+    st.days[today] = {};
+    st.custom.forEach(function (c) { if (c.doneDate === today) { c.done = false; c.doneDate = null; } });
+    saveState(st);
+    render();
+  });
+  document.getElementById('myday-logout').addEventListener('click', async function () {
+    if (sb) { try { await sb.auth.signOut(); } catch (e) {} }
+    location.reload();
+  });
+  boot();
+})();
+</script></body></html>
