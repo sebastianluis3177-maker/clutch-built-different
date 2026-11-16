@@ -416,7 +416,7 @@ First paid, first served.
 
   <div data-panel="edit" hidden>
     <h3>Edit the website — from here</h3>
-    <p class="fine">Change the words below and hit Save — you'll see them change on this device right away. To make them live for everyone, hit "Copy edits for Jerry" and paste them to me in chat, and I'll push them to the live site. That's because this site has no server — your edits live on this device until I push them to GitHub.</p>
+    <p class="fine">Change the words below and hit Save — you'll see them change on this device right away. To make them live for everyone, hit "Publish my edits live" below (needs your GitHub key, one-time setup). Or hit "Copy edits for Jerry" and paste them to me in chat, and I'll push them.</p>
     <form id="owner-edit-form">
       <label class="fine">Hero line<br><input id="edit-lede" type="text" style="width:100%" value="The UES, mapped across a pair of mesh basketball shorts. 30 pieces. One run. No restocks."></label>
       <label class="fine">Price<br><input id="edit-price" type="text" value="$25"></label>
@@ -428,6 +428,13 @@ First paid, first served.
       <button class="btn ghost" type="button" id="owner-edit-copy">Copy edits for Jerry</button>
       <button class="btn ghost" type="button" id="owner-edit-reset">Reset edits</button>
     </form>
+    <hr>
+    <h3>🚀 Publish straight from here</h3>
+    <p class="fine">To publish for everyone yourself, the admin needs a GitHub key (a personal access token). It's like a password for your GitHub — <b>never share it</b>, and it lives only on this device.</p>
+    <p class="fine">Get one: GitHub → your profile → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token (classic) → name it "CLUTCH admin" → tick <b>repo</b> → Generate token → copy it (you only see it once).</p>
+    <label class="fine">GitHub key (token)<br><input id="gh-token" type="password" style="width:100%" placeholder="ghp_..."></label>
+    <p><button class="btn ghost" type="button" id="gh-token-save">Save key on this device</button></p>
+    <p><button class="btn buy live" type="button" id="owner-edit-publish">🚀 Publish my edits live</button></p>
     <p class="fine" id="owner-edit-msg"></p>
   </div>
 
@@ -1625,7 +1632,7 @@ if (editForm) editForm.addEventListener('submit', e => {
   const edits = { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), announce: ($('edit-announce') ? $('edit-announce').value.trim() : ''), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') };
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(edits)); } catch (_) {}
   applyEdits();
-  const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Copy edits for Jerry" to make them live for everyone.';
+  const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Publish my edits live" below to make them live for everyone (needs your GitHub key, one-time setup).';
 });
 const editCopy = $('owner-edit-copy');
 if (editCopy) editCopy.addEventListener('click', async () => {
@@ -1635,6 +1642,62 @@ if (editCopy) editCopy.addEventListener('click', async () => {
 });
 const editReset = $('owner-edit-reset');
 if (editReset) editReset.addEventListener('click', () => { try { localStorage.removeItem(EDIT_KEY); } catch (_) {} location.reload(); });
+// Publish edits straight to GitHub (owner only) — needs a GitHub personal access token (classic, repo scope)
+const GH_KEY = 'clutch-gh-token-v1';
+const PUB_KEY = 'clutch-site-published-v1';
+const GH_OWNER = 'sebastianluis3177-maker', GH_REPO = 'clutch-built-different';
+const EDIT_DEFAULTS = { lede: 'The UES, mapped across a pair of mesh basketball shorts. 30 pieces. One run. No restocks.', price: '$25', when: 'Fri, Nov 27, 2026 · 6:00 PM ET', buynote: 'PREORDERS open Fri, Nov 27, 6PM ET · $25 + shipping ($35 total) · Pay via Greenlight — or Cash App in the DM. Pick your size first, then DM @clutchny1 — first paid, first served.', announce: '' };
+function loadPublished() { try { return JSON.parse(localStorage.getItem(PUB_KEY) || '{}'); } catch (_) { return {}; } }
+function b64d(str) { return decodeURIComponent(escape(atob(str.replace(/\n/g, '')))); }
+function b64e(str) { return btoa(unescape(encodeURIComponent(str))); }
+const ghTokenInput = $('gh-token');
+if (ghTokenInput) { try { ghTokenInput.value = localStorage.getItem(GH_KEY) || ''; } catch (_) {} }
+const ghSave = $('gh-token-save');
+if (ghSave) ghSave.addEventListener('click', () => {
+  const v = ($('gh-token').value || '').trim();
+  try { if (v) localStorage.setItem(GH_KEY, v); else localStorage.removeItem(GH_KEY); } catch (_) {}
+  const m = $('owner-edit-msg'); if (m) m.textContent = v ? 'Key saved on this device — only you can publish from here.' : 'Key removed.';
+});
+const ghPublish = $('owner-edit-publish');
+if (ghPublish) ghPublish.addEventListener('click', async () => {
+  const m = $('owner-edit-msg');
+  const token = (() => { try { return localStorage.getItem(GH_KEY) || ''; } catch (_) { return ''; } })();
+  if (!token) { if (m) m.textContent = 'No GitHub key saved yet — paste your token above and hit Save key first.'; return; }
+  const e = loadEdits();
+  const old = Object.assign({}, EDIT_DEFAULTS, loadPublished());
+  if (m) m.textContent = 'Publishing… fetching the live site file.';
+  try {
+    const r = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/index.html', { headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' } });
+    if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'GitHub said the key is wrong or expired. Make a new token and save it again.' : 'GitHub fetch failed (' + r.status + ').');
+    const data = await r.json();
+    let html = b64d(data.content);
+    const missing = [];
+    function swap(needle, repl, name) { if (html.indexOf(needle) === -1) { missing.push(name); return; } html = html.replace(needle, repl); }
+    if (e.lede && e.lede !== old.lede) swap('<p class="lede">' + old.lede + '</p>', '<p class="lede">' + e.lede + '</p>', 'hero line');
+    if (e.price && e.price !== old.price) swap('<p class="price">' + old.price + ' <small>', '<p class="price">' + e.price + ' <small>', 'price');
+    if (e.when && e.when !== old.when) swap('<p class="when">' + old.when + '</p>', '<p class="when">' + e.when + '</p>', 'drop date/time');
+    if (e.buynote && e.buynote !== old.buynote) swap('<p class="fine buy-note">' + old.buynote + '</p>', '<p class="fine buy-note">' + e.buynote + '</p>', 'buy note');
+    const barStyle = 'background:var(--tan);color:#111;text-align:center;padding:.5rem 1rem;font-weight:700;font-size:.9rem';
+    const barOld = '<div id="announce-bar" style="display:none;' + barStyle + '"></div>';
+    if ((e.announce || '') !== (old.announce || '')) {
+      if (e.announce) {
+        if (html.indexOf(barOld) !== -1) html = html.replace(barOld, '<div id="announce-bar" style="' + barStyle + '">' + e.announce + '</div>');
+        else if (old.announce && html.indexOf('>' + old.announce + '</div>') !== -1) html = html.replace('>' + old.announce + '</div>', '>' + e.announce + '</div>');
+        else missing.push('announcement banner');
+      } else {
+        const barWithOld = '<div id="announce-bar" style="' + barStyle + '">' + old.announce + '</div>';
+        if (old.announce && html.indexOf(barWithOld) !== -1) html = html.replace(barWithOld, barOld);
+        else missing.push('announcement banner');
+      }
+    }
+    if (missing.length) { if (m) m.textContent = 'Stopped — could not find in the live file: ' + missing.join(', ') + '. The site may have changed since your last publish — tell Jerry.'; return; }
+    if (m) m.textContent = 'Uploading the new version…';
+    const put = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/index.html', { method: 'PUT', headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Update site from admin: hero/price/date/note/banner', content: b64e(html), sha: data.sha, branch: 'main' }) });
+    if (!put.ok) { const err = await put.json().catch(() => ({})); throw new Error('GitHub would not save it (' + put.status + (err.message ? ' — ' + err.message : '') + ').'); }
+    try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '' })); } catch (_) {}
+    if (m) m.textContent = '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
+  } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
+});
 // Waitlist form — anyone can join, posts to the same Gmail inbox as notify signups
 const wlForm = $('waitlist-form'), wlMsg = $('waitlist-msg');
 if (wlForm) wlForm.addEventListener('submit', async e => {
