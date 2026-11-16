@@ -533,10 +533,13 @@ const STRIPE_LINK = '';
 const FORM_ENDPOINT = 'https://formsubmit.co/ajax/sebastianluis3177@gmail.com';
 const NOTIFY_EMAIL = ''; // optional: address for mailto fallback (leave '' to use Instagram DM prompt)
 
+const $ = id => document.getElementById(id);
+
 // Supabase — real accounts that sync across devices. Publishable key only, never a secret key.
 const SUPABASE_URL = 'https://fgnuaxhujvxkfzzcvdqf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz';
-const OWNER_EMAIL = 'sebastianluis3177@gmail.com';
+const OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com'];
+const OWNER_EMAIL = OWNER_EMAILS[0];
 let supabaseClient = null;
 try { if (window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (_) {}
 async function refreshAccountUI() {
@@ -544,10 +547,10 @@ async function refreshAccountUI() {
   if (!supabaseClient) { if (msg) { msg.className = 'msg'; msg.textContent = 'Accounts are offline right now — check back in a bit.'; } return; }
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (user) {
-    if (who) who.textContent = `Logged in as ${user.email}${user.email === OWNER_EMAIL ? ' — owner, admin is unlocked for you' : ''}`;
+    if (who) who.textContent = `Logged in as ${user.email}${OWNER_EMAILS.includes(user.email) ? ' — owner, admin is unlocked for you' : ''}`;
     if (out) out.hidden = false;
-    if (msg) { msg.className = 'msg ok'; msg.textContent = user.email === OWNER_EMAIL ? 'You are the owner.' : 'Logged in.'; }
-    if (user.email === OWNER_EMAIL) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (_) {} if (typeof showOwnerAdmin === 'function') showOwnerAdmin(); }
+    if (msg) { msg.className = 'msg ok'; msg.textContent = OWNER_EMAILS.includes(user.email) ? 'You are the owner.' : 'Logged in.'; }
+    if (OWNER_EMAILS.includes(user.email)) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (_) {} if (typeof showOwnerAdmin === 'function') showOwnerAdmin(); }
   } else {
     if (who) who.textContent = '';
     if (out) out.hidden = true;
@@ -584,7 +587,6 @@ if (acctLogout) acctLogout.addEventListener('click', async () => {
 /* refreshAccountUI() is called at the end of the file, after $ is defined */
 
 const DROP = new Date('2026-11-27T18:00:00-05:00').getTime();
-const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2, '0');
 const buy = $('buy');
 
