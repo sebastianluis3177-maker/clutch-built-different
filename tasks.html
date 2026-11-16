@@ -60,6 +60,30 @@ const DEFAULTS = [
 ];
 function load() { try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.length) return d; } catch (e) {} return DEFAULTS.map((x, i) => ({ id: i, t: x.t, s: x.s, tag: x.tag, cls: x.cls, done: false })); }
 function save(ts) { try { localStorage.setItem(KEY, JSON.stringify(ts)); } catch (e) {} }
+const SB_URL = 'https://fgnuaxhujvxkfzzcvdqf.supabase.co';
+const SB_KEY = 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz';
+async function sbSyncTasks() {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/clutch_tasks?select=id,text,note,tag,done&order=id', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+    if (!r.ok) return;
+    const rows = await r.json();
+    if (rows && rows.length) {
+      const ts = rows.map(x => ({ id: 'sb' + x.id, sbId: x.id, t: x.text, s: x.note || '', tag: x.tag || 'Task', cls: '', done: !!x.done }));
+      try { localStorage.setItem(KEY, JSON.stringify(ts)); } catch (e) {}
+      render();
+    }
+  } catch (e) {}
+}
+async function sbTaskPatch(sbId, patch) {
+  try { await fetch(SB_URL + '/rest/v1/clutch_tasks?id=eq.' + sbId, { method: 'PATCH', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(patch) }); } catch (e) {}
+}
+async function sbTaskAdd(item) {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/clutch_tasks', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify({ text: item.t, note: item.s || '', tag: item.tag || 'Task', done: false }) });
+    const rows = await r.json().catch(() => []);
+    if (rows && rows[0]) { const ts = load(); const it = ts.find(y => String(y.id) === String(item.id)); if (it) { it.sbId = rows[0].id; it.id = 'sb' + rows[0].id; save(ts); } }
+  } catch (e) {}
+}
 function render() {
   const ts = load();
   const done = ts.filter(x => x.done).length;
@@ -70,16 +94,18 @@ function render() {
   ).join('');
   document.querySelectorAll('[data-task]').forEach(cb => cb.addEventListener('change', () => {
     const t2 = load(); const item = t2.find(y => String(y.id) === cb.dataset.task);
-    if (item) item.done = cb.checked; save(t2); render();
+    if (item) { item.done = cb.checked; if (item.sbId) sbTaskPatch(item.sbId, { done: item.done }); } save(t2); render();
   }));
 }
 render();
+sbSyncTasks();
 document.getElementById('task-add-form').addEventListener('submit', e => {
   e.preventDefault();
   const ts = load();
   const text = document.getElementById('task-add-text').value.trim();
   if (!text) return;
-  ts.push({ id: Date.now(), t: text, s: '', tag: 'Task', cls: '', done: false });
-  save(ts); render(); e.target.reset();
+  const item = { id: Date.now(), t: text, s: '', tag: 'Task', cls: '', done: false };
+  ts.push(item);
+  save(ts); render(); e.target.reset(); sbTaskAdd(item);
 });
 </script></body></html>

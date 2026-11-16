@@ -191,6 +191,7 @@ section,.nav{background-color:transparent}
 <button type="button" data-tab="stock">Stock</button>
 <button type="button" data-tab="payments">Payments</button>
 <button type="button" data-tab="email">Email</button>
+<button type="button" data-tab="staff">Staff</button>
 </nav>
 <div data-panel="dash"><div class="owner-stats" id="owner-stats"></div>
       <p class="fine" id="owner-sync-status">Supabase sync: checking…</p>
@@ -203,6 +204,7 @@ section,.nav{background-color:transparent}
 <select id="owner-pay"><option>Greenlight</option><option>Cash App</option><option>Cash / pickup</option></select>
 <input id="owner-address" type="text" placeholder="Ship to — name + address (or 'pickup')">
 <button class="btn buy live" type="submit">Add order</button></form>
+<p style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="order-search" type="search" placeholder="Search orders — buyer, size, pay…" style="flex:1;min-width:160px"><select id="order-filter"><option value="">All statuses</option><option>Paid</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option></select></p>
 <div class="fine" id="owner-orders"></div>
 <p><button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
 <button class="btn ghost" type="button" id="owner-clear">Clear orders</button></p></div>
@@ -220,11 +222,15 @@ section,.nav{background-color:transparent}
 <button class="btn ghost" type="button" data-sell="L">Sell L</button>
 <button class="btn ghost" type="button" data-sell="XL">Sell XL</button>
 <button class="btn ghost" type="button" id="owner-reset-stock">Reset stock</button></p>
-<p class="fine">Start: S 10 · M 10 · L 5 · XL 5 = 30 total.</p></div>
+<p class="fine">Start: S 10 · M 10 · L 5 · XL 5 = 30 total.</p>
+<p class="fine">Edit stock: S <input id="stock-edit-S" type="number" min="0" style="width:3.5rem"> M <input id="stock-edit-M" type="number" min="0" style="width:3.5rem"> L <input id="stock-edit-L" type="number" min="0" style="width:3.5rem"> XL <input id="stock-edit-XL" type="number" min="0" style="width:3.5rem"> <button class="btn ghost" type="button" id="owner-stock-save">Save stock</button></p></div>
 <div data-panel="payments" hidden><h3>Payments</h3><p class="fine" id="owner-payments"></p>
 <p class="fine">Greenlight: <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">gl.me/u/qqMvQlZ6mTpb</a> — $35 per pair. Cash App in the DM, backup only. Both cap at $1,000 received in 30 days — 30 × $35 = $1,050.</p>
 <h3>Discount code</h3>
 <p class="fine">Code: <input id="edit-discount-code" type="text" value="CLUTCH10" style="width:9rem"> <input id="edit-discount-pct" type="number" min="0" max="50" value="10" style="width:4rem"> % off <button class="btn ghost" type="button" id="owner-discount-save">Save</button> <span id="owner-discount-msg"></span></p>
+<h3>Discount codes</h3>
+<form id="discount-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="discount-new-code" type="text" placeholder="CODE" style="text-transform:uppercase;flex:1;min-width:100px"><input id="discount-new-pct" type="number" min="1" max="90" value="10" style="width:5rem"> % off <button class="btn buy live" type="submit">Add code</button></form>
+<p class="fine" id="discount-list"></p>
 <h3>QR codes</h3>
 <p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fgl.me%2Fu%2FqqMvQlZ6mTpb" alt="Pay QR" width="180" height="180" loading="lazy"></p>
 <p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fclutchbuiltdifferent.com%2F" alt="Site QR" width="180" height="180" loading="lazy"></p></div>
@@ -244,6 +250,11 @@ Sizes: S (10) · M (10) · L (5) · XL (5). First paid, first served.
 <button class="btn ghost" type="button" data-tpl="shipped">Shipped — tracking</button>
 <button class="btn ghost" type="button" data-tpl="pickup">Local pickup</button></p>
 <p class="fine" id="owner-tpl-msg"></p></div>
+<div data-panel="staff" hidden><h3>Staff access</h3>
+<p class="fine">People who can log in to admin. Only your two emails get full access — staff get the limited dashboard (Dashboard / Orders / Stock). This list syncs across you, Emeri, and Ajan through Supabase.</p>
+<form id="staff-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="staff-email" type="email" placeholder="staff email" required style="flex:2;min-width:180px"><select id="staff-role"><option value="staff">Staff — view orders + stock</option><option value="owner">Owner — full access</option></select><button class="btn buy live" type="submit">Add</button></form>
+<p class="fine" id="staff-list"></p>
+<p class="fine">Tip: send Jerry Emeri + Ajan's emails and he'll add them here for you.</p></div>
 <p class="fine" id="owner-msg"></p>
 <p><button class="btn ghost" type="button" id="owner-logout">Log out</button></p>
 </div></section></main>
@@ -272,16 +283,17 @@ const OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com']
 const $ = id => document.getElementById(id);
 const OWNER_KEY = 'clutch-admin-v1';
 const ACCT_KEY = 'clutch-owner-acct-v1';
-const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [] };
+const DEF = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }] };
 function loadOwner() { try { const d = JSON.parse(localStorage.getItem(OWNER_KEY) || 'null'); return d ? Object.assign({}, DEF, d) : DEF; } catch (e) { return DEF; } }
 function saveOwner(d) { try { localStorage.setItem(OWNER_KEY, JSON.stringify(d)); } catch (e) {} }
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
-function showAdmin() { $('admin-gate').hidden = true; $('owner-admin').hidden = false; renderOwner(); }
+function showAdmin(staffMode) { $('admin-gate').hidden = true; $('owner-admin').hidden = false; if (staffMode) { document.querySelectorAll('.owner-tabs button').forEach(function (b) { if (['payments', 'email', 'staff'].indexOf(b.dataset.tab) !== -1) b.style.display = 'none'; }); } renderOwner(); }
 function renderOwner() {
   const d = loadOwner(); if (!d.signupEmails) d.signupEmails = [];
   const left = Object.values(d.stock).reduce((a, b) => a + b, 0);
   const rev = d.orders.reduce((a, o) => a + (o.total || 35), 0);
-  $('owner-stats').innerHTML = [['Revenue', '$' + rev], ['Orders', d.orders.length], ['Stock left', left + ' / 30'], ['Signups', d.signups || d.signupEmails.length]].map(function (kv) { return '<div><small>' + kv[0] + '</small><b>' + kv[1] + '</b></div>'; }).join('');
+  var shipped = d.orders.filter(function (o) { return o.status === 'Shipped' || o.status === 'Delivered'; }).length;
+  $('owner-stats').innerHTML = [['Revenue', '$' + rev], ['Orders', d.orders.length], ['Shipped', shipped], ['Stock left', left + ' / 30'], ['Signups', d.signups || d.signupEmails.length]].map(function (kv) { return '<div><small>' + kv[0] + '</small><b>' + kv[1] + '</b></div>'; }).join('');
   $('owner-payments').textContent = 'Taken so far: $' + rev + ' from ' + d.orders.length + ' orders — $' + (1000 - rev) + ' left before the $1,000 / 30-day cap.';
   $('owner-stock').textContent = Object.entries(d.stock).map(function (kv) { return kv[0] + ': ' + kv[1] + ' left'; }).join(' · ') + ' — ' + left + ' total left';
   const chartEl = $('owner-chart');
@@ -289,14 +301,38 @@ function renderOwner() {
   if (document.activeElement !== $('owner-signups')) $('owner-signups').value = d.signups || 0;
   $('owner-signup-list').textContent = d.signupEmails.length ? d.signupEmails.join(', ') : 'No signup emails saved here yet — check Gmail for the real list.';
   const el = $('owner-orders');
+  var q = (($('order-search') ? $('order-search').value : '') || '').toLowerCase();
+  var f = ($('order-filter') ? $('order-filter').value : '') || '';
+  var shown = d.orders.map(function (o, i) { return { o: o, i: i }; }).filter(function (x) {
+    if (f && (x.o.status || 'Paid') !== f) return false;
+    if (q && ((x.o.buyer || '') + ' ' + (x.o.size || '') + ' ' + (x.o.pay || '') + ' ' + (x.o.tracking || '')).toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
   if (!d.orders.length) { el.textContent = 'No orders logged yet.'; }
+  else if (!shown.length) { el.textContent = 'No orders match that search.'; }
   else {
-    el.innerHTML = d.orders.map(function (o, i) {
-      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">' + (i + 1) + '. <b>' + o.buyer + '</b> — ' + o.size + ' — ' + o.pay + ' — $' + (o.total || 35) + ' — <b>' + (o.status || 'Paid') + '</b>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button></div>';
+    el.innerHTML = shown.map(function (x) { var o = x.o, i = x.i;
+      var canCancel = (o.status || 'Paid') !== 'Cancelled';
+      return '<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">' + (i + 1) + '. <b>' + o.buyer + '</b> — ' + o.size + ' — ' + o.pay + ' — $' + (o.total || 35) + ' — <b>' + (o.status || 'Paid') + '</b>' + (o.tracking ? ' — tracking: ' + o.tracking : '') + (o.address ? '<br>Ship to: ' + o.address : '') + '<br><button class="btn ghost" type="button" data-order-status="' + i + '">Next status</button> <button class="btn ghost" type="button" data-order-tracking="' + i + '">Add tracking</button>' + (canCancel ? ' <button class="btn ghost" type="button" data-order-cancel="' + i + '">Cancel order</button>' : '') + '</div>';
     }).join('');
     el.querySelectorAll('[data-order-status]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus]; o.status = o.status === 'Paid' ? 'Shipped' : o.status === 'Shipped' ? 'Delivered' : 'Paid'; saveOwner(dd); renderOwner(); }); });
     el.querySelectorAll('[data-order-tracking]').forEach(function (b) { b.addEventListener('click', function () { const t = prompt('Tracking number:'); if (t === null) return; const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner(); }); });
+    el.querySelectorAll('[data-order-cancel]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Cancel this order? The size goes back into stock.')) return; const dd = loadOwner(); const o = dd.orders[+b.dataset.orderCancel]; if (o.status !== 'Cancelled') { o.status = 'Cancelled'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; } saveOwner(dd); renderOwner(); }); });
   }
+  var staffEl = $('staff-list');
+  if (staffEl) {
+    var staff = (d.staff || []).concat(OWNER_EMAILS.map(function (e) { return { email: e, role: 'owner', name: 'Sebastian' }; }));
+    staffEl.innerHTML = staff.length ? staff.map(function (s, i) { return '<div style="margin:.4rem 0">' + (s.name ? s.name + ' — ' : '') + s.email + ' · <b>' + s.role + '</b>' + (s.role !== 'owner' ? ' <button class="btn ghost" type="button" data-staff-remove="' + i + '">Remove</button>' : '') + '</div>'; }).join('') : 'No staff yet — add Emeri + Ajan below.';
+    staffEl.querySelectorAll('[data-staff-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); dd.staff = (dd.staff || []).filter(function (_, x) { return x !== +b.dataset.staffRemove; }); saveOwner(dd); renderOwner(); }); });
+  }
+  var discEl = $('discount-list');
+  if (discEl) {
+    var list = (d.discounts && d.discounts.length) ? d.discounts : [{ code: 'CLUTCH10', pct: 10, active: true }];
+    discEl.innerHTML = list.map(function (x, i) { return '<div style="margin:.4rem 0"><b>' + x.code + '</b> — ' + x.pct + '% off ' + (x.active ? '· <b>ACTIVE</b>' : '') + ' <button class="btn ghost" type="button" data-disc-active="' + i + '">Set active</button> <button class="btn ghost" type="button" data-disc-remove="' + i + '">Remove</button></div>'; }).join('') || 'No codes yet.';
+    discEl.querySelectorAll('[data-disc-active]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); var l = (dd.discounts && dd.discounts.length) ? dd.discounts : [{ code: 'CLUTCH10', pct: 10, active: true }]; dd.discounts = l.map(function (x, x2) { x.active = x2 === +b.dataset.discActive; return x; }); saveOwner(dd); renderOwner(); }); });
+    discEl.querySelectorAll('[data-disc-remove]').forEach(function (b) { b.addEventListener('click', function () { const dd = loadOwner(); var l = (dd.discounts && dd.discounts.length) ? dd.discounts : []; dd.discounts = l.filter(function (_, x) { return x !== +b.dataset.discRemove; }); saveOwner(dd); renderOwner(); }); });
+  }
+  ['S', 'M', 'L', 'XL'].forEach(function (s) { var inp = $('stock-edit-' + s); if (inp && document.activeElement !== inp) inp.value = d.stock[s]; });
 }
 document.querySelectorAll('.owner-tabs button').forEach(function (b) { b.addEventListener('click', function () {
   document.querySelectorAll('.owner-tabs button').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
@@ -327,6 +363,33 @@ const TPLS = {
   pickup: "Bet — free local pickup in NYC, lmk what day works and we'll meet up"
 };
 document.querySelectorAll('[data-tpl]').forEach(function (b) { b.addEventListener('click', async function () { try { await navigator.clipboard.writeText(TPLS[b.dataset.tpl]); $('owner-tpl-msg').textContent = 'Copied — paste it into the DM.'; } catch (e) {} }); });
+$('staff-add-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const d = loadOwner(); if (!d.staff) d.staff = [];
+  const email = ($('staff-email').value || '').trim().toLowerCase();
+  const role = $('staff-role') ? $('staff-role').value : 'staff';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+  if (!d.staff.some(function (s) { return s.email === email; }) && OWNER_EMAILS.indexOf(email) === -1) d.staff.push({ email: email, role: role, name: '' });
+  try { await sb.from('clutch_staff').insert({ email: email, name: '', role: role }); } catch (err) {}
+  saveOwner(d); renderOwner(); e.target.reset();
+  $('owner-msg').textContent = 'Staff added — they can log in with that email once they make an account on the site.';
+});
+$('discount-add-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const d = loadOwner(); if (!d.discounts) d.discounts = [];
+  const code = ($('discount-new-code').value || '').trim().toUpperCase();
+  const pct = parseInt(($('discount-new-pct').value || '10'), 10) || 0;
+  if (!code || !pct) return;
+  if (!d.discounts.some(function (x) { return x.code === code; })) d.discounts.push({ code: code, pct: pct, active: false });
+  saveOwner(d); renderOwner(); e.target.reset();
+});
+$('order-search').addEventListener('input', function () { renderOwner(); });
+$('order-filter').addEventListener('change', function () { renderOwner(); });
+$('owner-stock-save').addEventListener('click', function () {
+  const d = loadOwner();
+  ['S', 'M', 'L', 'XL'].forEach(function (s) { const v = parseInt(($('stock-edit-' + s).value || '0'), 10); if (!isNaN(v) && v >= 0) d.stock[s] = v; });
+  saveOwner(d); renderOwner(); $('owner-msg').textContent = 'Stock updated.';
+});
 $('owner-login-form').addEventListener('submit', async function (e) {
   e.preventDefault();
   let acct = null; try { acct = JSON.parse(localStorage.getItem(ACCT_KEY) || 'null'); } catch (err) {}
@@ -361,7 +424,16 @@ $('owner-discount-save').addEventListener('click', function () {
   const userRes = await sb.auth.getUser();
   const user = userRes.data && userRes.data.user;
   if (user && OWNER_EMAILS.includes(user.email)) { $('admin-who').textContent = 'Logged in as owner: ' + user.email; showAdmin(); return; }
-  if (user) { $('admin-who').textContent = 'Logged in as ' + user.email + ' — that account is not the owner, so admin is locked.'; return; }
+  if (user) {
+    try {
+      const sr = await sb.from('clutch_staff').select('email,role').eq('email', user.email).limit(1);
+      if (sr.data && sr.data.length) {
+        $('admin-who').textContent = 'Logged in as staff: ' + user.email + ' (limited dashboard — orders + stock only).';
+        showAdmin(true); return;
+      }
+    } catch (err) {}
+    $('admin-who').textContent = 'Logged in as ' + user.email + ' — that account is not the owner or staff, so admin is locked.'; return;
+  }
   if (sessionStorage.getItem('clutch-owner-session') === '1') { $('admin-who').textContent = 'Owner session on this device.'; showAdmin(); return; }
   $('admin-who').textContent = 'Not logged in as the owner. Log in on the account page, or use your PIN below.';
 })();

@@ -201,6 +201,7 @@ section,.nav{background-color:transparent}
 </head>
 <body>
 <div class="map-bg" aria-hidden="true"></div>
+<div id="announce-bar" style="display:none;background:var(--tan);color:#111;text-align:center;padding:.5rem 1rem;font-weight:700;font-size:.9rem"></div>
 <header class="nav">
   <a href="#top" class="logo" aria-label="CLUTCH home"><img class="wm-logo" src="data:image/png;base64,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kFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAAkFAIAAAAACQUAgAAAAAJhQAAAABAQiEAAAAA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" alt="" width="1290" height="1203">UTCH</a>
   <nav><a href="#product">Shorts</a><a href="#sizes">Sizes</a><a href="#drop2">Drop 02</a><a href="#faq">FAQ</a><a href="#notify" class="pill">Get notified</a></nav>
@@ -258,6 +259,7 @@ section,.nav{background-color:transparent}
     <button type="button" data-tab="payments">Payments</button>
     <button type="button" data-tab="email">Email</button>
     <button type="button" data-tab="edit">Edit site</button>
+    <button type="button" data-tab="staff">Staff</button>
   </nav>
 
   <div data-panel="dash">
@@ -275,6 +277,7 @@ section,.nav{background-color:transparent}
       <input id="owner-address" type="text" placeholder="Ship to — name + address (or 'pickup')">
       <button class="btn buy live" type="submit">Add order</button>
     </form>
+    <p style="display:flex;gap:.5rem;flex-wrap:wrap"><input id="order-search" type="search" placeholder="Search orders — buyer, size, pay…" style="flex:1;min-width:160px"><select id="order-filter"><option value="">All statuses</option><option>Paid</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option></select></p>
     <div class="fine" id="owner-orders"></div>
     <p>
       <button class="btn ghost" type="button" id="owner-export">Copy orders as CSV</button>
@@ -305,12 +308,20 @@ section,.nav{background-color:transparent}
       <button class="btn ghost" type="button" id="owner-reset-stock">Reset stock</button>
     </p>
     <p class="fine">Start: S 10 · M 10 · L 5 · XL 5 = 30 total. Adding an order ticks stock down automatically.</p>
+    <p class="fine">Edit stock counts: S <input id="stock-edit-S" type="number" min="0" style="width:3.5rem"> M <input id="stock-edit-M" type="number" min="0" style="width:3.5rem"> L <input id="stock-edit-L" type="number" min="0" style="width:3.5rem"> XL <input id="stock-edit-XL" type="number" min="0" style="width:3.5rem"> <button class="btn ghost" type="button" id="owner-stock-save">Save stock</button></p>
   </div>
 
   <div data-panel="payments" hidden>
     <h3>Payments</h3>
     <p class="fine" id="owner-payments"></p>
     <p class="fine">Greenlight pay link: <a href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">gl.me/u/qqMvQlZ6mTpb</a> — $35 per pair. Your parent approves every Greenlight payment.<br>Cash App: in the DM, $cashtag sent there — backup only.<br>Heads up: Greenlight + Cash App both cap at $1,000 received in 30 days. 30 pairs at $35 = $1,050, so the last pair or two may need cash / pickup.</p>
+    <h3>Discount codes</h3>
+    <form id="discount-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <input id="discount-new-code" type="text" placeholder="CODE" style="text-transform:uppercase;flex:1;min-width:100px">
+      <input id="discount-new-pct" type="number" min="1" max="90" value="10" style="width:5rem"> % off
+      <button class="btn buy live" type="submit">Add code</button>
+    </form>
+    <p class="fine" id="discount-list"></p>
     <h3>QR codes — scan to pay / scan to shop</h3>
     <p class="fine">Pay QR (Greenlight, $35):</p>
     <p><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=https%3A%2F%2Fgl.me%2Fu%2FqqMvQlZ6mTpb" alt="QR code — pay $35 via Greenlight" width="180" height="180" loading="lazy"></p>
@@ -356,11 +367,24 @@ First paid, first served.
       <label class="fine">Drop date / time<br><input id="edit-when" type="text" value="Fri, Nov 27, 2026 · 6:00 PM ET"></label>
       <label class="fine">Buy note<br><input id="edit-buynote" type="text" style="width:100%" value="PREORDERS open Fri, Nov 27, 6PM ET · $25 + shipping ($35 total) · Pay via Greenlight — or Cash App in the DM. Pick your size first, then DM @clutchny1 — first paid, first served."></label>
       <label class="fine">Discount code<br><input id="edit-discount-code" type="text" value="CLUTCH10" style="width:9rem"> <input id="edit-discount-pct" type="number" min="0" max="50" value="10" style="width:4rem"> % off</label>
+      <label class="fine">Announcement banner (shows at the top of the homepage — blank = hidden)<br><input id="edit-announce" type="text" style="width:100%" placeholder="e.g. Drop 01 is LIVE — 30 pieces, no restocks"></label>
       <button class="btn buy live" type="submit">Save edits (this device)</button>
       <button class="btn ghost" type="button" id="owner-edit-copy">Copy edits for Jerry</button>
       <button class="btn ghost" type="button" id="owner-edit-reset">Reset edits</button>
     </form>
     <p class="fine" id="owner-edit-msg"></p>
+  </div>
+
+  <div data-panel="staff" hidden>
+    <h3>Staff access</h3>
+    <p class="fine">People who can log in to admin. Only your two emails get full access — staff get the limited dashboard (Dashboard / Orders / Stock). This list syncs across you, Emeri, and Ajan through Supabase.</p>
+    <form id="staff-add-form" style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <input id="staff-email" type="email" placeholder="staff email" required style="flex:2;min-width:180px">
+      <select id="staff-role"><option value="staff">Staff — view orders + stock</option><option value="owner">Owner — full access</option></select>
+      <button class="btn buy live" type="submit">Add</button>
+    </form>
+    <p class="fine" id="staff-list"></p>
+    <p class="fine">Tip: send Jerry Emeri + Ajan's emails and he'll add them here for you.</p>
   </div>
 
   <p class="fine" id="owner-msg"></p>
@@ -599,8 +623,10 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 const STRIPE_LINK = '';
 const FORM_ENDPOINT = 'https://formsubmit.co/ajax/sebastianluis3177@gmail.com';
 const NOTIFY_EMAIL = '';
-// Discount code — set in admin (Edit site tab). Default: CLUTCH10 = 10% off the $35 total.
-function getDiscount() { const e = loadEdits(); return { code: (e.discountCode || 'CLUTCH10').toUpperCase(), pct: parseInt(e.discountPct || '10', 10) || 0 }; }
+// Discount codes — managed in admin (Payments tab). Active code applies at checkout.
+// Fallback: the single code from Edit site, else CLUTCH10 = 10% off the $35 total.
+function getDiscounts() { const d = loadOwner(); if (d.discounts && d.discounts.length) return d.discounts; const e = loadEdits(); return [{ code: (e.discountCode || 'CLUTCH10').toUpperCase(), pct: parseInt(e.discountPct || '10', 10) || 0, active: true }]; }
+function getDiscount() { const list = getDiscounts(); return list.find(x => x.active) || list[0] || { code: 'CLUTCH10', pct: 10 }; }
 let appliedDiscount = 0;
 function orderTotal() { return 35 - appliedDiscount; } // optional: address for mailto fallback (leave '' to use Instagram DM prompt)
 
@@ -665,6 +691,10 @@ async function refreshAccountUI() {
     if (out) out.hidden = false;
     if (msg) { msg.className = 'msg ok'; msg.textContent = OWNER_EMAILS.includes(user.email) ? 'You are the owner.' : 'Logged in.'; }
     if (OWNER_EMAILS.includes(user.email)) { try { sessionStorage.setItem('clutch-owner-session', '1'); } catch (_) {} if (typeof showOwnerAdmin === 'function') showOwnerAdmin(); }
+    else if (sbSyncOn) {
+      const rows = await sbGet('clutch_staff', '?select=email&email=eq.' + encodeURIComponent(user.email));
+      if (rows && rows.length) { if (msg) { msg.className = 'msg ok'; msg.textContent = 'Logged in as staff — limited dashboard (orders + stock only).'; } if (typeof showOwnerAdmin === 'function') showOwnerAdmin(true); }
+    }
   } else {
     if (who) who.textContent = '';
     if (out) out.hidden = true;
@@ -754,10 +784,11 @@ document.querySelectorAll('#size-picker button').forEach(b => b.addEventListener
 // Discount code — apply in the order section, updates the total in the DM text
 const discBtn = $('apply-discount');
 if (discBtn) discBtn.addEventListener('click', () => {
-  const d = getDiscount();
+  const list = getDiscounts();
   const code = ($('discount-code').value || '').trim().toUpperCase();
   const m = $('discount-msg');
-  if (code === d.code && d.pct > 0) { appliedDiscount = Math.round(35 * d.pct / 100 * 100) / 100; if (m) m.textContent = `Applied — $${orderTotal()} total instead of $35.`; }
+  const hit = list.find(x => x.code === code && (x.pct || 0) > 0);
+  if (hit) { appliedDiscount = Math.round(35 * hit.pct / 100 * 100) / 100; if (m) m.textContent = `Applied ${hit.code} — $${orderTotal()} total instead of $35.`; }
   else { appliedDiscount = 0; if (m) m.textContent = 'That code didn\'t work.'; }
   if (orderText) orderText.textContent = orderPrompt(picked);
 });
@@ -846,13 +877,14 @@ function showOwnerAuth() {
   if (who && acct) who.textContent = 'Logged in as ' + acct.user + ' — enter your PIN to open admin.';
   ownerAuthed = false;
 }
-function showOwnerAdmin() {
+function showOwnerAdmin(staffMode) {
   const admin = $('owner-admin'), logout = $('owner-logout');
   const signup = $('owner-signup-form'), login = $('owner-login-form');
   if (signup) signup.hidden = true;
   if (login) login.hidden = true;
   if (admin) admin.hidden = false;
   if (logout) logout.hidden = false;
+  if (staffMode) { document.querySelectorAll('.owner-tabs button').forEach(b => { if (['payments', 'email', 'edit', 'staff'].includes(b.dataset.tab)) b.style.display = 'none'; }); }
   ownerAuthed = true;
   renderOwner();
 }
@@ -891,7 +923,7 @@ if (resetAcctBtn) resetAcctBtn.addEventListener('click', () => {
 });
 
 const OWNER_KEY = 'clutch-admin-v1';
-const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [] };
+const OWNER_DEFAULT = { stock: { S: 10, M: 10, L: 5, XL: 5 }, orders: [], signups: 0, signupEmails: [], staff: [], discounts: [{ code: 'CLUTCH10', pct: 10, active: true }] };
 function loadOwner() {
   try { return Object.assign({}, OWNER_DEFAULT, JSON.parse(localStorage.getItem(OWNER_KEY) || '{}')); }
   catch (_) { return JSON.parse(JSON.stringify(OWNER_DEFAULT)); }
@@ -902,9 +934,10 @@ function renderOwner() {
   if (!d.signupEmails) d.signupEmails = [];
   const stockLeft = Object.values(d.stock).reduce((a, b) => a + b, 0);
   const revenue = d.orders.reduce((a, o) => a + (o.total || 35), 0);
+  const shipped = d.orders.filter(o => o.status === 'Shipped' || o.status === 'Delivered').length;
   const statsEl = $('owner-stats');
   if (statsEl) statsEl.innerHTML = [
-    ['Revenue', '$' + revenue], ['Orders', d.orders.length], ['Stock left', stockLeft + ' / 30'], ['Signups', d.signups || d.signupEmails.length]
+    ['Revenue', '$' + revenue], ['Orders', d.orders.length], ['Shipped', shipped], ['Stock left', stockLeft + ' / 30'], ['Signups', d.signups || d.signupEmails.length]
   ].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
   const payEl = $('owner-payments');
   if (payEl) payEl.textContent = `Taken so far: $${revenue} from ${d.orders.length} order${d.orders.length === 1 ? '' : 's'} — $${1000 - revenue} left before the $1,000 / 30-day Greenlight + Cash App cap.`;
@@ -916,11 +949,20 @@ function renderOwner() {
   if (listEl) listEl.textContent = d.signupEmails.length ? d.signupEmails.join(', ') : 'No signup emails saved here yet — check Gmail for the real list.';
   const ordersEl = $('owner-orders');
   if (ordersEl) {
+    const q = (($('order-search') ? $('order-search').value : '') || '').toLowerCase();
+    const f = ($('order-filter') ? $('order-filter').value : '') || '';
+    const shown = d.orders.map((o, i) => ({ o, i })).filter(({ o }) => {
+      if (f && (o.status || 'Paid') !== f) return false;
+      if (q && !((o.buyer || '') + ' ' + (o.size || '') + ' ' + (o.pay || '') + ' ' + (o.tracking || '')).toLowerCase().includes(q)) return false;
+      return true;
+    });
     if (!d.orders.length) { ordersEl.textContent = 'No orders logged yet.'; }
+    else if (!shown.length) { ordersEl.textContent = 'No orders match that search.'; }
     else {
-      ordersEl.innerHTML = d.orders.map((o, i) => {
+      ordersEl.innerHTML = shown.map(({ o, i }) => {
         const low = o.status || 'Paid';
-        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. <b>${o.buyer}</b> — ${o.size} — ${o.pay} — $${o.total || 35} — <b>${low}</b>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button></div>`;
+        const canCancel = low !== 'Cancelled';
+        return `<div style="margin:.6rem 0;padding:.6rem;border:1px solid var(--line);border-radius:8px">${i + 1}. <b>${o.buyer}</b> — ${o.size} — ${o.pay} — $${o.total || 35} — <b>${low}</b>${o.tracking ? ' — tracking: ' + o.tracking : ''}${o.address ? '<br>Ship to: ' + o.address : ''}<br><button class="btn ghost" type="button" data-order-status="${i}">Next status</button> <button class="btn ghost" type="button" data-order-tracking="${i}">Add tracking</button>${canCancel ? ` <button class="btn ghost" type="button" data-order-cancel="${i}">Cancel order</button>` : ''}</div>`;
       }).join('');
       ordersEl.querySelectorAll('[data-order-status]').forEach(b => b.addEventListener('click', () => {
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderStatus];
@@ -932,8 +974,34 @@ function renderOwner() {
         if (t === null) return;
         const dd = loadOwner(); dd.orders[+b.dataset.orderTracking].tracking = t.trim(); saveOwner(dd); renderOwner();
       }));
+      ordersEl.querySelectorAll('[data-order-cancel]').forEach(b => b.addEventListener('click', () => {
+        if (!confirm('Cancel this order? The size goes back into stock.')) return;
+        const dd = loadOwner(); const o = dd.orders[+b.dataset.orderCancel];
+        if (o.status !== 'Cancelled') { o.status = 'Cancelled'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: dd.stock[o.size] }); }
+        saveOwner(dd); renderOwner();
+      }));
     }
   }
+  const staffEl = $('staff-list');
+  if (staffEl) {
+    const staff = (d.staff || []).concat(OWNER_EMAILS.map(e => ({ email: e, role: 'owner', name: 'Sebastian' })));
+    staffEl.innerHTML = staff.length ? staff.map((s, i) => `<div style="margin:.4rem 0">${s.name ? s.name + ' — ' : ''}${s.email} · <b>${s.role}</b>${s.role !== 'owner' ? ` <button class="btn ghost" type="button" data-staff-remove="${i}">Remove</button>` : ''}</div>`).join('') : 'No staff yet — add Emeri + Ajan below.';
+    staffEl.querySelectorAll('[data-staff-remove]').forEach(b => b.addEventListener('click', () => {
+      const dd = loadOwner(); dd.staff = (dd.staff || []).filter((_, x) => x !== +b.dataset.staffRemove); saveOwner(dd); renderOwner();
+    }));
+  }
+  const discEl = $('discount-list');
+  if (discEl) {
+    const list = getDiscounts();
+    discEl.innerHTML = list.map((x, i) => `<div style="margin:.4rem 0"><b>${x.code}</b> — ${x.pct}% off ${x.active ? '· <b>ACTIVE</b>' : ''} <button class="btn ghost" type="button" data-disc-active="${i}">Set active</button> <button class="btn ghost" type="button" data-disc-remove="${i}">Remove</button></div>`).join('') || 'No codes yet.';
+    discEl.querySelectorAll('[data-disc-active]').forEach(b => b.addEventListener('click', () => {
+      const dd = loadOwner(); dd.discounts = getDiscounts().map((x, x2) => ({ ...x, active: x2 === +b.dataset.discActive })); saveOwner(dd); renderOwner();
+    }));
+    discEl.querySelectorAll('[data-disc-remove]').forEach(b => b.addEventListener('click', () => {
+      const dd = loadOwner(); dd.discounts = getDiscounts().filter((_, x) => x !== +b.dataset.discRemove); saveOwner(dd); renderOwner();
+    }));
+  }
+  ['S', 'M', 'L', 'XL'].forEach(s => { const inp = $('stock-edit-' + s); if (inp && document.activeElement !== inp) inp.value = d.stock[s]; });
   syncSizePicker(d);
   const chartEl = $('owner-chart');
   if (chartEl) { const bySize = { S: 0, M: 0, L: 0, XL: 0 }; d.orders.forEach(o => { if (bySize[o.size] !== undefined) bySize[o.size]++; }); const max = Math.max(1, ...Object.values(bySize)); chartEl.innerHTML = Object.entries(bySize).map(([s, n]) => '<div style="margin:.3rem 0">' + s + ' — ' + n + ' sold <span style="display:inline-block;background:var(--tan);height:.7rem;width:' + Math.round(n / max * 100) + '%"></span></div>').join(''); }
@@ -1011,6 +1079,9 @@ function applyEdits() {
   if (when && e.when) when.textContent = e.when;
   const note = document.querySelector('.buy-note');
   if (note && e.buynote) note.textContent = e.buynote;
+  const bar = $('announce-bar');
+  if (bar) { if (e.announce) { bar.textContent = e.announce; bar.style.display = ''; } else { bar.style.display = 'none'; } }
+  const fAnn = $('edit-announce'); if (fAnn && e.announce) fAnn.value = e.announce;
   const fLede = $('edit-lede'); if (fLede && e.lede) fLede.value = e.lede;
   const fPrice = $('edit-price'); if (fPrice && e.price) fPrice.value = e.price;
   const fWhen = $('edit-when'); if (fWhen && e.when) fWhen.value = e.when;
@@ -1020,7 +1091,7 @@ applyEdits();
 const editForm = $('owner-edit-form');
 if (editForm) editForm.addEventListener('submit', e => {
   e.preventDefault();
-  const edits = { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') };
+  const edits = { lede: $('edit-lede').value.trim(), price: $('edit-price').value.trim(), when: $('edit-when').value.trim(), buynote: $('edit-buynote').value.trim(), announce: ($('edit-announce') ? $('edit-announce').value.trim() : ''), discountCode: ($('edit-discount-code') ? $('edit-discount-code').value.trim().toUpperCase() : ''), discountPct: ($('edit-discount-pct') ? $('edit-discount-pct').value.trim() : '') };
   try { localStorage.setItem(EDIT_KEY, JSON.stringify(edits)); } catch (_) {}
   applyEdits();
   const m = $('owner-edit-msg'); if (m) m.textContent = 'Saved on this device — you can see the changes on the site now. Hit "Copy edits for Jerry" to make them live for everyone.';
@@ -1028,7 +1099,7 @@ if (editForm) editForm.addEventListener('submit', e => {
 const editCopy = $('owner-edit-copy');
 if (editCopy) editCopy.addEventListener('click', async () => {
   const e = loadEdits();
-  const text = `Site edits to push live:\nHero line: ${e.lede || '(unchanged)'}\nPrice: ${e.price || '(unchanged)'}\nDrop date/time: ${e.when || '(unchanged)'}\nBuy note: ${e.buynote || '(unchanged)'}`;
+  const text = `Site edits to push live:\nHero line: ${e.lede || '(unchanged)'}\nPrice: ${e.price || '(unchanged)'}\nDrop date/time: ${e.when || '(unchanged)'}\nBuy note: ${e.buynote || '(unchanged)'}\nAnnouncement banner: ${e.announce || '(none)'}\nDiscount: ${e.discountCode || '(unchanged)'} ${e.discountPct || ''}%`;
   try { await navigator.clipboard.writeText(text); const m = $('owner-edit-msg'); if (m) m.textContent = 'Copied — paste it to Jerry in chat and I\u2019ll push it live.'; } catch (_) {}
 });
 const editReset = $('owner-edit-reset');
@@ -1072,6 +1143,39 @@ if (orderForm) orderForm.addEventListener('submit', e => {
   if (d.stock[size] > 0) d.stock[size]--;
   saveOwner(d); renderOwner(); orderForm.reset();
   const m = $('owner-msg'); if (m) m.textContent = 'Order logged.';
+});
+const staffForm = $('staff-add-form');
+if (staffForm) staffForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const d = loadOwner(); if (!d.staff) d.staff = [];
+  const email = ($('staff-email').value || '').trim().toLowerCase();
+  const role = $('staff-role') ? $('staff-role').value : 'staff';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+  if (!d.staff.some(s => s.email === email) && !OWNER_EMAILS.includes(email)) d.staff.push({ email, role, name: '' });
+  if (sbSyncOn) sbPost('clutch_staff', { email, name: '', role });
+  saveOwner(d); renderOwner(); staffForm.reset();
+  const m = $('owner-msg'); if (m) m.textContent = 'Staff added — they can log in with that email once they make an account on the site.';
+});
+const discForm = $('discount-add-form');
+if (discForm) discForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const d = loadOwner(); if (!d.discounts) d.discounts = [];
+  const code = ($('discount-new-code').value || '').trim().toUpperCase();
+  const pct = parseInt(($('discount-new-pct').value || '10'), 10) || 0;
+  if (!code || !pct) return;
+  if (!d.discounts.some(x => x.code === code)) d.discounts.push({ code, pct, active: false });
+  saveOwner(d); renderOwner(); discForm.reset();
+});
+const orderSearch = $('order-search');
+if (orderSearch) orderSearch.addEventListener('input', () => renderOwner());
+const orderFilter = $('order-filter');
+if (orderFilter) orderFilter.addEventListener('change', () => renderOwner());
+const stockSave = $('owner-stock-save');
+if (stockSave) stockSave.addEventListener('click', () => {
+  const d = loadOwner();
+  ['S', 'M', 'L', 'XL'].forEach(s => { const v = parseInt(($('stock-edit-' + s).value || '0'), 10); if (!isNaN(v) && v >= 0) d.stock[s] = v; if (sbSyncOn) sbPatch('clutch_stock', s, { stock_left: d.stock[s] }); });
+  saveOwner(d); renderOwner();
+  const m = $('owner-msg'); if (m) m.textContent = 'Stock updated.';
 });
 const exportBtn = $('owner-export');
 if (exportBtn) exportBtn.addEventListener('click', async () => {
