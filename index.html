@@ -290,6 +290,8 @@ section,.nav{background-color:transparent}
     </div>
     <div id="owner-countdown" class="fine" style="font-size:1.05rem;margin:.5rem 0"></div>
     <p><button class="btn ghost" type="button" id="owner-live-toggle">Turn on drop-day live mode</button></p>
+    <p><button class="btn buy live" type="button" id="owner-go-live-switch">🚀 Go LIVE — email all signups</button></p>
+    <p class="fine" id="owner-go-live-switch-msg"></p>
     <div id="owner-live-feed"></div>
     <h3>Sales by day</h3>
     <div id="owner-sales-chart" class="fine"></div>
@@ -993,6 +995,10 @@ if (discBtn) discBtn.addEventListener('click', () => {
   if (orderText) orderText.textContent = orderPrompt(picked);
 });
 
+// Discount link: ?code=CLUTCH10 (or a referral code) auto-applies in the order section
+// Discount link: ?code=CLUTCH10 auto-applies — deferred a tick so OWNER_DEFAULT exists when the click handler runs getDiscounts()
+setTimeout(function () { const c = new URLSearchParams(location.search).get('code'); if (!c || !$('discount-code')) return; $('discount-code').value = c.trim().toUpperCase(); if (discBtn) discBtn.click(); }, 0);
+
 // Size finder — waist inches to size
 const findSizeBtn = $('find-size');
 if (findSizeBtn) findSizeBtn.addEventListener('click', () => {
@@ -1535,7 +1541,7 @@ function renderOwner() {
     const redeemed = code => d.orders.some(o => (o.note || '').includes(code));
     gcEl.innerHTML = `<h3>🎁 Gift cards — $25, good for Drop 002</h3><p class="fine">Sell a gift card now (DM @clutchny1), the buyer redeems the code at checkout for $25 off. Codes work on the live checkout.</p>` + (gcs.length ? gcs.map((g, i) => `<div style="margin:.3rem 0"><b>${g.code}</b> — $25 — ${redeemed(g.code) ? '✅ redeemed' : '🟢 active'} <button class="btn ghost" type="button" data-gc-copy="${i}">Copy</button></div>`).join('') : '<p class="fine">No gift cards yet.</p>') + `<p><button class="btn buy live" type="button" id="owner-gc-new">+ New $25 gift card</button></p>`;
     gcEl.querySelectorAll('[data-gc-copy]').forEach(b => b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(gcs[+b.dataset.gcCopy].code); const m = $('owner-msg'); if (m) m.textContent = 'Gift card code copied.'; } catch (_) {} }));
-    $('owner-gc-new').addEventListener('click', () => { const dd = loadOwner(); if (!dd.giftCards) dd.giftCards = []; let code = ''; do { code = 'GIFT-' + Math.random().toString(36).slice(2, 6).toUpperCase(); } while (dd.giftCards.some(g => g.code === code)); dd.giftCards.push({ code, amount: 25 }); saveOwner(dd); renderOwner(); });
+    $('owner-gc-new').addEventListener('click', () => { const dd = loadOwner(); if (!dd.giftCards) dd.giftCards = []; let code = ''; do { code = 'GIFT-' + Math.random().toString(36).slice(2, 6).toUpperCase(); } while (dd.giftCards.some(g => g.code === code)); dd.giftCards.push({ code, amount: 25 }); try { if (typeof sbPost === 'function') sbPost('clutch_giftcards', { code: code, value: 25 }); } catch (_) {} saveOwner(dd); renderOwner(); });
   }
   const discEl = $('discount-list');
   if (discEl) {
@@ -1720,9 +1726,8 @@ if (ghSave) ghSave.addEventListener('click', () => {
   try { if (v) localStorage.setItem(GH_KEY, v); else localStorage.removeItem(GH_KEY); } catch (_) {}
   const m = $('owner-edit-msg'); if (m) m.textContent = v ? 'Key saved on this device — only you can publish from here.' : 'Key removed.';
 });
-const ghPublish = $('owner-edit-publish');
-if (ghPublish) ghPublish.addEventListener('click', async () => {
-  const m = $('owner-edit-msg');
+async function publishEditsLive(m) {
+  m = m || $('owner-edit-msg');
   const token = (() => { try { return localStorage.getItem(GH_KEY) || ''; } catch (_) { return ''; } })();
   if (!token) { if (m) m.textContent = 'No GitHub key saved yet — paste your token above and hit Save key first.'; return; }
   const e = loadEdits();
@@ -1759,7 +1764,9 @@ if (ghPublish) ghPublish.addEventListener('click', async () => {
     try { localStorage.setItem(PUB_KEY, JSON.stringify({ lede: e.lede || old.lede, price: e.price || old.price, when: e.when || old.when, buynote: e.buynote || old.buynote, announce: e.announce || '' })); } catch (_) {}
     if (m) m.textContent = '✅ Published — the live site updates in about a minute. Hard-refresh the homepage to see it.';
   } catch (err) { if (m) m.textContent = 'Publish failed: ' + (err.message || err); }
-});
+}
+const ghPublish = $('owner-edit-publish');
+if (ghPublish) ghPublish.addEventListener('click', () => publishEditsLive());
 // Waitlist form — anyone can join, posts to the same Gmail inbox as notify signups
 const wlForm = $('waitlist-form'), wlMsg = $('waitlist-msg');
 if (wlForm) wlForm.addEventListener('submit', async e => {
@@ -1981,6 +1988,31 @@ if (tplForm) tplForm.addEventListener('submit', e => {
 });
 const liveToggle = $('owner-live-toggle');
 if (liveToggle) liveToggle.addEventListener('click', () => { const d = loadOwner(); d.liveMode = !d.liveMode; saveOwner(d); renderOwner(); });
+const goLiveSwitchBtn = $('owner-go-live-switch');
+if (goLiveSwitchBtn) goLiveSwitchBtn.addEventListener('click', async () => {
+  const msg = $('owner-go-live-switch-msg');
+  const d = loadOwner(); d.liveMode = true; saveOwner(d);
+  const e = loadEdits(); e.announce = '🔴 WE\u2019RE LIVE — Drop 01 is on. 30 pieces, first paid, first served.';
+  try { localStorage.setItem(EDIT_KEY, JSON.stringify(e)); } catch (_) {}
+  applyEdits(); renderOwner();
+  const hasToken = (() => { try { return !!localStorage.getItem(GH_KEY); } catch (_) { return false; } })();
+  if (msg) msg.textContent = hasToken ? 'Live mode on. Publishing the banner…' : 'Live mode on. No GitHub key saved — the banner is set on this device only until you publish.';
+  if (hasToken) await publishEditsLive($('owner-edit-msg'));
+  let emails = [];
+  try { const rows = await sbGet('clutch_signups', '?select=email'); (rows || []).forEach(r => { if (r.email && emails.indexOf(r.email) === -1) emails.push(r.email); }); } catch (_) {}
+  (d.signupEmails || []).forEach(x => { if (emails.indexOf(x) === -1) emails.push(x); });
+  if (!emails.length) { if (msg) msg.textContent = (hasToken ? 'Banner is live for everyone. ' : 'Banner is set on this device only. ') + 'No signup emails found to mail — send the drop email from Gmail once you have signups.'; return; }
+  const subject = 'CLUTCH Drop 01 is live — 30 pieces, no restocks';
+  const body = 'CLUTCH Drop 01 is live.\n\nUES Mesh Shorts — $25 + shipping ($35 total).\n30 pieces only. No restocks. All sales final.\n\nPreorder here: https://clutchbuiltdifferent.com/\n\nPick your size, DM @clutchny1, then pay $35 via Greenlight:\nhttps://gl.me/u/qqMvQlZ6mTpb\n\nSizes: S (10) · M (10) · L (5) · XL (5)\nFirst paid, first served.\n\n— CLUTCH, Built Different';
+  const mailto = 'mailto:?bcc=' + encodeURIComponent(emails.join(',')) + '&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  if (mailto.length > 1800) {
+    try { await navigator.clipboard.writeText(emails.join(', ')); } catch (_) {}
+    if (msg) msg.textContent = (hasToken ? 'Banner is live for everyone. ' : 'Banner is set on this device only. ') + 'Too many signups for one email link — the BCC list is copied, paste it into Gmail with the drop-day email.';
+  } else {
+    window.open(mailto, '_blank');
+    if (msg) msg.textContent = (hasToken ? 'Banner is live for everyone. ' : 'Banner is set on this device only. ') + 'Your mail app opened with all ' + emails.length + ' signups in BCC — hit send.';
+  }
+});
 const expForm = $('expense-add-form');
 if (expForm) expForm.addEventListener('submit', e => {
   e.preventDefault();

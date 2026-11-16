@@ -48,7 +48,7 @@
 
 <div class="field"><label>Discount code (optional)</label>
 <div style="display:flex;gap:.5rem"><input id="co-discount" type="text" placeholder="CLUTCH10" style="text-transform:uppercase"><button class="btn ghost" type="button" id="co-apply-discount">Apply</button></div>
-<p class="fine" id="co-discount-msg"></p></div>
+<p class="fine" id="co-discount-msg"></p><p class="fine">Got a gift card? <a href="/giftcard.html">Check it here</a> first, then paste the code above.</p></div>
 
 <div class="summary" id="co-summary">
 <div><span>UES Mesh Shorts</span><span>$25.00</span></div>
@@ -117,6 +117,8 @@ $('co-apply-discount').addEventListener('click', () => {
   else { discountPct = 0; discountFixed = 0; giftCode = ''; $('co-discount-msg').textContent = "That code didn't work."; }
   renderSummary();
 });
+// Discount link: ?code=CLUTCH10 (or a GIFT-XXXX code) auto-applies
+(function () { const c = new URLSearchParams(location.search).get('code'); if (!c) return; const v = c.trim().toUpperCase(); if (v === 'CLUTCH10' || /^GIFT-[A-Z0-9]{4}$/.test(v)) { $('co-discount').value = v; $('co-apply-discount').click(); } })();
 // live stock from Supabase (public read) — sold-out sizes disable
 if (typeof fetch === 'function') try {
 fetch(SB_URL + '/rest/v1/clutch_stock?select=size,stock_left', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } })
@@ -152,7 +154,11 @@ $('checkout-form').addEventListener('submit', async e => {
   }
   $('checkout-form').hidden = true;
   $('co-done').hidden = false;
-  $('co-done-text').textContent = orderText + '. Now pay $' + t.total.toFixed(2) + ' on Greenlight — it opens in a new tab.';
+  // confirmation email to the buyer (FormSubmit auto-reply — fire-and-forget, never blocks checkout)
+  if (typeof fetch === 'function') {
+    fetch('https://formsubmit.co/ajax/clutchbuiltdifferent@gmail.com', { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ name: buyer, email: email, size: sizeStr, total: '$' + t.total.toFixed(2), shipping: ship === 'pickup' ? 'NYC pickup — ' + $('co-slot').value : address, _subject: 'CLUTCH Drop 01 — order received', _replyto: email, _autoresponse: 'Your CLUTCH order is in ✅\n\n' + orderText + '\n\nNow pay $' + t.total.toFixed(2) + ' via Greenlight (it opened in a new tab): https://gl.me/u/qqMvQlZ6mTpb\nYour parent approves every Greenlight payment. No payment = no order — we mark it Paid once the money lands.\n\nThanks for supporting CLUTCH — Built Different.' }) }).catch(() => {});
+  }
+  $('co-done-text').textContent = orderText + '. Now pay $' + t.total.toFixed(2) + ' on Greenlight — it opens in a new tab. A confirmation email is on its way to ' + email + '.';
   $('co-pay-link').href = GREENLIGHT;
   $('co-copy').onclick = async () => { try { await navigator.clipboard.writeText(orderText + ' — pay: ' + GREENLIGHT); $('co-copy').textContent = 'Copied ✓'; } catch (_) {} };
   window.open(GREENLIGHT, '_blank');
