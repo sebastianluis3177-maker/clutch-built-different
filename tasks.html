@@ -20,9 +20,36 @@ body{background:#0b0b0b}
 .task small{display:block;color:var(--muted);margin-top:.2rem;line-height:1.4}
 .add-row{display:flex;gap:.5rem;margin-top:1.2rem}
 .add-row input{flex:1;padding:.8rem;border:1px solid var(--line);border-radius:10px;background:#111;color:var(--ink)}
+.login-box{max-width:420px;margin:2rem auto;padding:1.5rem;border:1px solid var(--line);border-radius:14px;background:#111}
+.login-box input{width:100%;padding:.8rem;margin:.4rem 0;border:1px solid var(--line);border-radius:10px;background:#0b0b0b;color:var(--ink);font-size:16px}
+.msg{margin:.6rem 0;min-height:1.2em}
+.msg.err{color:#ff8a7a}
+.msg.ok{color:#9fd89a}
 </style></head>
 <body><header class="nav"><a class="logo" href="/">CLUTCH</a><nav><a href="/">Home</a><a href="/admin.html">Admin</a><a href="/track.html">Track order</a></nav></header>
 <main>
+<div id="tasks-private" hidden>
+  <div style="max-width:760px;margin:3rem auto;padding:0 1rem;text-align:center">
+    <p class="eyebrow">Built Different</p>
+    <h2>This page is private.</h2>
+    <p class="lede">Launch tasks are only for Sebastian. <a href="/">Back home →</a></p>
+  </div>
+</div>
+<div id="tasks-login" hidden>
+  <div class="login-box">
+    <p class="eyebrow">Built Different</p>
+    <h2 style="margin:.2rem 0">Launch tasks</h2>
+    <p class="lede">Log in to see your launch checklist.</p>
+    <form id="tasks-login-form">
+      <input id="tasks-email" type="email" placeholder="Email" required autocomplete="email">
+      <input id="tasks-password" type="password" placeholder="Password" required autocomplete="current-password">
+      <button class="btn buy live" type="submit" style="width:100%;margin-top:.5rem">Log in</button>
+    </form>
+    <p class="msg" id="tasks-login-msg"></p>
+    <p class="fine">Only Sebastian's accounts can open this page.</p>
+  </div>
+</div>
+<div id="tasks-app" hidden>
 <div class="tasks-hero">
 <p class="eyebrow">Built Different · Drop 01</p>
 <p class="logo-big">TASKS<span>.</span></p>
@@ -36,10 +63,15 @@ body{background:#0b0b0b}
 <input id="task-add-text" type="text" placeholder="Add your own task…" required>
 <button class="btn buy live" type="submit">Add</button>
 </form>
-<p class="fine" style="margin-top:1.5rem">Private — just for you. Share the link only with people who should see your launch list.</p>
+<p style="margin-top:1.5rem"><button class="btn" id="tasks-logout" type="button">Log out</button></p>
+<p class="fine" style="margin-top:1rem">Private — only your account can see this. Checking a task off here checks it off on every device you're logged in on.</p>
+</div>
 </div>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+(function () {
+var OWNER_EMAILS = ['sebastianluis3177@gmail.com', 'gallegos.s445@icloud.com'];
 const KEY = 'clutch-tasks-v1';
 const DEFAULTS = [
   { t: 'Kevin — send the v3 pack', s: 'Fixed map + logo separately + do-not-produce note. Ask for the $260.40 breakdown, a delivery date, and a digital proof before anything is cut.', tag: 'Kevin', cls: '' },
@@ -62,6 +94,8 @@ function load() { try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'
 function save(ts) { try { localStorage.setItem(KEY, JSON.stringify(ts)); } catch (e) {} }
 const SB_URL = 'https://fgnuaxhujvxkfzzcvdqf.supabase.co';
 const SB_KEY = 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz';
+var sb = null;
+try { if (window.supabase) sb = window.supabase.createClient(SB_URL, SB_KEY); } catch (e) { sb = null; }
 async function sbSyncTasks() {
   try {
     const r = await fetch(SB_URL + '/rest/v1/clutch_tasks?select=id,text,note,tag,done&order=id', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
@@ -71,6 +105,24 @@ async function sbSyncTasks() {
       const ts = rows.map(x => ({ id: 'sb' + x.id, sbId: x.id, t: x.text, s: x.note || '', tag: x.tag || 'Task', cls: '', done: !!x.done }));
       try { localStorage.setItem(KEY, JSON.stringify(ts)); } catch (e) {}
       render();
+    } else {
+      // First run: this device's list (including any boxes already ticked) has never
+      // been saved to the cloud. Push it up once so every device shares the same list.
+      const local = load();
+      for (const item of local) {
+        try { await fetch(SB_URL + '/rest/v1/clutch_tasks', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify({ text: item.t, note: item.s || '', tag: item.tag || 'Task', done: !!item.done }) }); } catch (e) {}
+      }
+      try {
+        const r2 = await fetch(SB_URL + '/rest/v1/clutch_tasks?select=id,text,note,tag,done&order=id', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+        if (r2.ok) {
+          const rows2 = await r2.json();
+          if (rows2 && rows2.length) {
+            const ts = rows2.map(x => ({ id: 'sb' + x.id, sbId: x.id, t: x.text, s: x.note || '', tag: x.tag || 'Task', cls: '', done: !!x.done }));
+            try { localStorage.setItem(KEY, JSON.stringify(ts)); } catch (e) {}
+            render();
+          }
+        }
+      } catch (e) {}
     }
   } catch (e) {}
 }
@@ -97,8 +149,36 @@ function render() {
     if (item) { item.done = cb.checked; if (item.sbId) sbTaskPatch(item.sbId, { done: item.done }); } save(t2); render();
   }));
 }
-render();
-sbSyncTasks();
+function show(el) { ['tasks-private', 'tasks-login', 'tasks-app'].forEach(function (id) { document.getElementById(id).hidden = id !== el; }); }
+async function boot() {
+  if (!sb) { document.getElementById('tasks-login-msg').textContent = 'Accounts are offline right now — Supabase did not load. Try refreshing the page.'; show('tasks-login'); return; }
+  var user = null;
+  try { var res = await sb.auth.getUser(); user = res && res.data ? res.data.user : null; } catch (e) { user = null; }
+  if (user && OWNER_EMAILS.indexOf(user.email) >= 0) {
+    show('tasks-app');
+    render();
+    await sbSyncTasks();
+    render();
+  } else if (user) {
+    show('tasks-private');
+  } else {
+    show('tasks-login');
+  }
+}
+document.getElementById('tasks-login-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  var msg = document.getElementById('tasks-login-msg');
+  var email = document.getElementById('tasks-email').value.trim();
+  var pw = document.getElementById('tasks-password').value;
+  if (!sb) { msg.className = 'msg err'; msg.textContent = 'Accounts are offline right now.'; return; }
+  msg.className = 'msg'; msg.textContent = 'Logging in…';
+  try {
+    var res = await sb.auth.signInWithPassword({ email: email, password: pw });
+    if (res.error) { msg.className = 'msg err'; msg.textContent = res.error.message; return; }
+    msg.className = 'msg ok'; msg.textContent = 'Logged in.';
+    boot();
+  } catch (err) { msg.className = 'msg err'; msg.textContent = 'Login failed: ' + (err && err.message ? err.message : 'network error'); }
+});
 document.getElementById('task-add-form').addEventListener('submit', e => {
   e.preventDefault();
   const ts = load();
@@ -108,4 +188,10 @@ document.getElementById('task-add-form').addEventListener('submit', e => {
   ts.push(item);
   save(ts); render(); e.target.reset(); sbTaskAdd(item);
 });
+document.getElementById('tasks-logout').addEventListener('click', async function () {
+  if (sb) { try { await sb.auth.signOut(); } catch (e) {} }
+  location.reload();
+});
+boot();
+})();
 </script></body></html>
