@@ -493,7 +493,7 @@ First paid, first served.
     <button class="btn ghost" type="button" data-quick-reply="Yes — premium mesh, UES map print, made in our first run of 30.">Is it real mesh?</button>
     <button class="btn ghost" type="button" data-quick-reply="True to size — check the size chart on the site. S 29 in, M 31 in, L 33 in, XL 35 in waist.">What size should I get?</button>
     <button class="btn ghost" type="button" data-quick-reply="All sales are final — no returns, no refunds.">Can I return it?</button>
-    <button class="btn ghost" type="button" data-quick-reply="Send the exact total shown at checkout. Wrong amount = no refund and your shorts do not ship.">I sent the wrong amount</button>
+    <button class="btn ghost" type="button" data-quick-reply="Send the exact total shown at checkout. Wrong amount = your shorts do not ship — you can pay the rest or get a refund.">I sent the wrong amount</button>
     <button class="btn ghost" type="button" data-quick-reply="Check the size picker on the site — sold out sizes say SOLD OUT. Join the waitlist for that size and you will hear first if one comes back.">Is my size sold out?</button>
     <button class="btn ghost" type="button" data-quick-reply="US only for Drop 01.">Do you ship outside the US?</button>
     <button class="btn ghost" type="button" data-quick-reply="No date yet — join the waitlist on the site and you will hear first.">When is Drop 002?</button>
@@ -880,7 +880,7 @@ Name: [your name]</pre>
   <p class="eyebrow">FAQ</p>
   <h2 data-edit="faq-title">Before you ask</h2>
   <details><summary data-edit="faq-q1">When do preorders open?</summary><p data-edit="faq-a1">Friday, November 27, 2026 at 6:00 PM ET — preorders open right here on this site.</p></details>
-  <details><summary data-edit="faq-q2">What if I send the wrong amount?</summary><p>Send the exact total shown at checkout. All sales are final — if you send the wrong amount, there is no refund, CLUTCH keeps what was sent, and <b>your shorts will not ship</b>. Double-check before you pay.</p></details>
+  <details><summary data-edit="faq-q2">What if I send the wrong amount?</summary><p>Send the exact total shown at checkout. All sales are final once paid in full. If you send the wrong amount, <b>your shorts will not ship</b> — you can pay the rest to complete your order, or get a refund of what you sent. DM @clutchny1 either way. Double-check before you pay.</p></details>
 <details><summary data-edit="faq-q3">How do I buy a pair?</summary><p>Tap “Checkout” above, pick your size, fill in your details — then it sends you to the Greenlight link to pay $35 total ($25 if you pick free NYC pickup). First paid, first served. You can also still DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> to buy.</p></details>
   <details><summary data-edit="faq-q4">Cash or card? Shipping?</summary><p data-edit="faq-a4">$25 + shipping ($35 total), pay via Greenlight — or Cash App in the DM. We ship in the US with USPS Ground Advantage (about $8–$11, depends where you are) — or free local pickup in NYC. No holds without payment.</p></details>
   <details><summary data-edit="faq-q5">How much?</summary><p data-edit="faq-a5">$25 a pair, plus shipping.</p></details>
@@ -1478,9 +1478,10 @@ function applyApproval(action, p, actor) {
       const ix = findApprovalOrder(d, p); if (ix === -1) return false;
       const o = d.orders[ix];
       if (o.status === 'Refunded') return true;
+      const prevStatus = o.status;
       o.status = 'Refunded';
-      if (d.stock[o.size] !== undefined) d.stock[o.size]++;
-      if (sbSyncOn) { sbPatch('clutch_stock', o.size, { stock_left: d.stock[o.size] }); sbOrderPatch(o, { status: 'Refunded' }); }
+      if (prevStatus === 'Paid' || prevStatus === 'Shipped' || prevStatus === 'Delivered') { if (d.stock[o.size] !== undefined) d.stock[o.size]++; if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: d.stock[o.size] }); }
+      if (sbSyncOn) sbOrderPatch(o, { status: 'Refunded' });
       logActivity('Refunded order #' + (ix + 1) + ' (' + o.buyer + ', ' + o.size + ') — approved for ' + who);
       saveOwner(d); renderOwner(); return true;
     }
@@ -2471,11 +2472,11 @@ function renderOwner() {
   const payoutEl = $('owner-payouts');
   if (payoutEl) {
     const pend = d.orders.map((o, i) => ({ o, i })).filter(x => (x.o.status || 'Paid') === 'Pending');
-    payoutEl.innerHTML = pend.length ? `<h3>⏳ Waiting on payment (${pend.length})</h3>` + pend.map(x => `<div style="margin:.3rem 0">${x.o.buyer} — ${x.o.size} — $${x.o.total === undefined ? 35 : x.o.total} <button class="btn ghost" type="button" data-payout-paid="${x.i}">Paid in full</button> <button class="btn ghost" type="button" data-payout-under="${x.i}">Paid less — don't ship</button></div>`).join('') + `<p class="fine">Total waiting: $${pend.reduce((a, x) => a + (x.o.total === undefined ? 35 : x.o.total), 0).toFixed(2)} — these are Greenlight payments your parent still has to approve. Paid less than the total? Hit "Paid less" — you keep the money, the shorts stay yours, no refund.</p>` : '<p class="fine">No payments waiting — everything is paid or shipped.</p>';
+    payoutEl.innerHTML = pend.length ? `<h3>⏳ Waiting on payment (${pend.length})</h3>` + pend.map(x => `<div style="margin:.3rem 0">${x.o.buyer} — ${x.o.size} — $${x.o.total === undefined ? 35 : x.o.total} <button class="btn ghost" type="button" data-payout-paid="${x.i}">Paid in full</button> <button class="btn ghost" type="button" data-payout-under="${x.i}">Paid less — top up or refund</button></div>`).join('') + `<p class="fine">Total waiting: $${pend.reduce((a, x) => a + (x.o.total === undefined ? 35 : x.o.total), 0).toFixed(2)} — these are Greenlight payments your parent still has to approve. Paid less than the total? Hit "Paid less" — the shorts don't ship. They can pay the rest to complete the order, or get a refund of what they sent.</p>` : '<p class="fine">No payments waiting — everything is paid or shipped.</p>';
     payoutEl.querySelectorAll('[data-payout-under]').forEach(b => b.addEventListener('click', () => {
       const dd = loadOwner(); const o = dd.orders[+b.dataset.payoutUnder];
-      if (!confirm(`${o.buyer} paid less than $${o.total === undefined ? 35 : o.total}. Mark underpaid? You keep the money and DO NOT send the shorts. No refund.`)) return;
-      o.status = 'Underpaid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Underpaid — DO NOT SHIP, money kept, no refund' });
+      if (!confirm(`${o.buyer} paid less than $${o.total === undefined ? 35 : o.total}. Mark underpaid? DO NOT send the shorts — they can pay the rest or get a refund.`)) return;
+      o.status = 'Underpaid'; if (!o.history) o.history = []; o.history.push({ at: new Date().toISOString().slice(0, 16).replace('T', ' '), text: '→ Underpaid — DO NOT SHIP, top up or refund' });
       if (sbSyncOn) sbOrderPatch(o, { status: 'Underpaid' });
       logActivity(`Underpaid order #${+b.dataset.payoutUnder + 1} (${o.buyer}) — not shipped`); saveOwner(dd); renderOwner();
     }));
@@ -2792,9 +2793,9 @@ function renderOwner() {
       ordersEl.querySelectorAll('[data-order-refund]').forEach(b => b.addEventListener('click', () => {
         const dd0 = loadOwner(); const o0 = dd0.orders[+b.dataset.orderRefund];
         if (isGated()) { requestApproval('order-refund', 'Refund order #' + (+b.dataset.orderRefund + 1) + ' — ' + o0.buyer + ' (' + o0.size + ')', { buyer: o0.buyer, size: o0.size, fromSize: o0.size, total: o0.total }); approvalQueuedMsg(); return; }
-        if (!confirm('Refund this order? The size goes back into stock and it stops counting toward revenue/profit.')) return;
+        if (!confirm((o0.status === 'Paid' || o0.status === 'Shipped' || o0.status === 'Delivered') ? 'Refund this order? The size goes back into stock and it stops counting toward revenue/profit.' : 'Refund this order? It stops counting toward revenue/profit. Stock is untouched — this order never took a pair out of stock.')) return;
         const dd = loadOwner(); const o = dd.orders[+b.dataset.orderRefund];
-        if (o.status !== 'Refunded' && o.status !== 'Cancelled') { o.status = 'Refunded'; if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: dd.stock[o.size] }); logActivity(`Refunded order #${+b.dataset.orderRefund + 1} (${o.buyer}, ${o.size})`); }
+        if (o.status !== 'Refunded' && o.status !== 'Cancelled') { const prevStatus = o.status; o.status = 'Refunded'; if (prevStatus === 'Paid' || prevStatus === 'Shipped' || prevStatus === 'Delivered') { if (dd.stock[o.size] !== undefined) dd.stock[o.size]++; if (sbSyncOn) sbPatch('clutch_stock', o.size, { stock_left: dd.stock[o.size] }); } logActivity(`Refunded order #${+b.dataset.orderRefund + 1} (${o.buyer}, ${o.size})`); }
         saveOwner(dd); renderOwner();
       }));
       ordersEl.querySelectorAll('[data-order-cancel]').forEach(b => b.addEventListener('click', () => {
