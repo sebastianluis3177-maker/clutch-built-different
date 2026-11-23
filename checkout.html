@@ -146,14 +146,7 @@ $('checkout-form').addEventListener('submit', async e => {
   const t = total();
   const sizeStr = $('co-bundle').checked ? size + ' + ' + size2 + ' (bundle)' : size;
   const orderText = 'CLUTCH Drop 01 — ' + buyer + ' — size ' + sizeStr + ' — ' + (ship === 'pickup' ? 'NYC pickup' : 'ship to ' + address) + ' — $' + t.total.toFixed(2);
-  // save as Pending in Supabase so admin sees it (fire-and-forget — never block checkout on it)
-  if (typeof fetch === 'function') {
-    const orderRow = { buyer: buyer + ' (' + email + ')', size: sizeStr, pay: 'Greenlight', total: t.total, status: 'Pending', address, note: (giftCode ? 'Gift card ' + giftCode + '. ' : '') + $('co-note').value.trim(), ref: $('co-ref').value.trim().replace(/^@/, '') };
-    fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(orderRow) })
-      .then(r => { if (!r.ok) return fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ buyer: orderRow.buyer, size: sizeStr, pay: 'Greenlight', total: t.total, status: 'Pending', address }) }); })
-      .catch(() => {});
-  }
-  $('checkout-form').hidden = true;
+  if ($('checkout-form').dataset.saving === '1') return; $('checkout-form').dataset.saving = '1'; const orderRow = { buyer: buyer + ' (' + email + ')', size: sizeStr, pay: 'Greenlight', total: t.total, status: 'Pending', address, note: (giftCode ? 'Gift card ' + giftCode + '. ' : '') + $('co-note').value.trim(), ref: $('co-ref').value.trim().replace(/^@/, '') }; try { const response = await fetch(SB_URL + '/rest/v1/clutch_orders', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(orderRow) }); if (!response.ok) { delete $('checkout-form').dataset.saving; alert('We could not save your order. Please try again or contact clutchbuiltdifferent@gmail.com.'); return; } } catch (_) { alert('We could not verify whether your order was saved. Please contact clutchbuiltdifferent@gmail.com before trying again to avoid a duplicate.'); return; }   $('checkout-form').hidden = true;
   $('co-done').hidden = false;
   // confirmation email to the buyer (FormSubmit auto-reply — fire-and-forget, never blocks checkout)
   if (typeof fetch === 'function') {
