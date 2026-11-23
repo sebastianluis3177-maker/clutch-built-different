@@ -3944,14 +3944,10 @@ form.addEventListener('submit', async e => {
   e.preventDefault();
   const email = form.email.value.trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = 'msg err'; msg.textContent = 'Enter a valid email.'; return; }
-  if (FORM_ENDPOINT) {
+  if (supabaseClient) {
     msg.className = 'msg'; msg.textContent = 'Sending…';
     try {
-      const r = await fetch(FORM_ENDPOINT, { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ email, _subject: 'CLUTCH Drop 01 — notify signup' }) });
-      // FormSubmit returns HTTP 200 even on failure, with success as the string "true"/"false".
-      const data = await r.json().catch(() => ({}));
-      if (String(data.success) !== 'true') throw new Error(data.message || 'form not delivered');
-      if (sbSyncOn) sbPost('clutch_signups', { email });
+      if (!(await sbPost('clutch_signups', { email }))) throw new Error('Signup save failed');         if (FORM_ENDPOINT) fetch(FORM_ENDPOINT, { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ email, _subject: 'CLUTCH Drop 01 — notify signup' }) }).catch(() => {});
       msg.className = 'msg ok'; msg.textContent = "You're on the list. We'll hit you before Nov 27 · 6PM ET.";
       form.reset(); return;
     } catch (_) { /* fall through to fallback */ }
