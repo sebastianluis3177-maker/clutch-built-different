@@ -1,76 +1,8 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Check your gift card — CLUTCH</title><link rel="stylesheet" href="assets/style.css"></head>
+<title>Gift cards — CLUTCH</title><link rel="stylesheet" href="assets/style.css"></head>
 <body style="background:#0b0b0b"><header class="nav"><a class="logo" href="/">CLUTCH</a><nav><a href="/">Home</a><a href="/checkout.html">Checkout</a><a href="/drop002.html">Drop 002</a></nav></header>
 <main style="max-width:700px;margin:2rem auto;padding:0 1rem">
-<p class="eyebrow">Drop 01</p><h2>Check your gift card.</h2>
-<p class="lede">Type in your GIFT code and we'll tell you if it's still good — $25 off at checkout.</p>
-<form id="gc-form" novalidate>
-<input id="gc-code" type="text" placeholder="GIFT-XXXX" required style="padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);text-transform:uppercase">
-<button class="btn buy live" type="submit">Check it</button>
-</form>
-<p id="gc-msg" class="msg" role="status"></p>
-<div id="gc-result" class="fine"></div>
-<p class="fine">A good card takes $25 off at <a href="/checkout.html">checkout</a> — paste the code in the discount box there. Something wrong? DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> with your code and we'll check it.</p>
-<hr style="border-color:var(--line);margin:2rem 0">
-<p class="eyebrow">Give one</p><h2>Send a gift card.</h2>
-<p class="lede">A $25 CLUTCH gift card, emailed straight to whoever you pick. You pay $25 after — we'll send you to Greenlight.</p>
-<form id="gc-send-form" novalidate>
-<input id="gc-to-name" type="text" placeholder="Their name" required style="padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
-<input id="gc-to-email" type="email" placeholder="Their email" required style="padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
-<input id="gc-from-name" type="text" placeholder="Your name" required style="padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
-<button class="btn buy live" type="submit">Send it — $25</button>
-</form>
-<p id="gc-send-msg" class="msg" role="status"></p>
-<div id="gc-send-out" class="fine"></div>
-</main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const sb = window.supabase.createClient('https://fgnuaxhujvxkfzzcvdqf.supabase.co', 'sb_publishable_ZFbaHvFSBXH1EsMlUe6-2A_r18hQGYz');
-async function checkCode(code) {
-  const msg = document.getElementById('gc-msg'), out = document.getElementById('gc-result');
-  msg.textContent = ''; out.textContent = '';
-  code = (code || '').trim().toUpperCase();
-  if (!/^GIFT-[A-Z0-9]{4}$/.test(code)) { msg.className = 'msg err'; msg.textContent = "That doesn't look like a gift card code — it should be GIFT- followed by 4 letters or numbers."; return; }
-  msg.className = 'msg'; msg.textContent = 'Checking…';
-  try {
-    // already redeemed? (the code lands in the order note at checkout)
-    const o = await sb.from('clutch_orders').select('note').ilike('note', '%' + code + '%').limit(5);
-    if (o.data && o.data.length) { msg.className = 'msg err'; msg.textContent = '❌ This gift card was already used.'; return; }
-    // was it ever issued?
-    const g = await sb.from('clutch_giftcards').select('code,value').eq('code', code).maybeSingle();
-    if (g.error) { msg.className = 'msg'; msg.textContent = '⚠️ Couldn\'t verify this code yet — DM @clutchny1 with the code and we\'ll check it for you.'; return; }
-    if (!g.data) { msg.className = 'msg err'; msg.textContent = '❌ We don\'t have a gift card with that code. Double-check it or DM @clutchny1.'; return; }
-    msg.className = 'msg ok'; msg.textContent = '✅ Good to go — $' + (g.data.value || 25) + ' off at checkout.';
-    out.innerHTML = 'Use it at <a href="/checkout.html?code=' + code + '">checkout</a> — the code is already filled in for you.';
-  } catch (_) { msg.className = 'msg'; msg.textContent = '⚠️ Couldn\'t reach the checker right now — DM @clutchny1 with the code and we\'ll check it for you.'; }
-}
-document.getElementById('gc-form').addEventListener('submit', e => { e.preventDefault(); checkCode(document.getElementById('gc-code').value); });
-// Send a gift card by email — the code goes to the recipient via FormSubmit's
-// autoresponse (it replies to the _replyto address), and CLUTCH gets a copy too.
-function gcCode() { const c = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let s = ''; for (let i = 0; i < 4; i++) s += c[Math.floor(Math.random() * c.length)]; return 'GIFT-' + s; }
-document.getElementById('gc-send-form').addEventListener('submit', async e => {
-  e.preventDefault();
-  const toName = document.getElementById('gc-to-name').value.trim();
-  const toEmail = document.getElementById('gc-to-email').value.trim().toLowerCase();
-  const fromName = document.getElementById('gc-from-name').value.trim();
-  const msg = document.getElementById('gc-send-msg'), out = document.getElementById('gc-send-out');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toEmail)) { msg.className = 'msg err'; msg.textContent = "That email doesn't look right."; return; }
-  const code = gcCode();
-  msg.className = 'msg'; msg.textContent = 'Sending…';
-  try { await sb.from('clutch_giftcards').insert({ code, value: 25 }); } catch (_) {}
-  try {
-    await fetch('https://formsubmit.co/ajax/clutchbuiltdifferent@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-      _subject: 'CLUTCH gift card for ' + toName,
-      _replyto: toEmail,
-      _autoresponse: 'You got a $25 CLUTCH gift card from ' + fromName + '! Your code is ' + code + ' — paste it in the discount box at checkout: https://clutchbuiltdifferent.com/checkout.html?code=' + code + ' — good for Drop 01 or Drop 002. Built Different.',
-      _template: 'table',
-      to_name: toName, to_email: toEmail, from_name: fromName, gift_code: code, value: 25
-    })});
-  } catch (_) {}
-  msg.className = 'msg ok'; msg.textContent = '✅ Sent to ' + toEmail + ' — code ' + code + '.';
-  out.innerHTML = 'Now pay $25 for it: <a class="btn buy live" href="https://gl.me/u/qqMvQlZ6mTpb" target="_blank" rel="noopener">Pay $25 via Greenlight →</a><br><br>Code (in case the email lands in spam): <b>' + code + '</b> — <a href="/giftcard.html?code=' + code + '">check it here</a>.';
-});
-// shareable link: /giftcard.html?code=GIFT-XXXX checks it straight away
-(function () { const c = new URLSearchParams(location.search).get('code'); if (c) { document.getElementById('gc-code').value = c.trim().toUpperCase(); checkCode(c); } })();
-</script>
-</body></html>
+<p class="eyebrow">Gift cards</p><h2>Gift cards are temporarily unavailable.</h2>
+<p class="lede">Gift card purchases and online balance checks are paused while we update the system.</p>
+<p class="fine">Already have a gift card? DM <a href="https://www.instagram.com/clutchny1/" target="_blank" rel="noopener">@clutchny1</a> for help.</p>
+</main></body></html>
