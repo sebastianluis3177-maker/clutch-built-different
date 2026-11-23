@@ -86,7 +86,7 @@ function total() {
 function renderSummary() {
   const t = total();
   $('co-ship-line').textContent = '$' + t.ship.toFixed(2);
-  $('co-disc-line').style.display = discountPct ? '' : 'none';
+  $('co-disc-line').style.display = t.disc ? '' : 'none';
   $('co-disc-amt').textContent = '−$' + t.disc.toFixed(2);
   $('co-total').textContent = '$' + t.total.toFixed(2);
 }
