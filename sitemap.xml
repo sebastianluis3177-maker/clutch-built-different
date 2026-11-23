@@ -11,4 +11,8 @@
   <url><loc>https://clutchbuiltdifferent.com/faq.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://clutchbuiltdifferent.com/cart.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://clutchbuiltdifferent.com/shop.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-</urlset>
+  <url><loc>https://clutchbuiltdifferent.com/checkout.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://clutchbuiltdifferent.com/live.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://clutchbuiltdifferent.com/track.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://clutchbuiltdifferent.com/giftcard.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  </urlset>
