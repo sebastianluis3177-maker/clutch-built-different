@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin.html
+Disallow: /tasks.html
+Disallow: /myday.html
 
 Sitemap: https://clutchbuiltdifferent.com/sitemap.xml
