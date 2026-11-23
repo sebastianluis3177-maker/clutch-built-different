@@ -3938,31 +3938,7 @@ if (exportBtn) exportBtn.addEventListener('click', async () => {
 });
 const clearBtn = $('owner-clear');
 if (clearBtn) clearBtn.addEventListener('click', () => { if (isGated()) { requestApproval('orders-clear', 'Clear ALL orders', {}); approvalQueuedMsg(); return; } const d = loadOwner(); d.orders = []; saveOwner(d); renderOwner(); });
-const form = $('notify-form'), msg = $('notify-msg');
-const IG = 'https://ig.me/m/clutchny1';
-form.addEventListener('submit', async e => {
-  e.preventDefault();
-  const email = form.email.value.trim();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = 'msg err'; msg.textContent = 'Enter a valid email.'; return; }
-  if (FORM_ENDPOINT) {
-    msg.className = 'msg'; msg.textContent = 'Sending…';
-    try {
-      const r = await fetch(FORM_ENDPOINT, { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ email, _subject: 'CLUTCH Drop 01 — notify signup' }) });
-      // FormSubmit returns HTTP 200 even on failure, with success as the string "true"/"false".
-      const data = await r.json().catch(() => ({}));
-      if (String(data.success) !== 'true') throw new Error(data.message || 'form not delivered');
-      if (sbSyncOn) sbPost('clutch_signups', { email });
-      msg.className = 'msg ok'; msg.textContent = "You're on the list. We'll hit you before Nov 27 · 6PM ET.";
-      form.reset(); return;
-    } catch (_) { /* fall through to fallback */ }
-  }
-  if (NOTIFY_EMAIL) {
-    location.href = `mailto:${NOTIFY_EMAIL}?subject=${encodeURIComponent('Notify me: CLUTCH Drop 01')}&body=${encodeURIComponent('Notify me at ' + email)}`;
-    msg.className = 'msg'; msg.textContent = 'Your email app should open — hit send and you\'re set.';
-  } else {
-    msg.className = 'msg'; msg.innerHTML = `That didn't go through — <a href="${IG}" target="_blank" rel="noopener">DM us “DROP” on Instagram</a> and we'll ping you when it's live.`;
-  }
-});
+const form = $('notify-form'), msg = $('notify-msg'); const IG = 'https://ig.me/m/clutchny1'; form.addEventListener('submit', async e => { e.preventDefault(); const email = form.email.value.trim(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = 'msg err'; msg.textContent = 'Enter a valid email.'; return; } msg.className = 'msg'; msg.textContent = 'Sending…'; try { if (!(await sbPost('clutch_signups', { email }))) throw new Error('Signup save failed'); msg.className = 'msg ok'; msg.textContent = "You're on the list. We'll hit you before Nov 27 · 6PM ET."; form.reset(); return; } catch (_) {} msg.className = 'msg err'; msg.innerHTML = `That didn't go through — <a href="${IG}" target="_blank" rel="noopener">DM us “DROP” on Instagram</a> and we'll ping you when it's live.`; });
 
 // Supabase session check, after $ and the owner functions are defined
 // After clicking the confirm-email link, Supabase drops you back on the site with
