@@ -49,7 +49,7 @@
 
 <div class="field"><label>Discount code (optional)</label>
 <div style="display:flex;gap:.5rem"><input id="co-discount" type="text" placeholder="CLUTCH10" style="text-transform:uppercase"><button class="btn ghost" type="button" id="co-apply-discount">Apply</button></div>
-<p class="fine" id="co-discount-msg"></p><p class="fine">Got a gift card? <a href="/giftcard.html">Check it here</a> first, then paste the code above.</p></div>
+<p class="fine" id="co-discount-msg"></p><p class="fine">Gift card redemption is temporarily unavailable. <a href="/giftcard.html">Learn more</a>.</p></div>
 
 <div class="summary" id="co-summary">
 <div><span>UES Mesh Shorts</span><span>$25.00</span></div>
@@ -114,7 +114,7 @@ $('co-ship').addEventListener('change', () => {
 $('co-apply-discount').addEventListener('click', () => {
   const code = ($('co-discount').value || '').trim().toUpperCase();
   if (code === 'CLUTCH10') { discountPct = 10; discountFixed = 0; giftCode = ''; $('co-disc-label').textContent = 'Discount (CLUTCH10)'; $('co-discount-msg').textContent = 'Applied — 10% off.'; }
-  else if (/^GIFT-[A-Z0-9]{4}$/.test(code)) { discountPct = 0; discountFixed = 25; giftCode = code; $('co-disc-label').textContent = 'Gift card (' + code + ')'; $('co-discount-msg').textContent = 'Applied — $25 off your gift card.'; }
+  else if (/^GIFT-[A-Z0-9]{4}$/.test(code)) { discountPct = 0; discountFixed = 0; giftCode = ''; $('co-discount-msg').textContent = 'Gift card redemption is temporarily unavailable. DM @clutchny1 for help.'; }
   else { discountPct = 0; discountFixed = 0; giftCode = ''; $('co-discount-msg').textContent = "That code didn't work."; }
   renderSummary();
 });
