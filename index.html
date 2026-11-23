@@ -3947,17 +3947,12 @@ form.addEventListener('submit', async e => {
   if (supabaseClient) {
     msg.className = 'msg'; msg.textContent = 'Sending…';
     try {
-      if (!(await sbPost('clutch_signups', { email }))) throw new Error('Signup save failed');         if (FORM_ENDPOINT) fetch(FORM_ENDPOINT, { method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ email, _subject: 'CLUTCH Drop 01 — notify signup' }) }).catch(() => {});
+      if (!(await sbPost('clutch_signups', { email }))) throw new Error('Signup save failed');         
       msg.className = 'msg ok'; msg.textContent = "You're on the list. We'll hit you before Nov 27 · 6PM ET.";
       form.reset(); return;
     } catch (_) { /* fall through to fallback */ }
   }
-  if (NOTIFY_EMAIL) {
-    location.href = `mailto:${NOTIFY_EMAIL}?subject=${encodeURIComponent('Notify me: CLUTCH Drop 01')}&body=${encodeURIComponent('Notify me at ' + email)}`;
-    msg.className = 'msg'; msg.textContent = 'Your email app should open — hit send and you\'re set.';
-  } else {
-    msg.className = 'msg'; msg.innerHTML = `That didn't go through — <a href="${IG}" target="_blank" rel="noopener">DM us “DROP” on Instagram</a> and we'll ping you when it's live.`;
-  }
+  msg.className = 'msg err'; msg.innerHTML = `That didn't go through — <a href="${IG}" target="_blank" rel="noopener">DM us “DROP” on Instagram</a> and we'll ping you when it's live.`;
 });
 
 // Supabase session check, after $ and the owner functions are defined
