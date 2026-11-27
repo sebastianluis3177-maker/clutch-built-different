@@ -2454,7 +2454,7 @@ function renderOwner() {
   const ntEl = $('owner-notes');
   if (ntEl) {
     const ns = d.notes || [];
-    ntEl.innerHTML = ns.length ? ns.map(n => `<div style="margin:.3rem 0"><span class="fine">${n.at}</span> — ${n.text}</div>`).join('') : 'No handoff notes yet — leave a note for Emeri or Ajan here.';
+    ntEl.innerHTML = ns.length ? ns.map(n => `<div style="margin:.3rem 0"><span class="fine">${n.at}</span> — ${n.text}</div>`).join('') : 'No handoff notes yet — leave a note here.';
   }
   const ctEl = $('owner-custom-tpls');
   if (ctEl) {
@@ -2465,7 +2465,7 @@ function renderOwner() {
   const actEl = $('owner-activity');
   if (actEl) {
     const act = d.activity || [];
-    actEl.innerHTML = act.length ? act.map(a => `<div style="margin:.3rem 0"><span class="fine">${a.at}</span> — ${a.text}</div>`).join('') : 'No activity yet — actions by you, Emeri, and Ajan will show up here.';
+    actEl.innerHTML = act.length ? act.map(a => `<div style="margin:.3rem 0"><span class="fine">${a.at}</span> — ${a.text}</div>`).join('') : 'No activity yet — actions will show up here.';
   }
   const liveBtn = $('owner-live-toggle');
   if (liveBtn) liveBtn.textContent = d.liveMode ? '🔴 LIVE MODE ON — tap to turn off' : 'Turn on preorder-day live mode';
